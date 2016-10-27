@@ -18,7 +18,7 @@ public class TokenTerrain {
 	// Sets sprite on input token's SpriteRenderer
 	public void SetSprite(GameObject token) {
 		// Get Sprite Renderer component and set equal to the sprite in the resources folder
-		token.GetComponent<SpriteRenderer>().sprite = Resources.Load("Prefabs/Sprites/Terrain/" + Name) as Sprite;
+		token.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/Terrain/" + Name);
 	}
 
 }
