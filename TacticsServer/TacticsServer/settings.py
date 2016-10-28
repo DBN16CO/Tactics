@@ -37,7 +37,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
+    'Communication'
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'asgiref.inmemory.ChannelLayer',
+        'ROUTING': 'TacticsServer.router.channel_routing',
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
