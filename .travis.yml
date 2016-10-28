@@ -1,7 +1,4 @@
-language: objective-c
-osx_image: xcode61
-rvm:
-- 2.1.2
+language: python
 install:
 - ./TravisScripts/install.sh
 script:
