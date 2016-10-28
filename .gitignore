@@ -43,3 +43,10 @@ Assembly-CSharp.csproj
 Icon?
 ehthumbs.db
 [Tt]humbs.db
+
+# ====== #
+# Python #
+# ====== #
+*.pyc
+*.sqlite3
+
