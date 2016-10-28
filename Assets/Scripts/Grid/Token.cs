@@ -4,7 +4,10 @@
 // Each grid square is a token and is the main form of player interaction
 public class Token : MonoBehaviour {
 
-	private TokenTerrain _terrain;		// The token's current terrain
+	private int _x;					// X value of token
+	private int _y;					// Y value of token
+
+	private TokenTerrain _terrain;	// The token's current terrain
 	private Unit 	_unit;			// The unit currently on the token
 
 
@@ -19,6 +22,16 @@ public class Token : MonoBehaviour {
 		get{return _unit;}
 		set{_unit = value;}
 	}
+	// Returns the column of the token
+	public int X {
+		get{return _x;}
+		set{_x = value;}
+	}
+	// Returns the row of the token
+	public int Y {
+		get{return _y;}
+		set{_y = value;}
+	}
 #endregion
 
 
@@ -31,7 +44,7 @@ public class Token : MonoBehaviour {
 		}
 		// Else if there is no unit
 		else{
-			Debug.Log(CurrentTerrain.Name);
+			Debug.Log(CurrentTerrain.Name + "(" + X + "," + Y + ")");
 		}
 	}
 
