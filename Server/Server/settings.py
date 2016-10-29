@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
-    'Communication'
+    'Communication',
+    'Game',
+    'Static',
+    'User'
 ]
 
 CHANNEL_LAYERS = {
@@ -84,8 +87,12 @@ WSGI_APPLICATION = 'Server.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'tactics',
+        'USER': 'postgres',
+        'PASSWORD': 'abc12345',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
