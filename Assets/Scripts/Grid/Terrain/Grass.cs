@@ -7,8 +7,8 @@ public class Grass : TokenTerrain {
 	// Pass in token so we can set the sprite image
 	public Grass(GameObject token) {
 		// Name is used to generate asset path so make sure it is the sprite name in the resources folder
-		Name = "GrassGrid";
-		token.name = "GrassGrid";
+		string spriteName = "Grass10";
+		Name = token.name = spriteName;
 		// Calls parent function to set token's sprite image
 		SetSprite(token);
 	}
