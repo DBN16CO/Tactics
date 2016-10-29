@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script is used to create the database
 
@@ -36,4 +36,4 @@ fi
 sql=$sql"ALTER ROLE postgres WITH PASSWORD '$password';"
 
 # Log into the database and run all of the commands
-echo $sql | setuid postgres psql
+echo $sql | sudo postgres psql

@@ -5,9 +5,6 @@
 echo 'Downloading Pre-reqs: '
 pip install -r ./Server/requirements.txt
 
-#Give all the permissions to create :)
-chmod 777 ./Database/Create.sh
-
 # Create the database if it does not already exist
 sudo ./Database/Create.sh tactics 12345
 
