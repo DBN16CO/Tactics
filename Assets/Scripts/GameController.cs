@@ -4,7 +4,7 @@ public class GameController : MonoBehaviour {
 
 	void Start() {
 		Grid grid = gameObject.AddComponent<Grid>();
-		grid.CreateGrid(10);
+		grid.CreateGrid(8);
 	}
 
 }
