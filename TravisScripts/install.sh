@@ -6,7 +6,7 @@ echo 'Downloading Pre-reqs: '
 pip install -r ./Server/requirements.txt
 
 # Create the database if it does not already exist
-./Database/Create.sh tactics 12345
+sudo ./Database/Create.sh tactics 12345
 
 # Create the database tables for above database
 python ./Server/manage.py migrate
