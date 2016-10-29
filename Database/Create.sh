@@ -36,4 +36,4 @@ fi
 sql=$sql"ALTER ROLE postgres WITH PASSWORD '$password';"
 
 # Log into the database and run all of the commands
-echo $sql | sudo postgres psql
+echo $sql | sudo -u postgres psql
