@@ -68,10 +68,6 @@ public class Communication{
 
 	public static void Send(byte[] buffer)
 	{
-		if (m_IsConnected) {
-			Debug.Log ("Connected!");
-		}
-		Debug.Log (buffer.Length);
 		m_Socket.Send(buffer);
 	}
 
