@@ -9,7 +9,7 @@ using UnityEngine;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-public class Communication{
+public static class Communication{
 
 	static WebSocketSharp.WebSocket m_Socket;
 	static Queue<byte[]> m_Messages = new Queue<byte[]>();

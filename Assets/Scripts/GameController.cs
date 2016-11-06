@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Threading;
 using System;
+using System.Collections.Generic;
 
 public class GameController : MonoBehaviour {
 
@@ -8,17 +9,19 @@ public class GameController : MonoBehaviour {
 		Grid grid = gameObject.AddComponent<Grid>();
 		grid.CreateGrid(8);
 
-
+		var request = new Dictionary<string, object>();
+		request["PING"] = "PING";
+		
 		//Example sending and receiving data synchronously
 		Communication.Connect(new Uri("ws://localhost:8000"));
-		Communication.SendString ("{\"PING\":\"PING\"}");
+		Communication.SendString (Json.ToString(request));
 		string response = null;
 		while (response == null) {
 			response = Communication.RecvString ();
 		}
 
-		Debug.Log ("Received: " + response);		
-
+		Debug.Log ("Received: " + response);
+		Debug.Log("Response toDict: " + Json.ToDict(response)["PONG"]);
 
 		//Example sending and receiving data asynchronously and doing something with the response
 		new Thread(GameController.PingServerPrintResponse).Start();
@@ -29,8 +32,11 @@ public class GameController : MonoBehaviour {
 	}
 
 	public static void PingServerPrintResponse(){
+		var request = new Dictionary<string, object>();
+		request["PING"] = "PING";
+
 		Communication.Connect(new Uri("ws://localhost:8000"));
-		Communication.SendString("{\"PING\":\"PING\"}");
+		Communication.SendString(Json.ToString(request));
 
 		string response = null;
 		while (response == null) {
@@ -38,6 +44,8 @@ public class GameController : MonoBehaviour {
 		}
 
 		Debug.Log ("Received in pingServerPrintResponse: " + response);
+
+		Debug.Log("Response in pingServerPrintResponse - toDict: " + Json.ToDict(response)["PONG"]);
 	}
 
 }
