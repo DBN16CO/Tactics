@@ -5,7 +5,7 @@
 
 #Test that the Django server is up and running
 sleep 5s
-wget http://127.0.0.1:8000
+curl -I http://127.0.0.1:8000
 
 #echo "Attempting to build $project for Windows"
 #/Applications/Unity/Unity.app/Contents/MacOS/Unity \
