@@ -7,7 +7,7 @@ install:
 - ./TravisScripts/install.sh
 
 before_script:
-- python ./Server/manage.py runserver 0.0.0.0:8000
+- python ./Server/manage.py runserver 0.0.0.0:8000 &
 
 script:
 - ./TravisScripts/build.sh
