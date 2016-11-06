@@ -3,6 +3,9 @@
 # Change this the name of your project. This will be the name of the final executables as well.
 #project="Tactics"
 
+#Test that the Django server is up and running
+curl -I http://localhost:8000
+
 #echo "Attempting to build $project for Windows"
 #/Applications/Unity/Unity.app/Contents/MacOS/Unity \
 #  -batchmode \
