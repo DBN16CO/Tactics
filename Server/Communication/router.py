@@ -6,8 +6,6 @@ def processRequest(message):
 	#Set the logging level default
 	logging.basicConfig(level=logging.DEBUG)
 
-	print str(message.content)
-
 	#Get the request
 	request = message.content['bytes']
 

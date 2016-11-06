@@ -11,3 +11,4 @@ before_script:
 
 script:
 - ./TravisScripts/build.sh
+- python ./Server/manage.py test
