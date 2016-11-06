@@ -7,7 +7,7 @@ install:
 - ./TravisScripts/install.sh
 
 before_script:
-- python ./Server/manage.py runserver &
+- python ./Server/manage.py runserver
 
 script:
 - ./TravisScripts/build.sh
