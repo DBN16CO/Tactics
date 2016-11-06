@@ -6,8 +6,8 @@ services:
 install:
 - ./TravisScripts/install.sh
 
-before-script:
-- python ./Server/manage.py runserver
+before_script:
+- python ./Server/manage.py runserver &
 
 script:
 - ./TravisScripts/build.sh
