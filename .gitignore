@@ -49,4 +49,5 @@ ehthumbs.db
 # ====== #
 *.pyc
 *.sqlite3
+*.coverage
 
