@@ -2,7 +2,12 @@ language: python
 sudo: required
 services:
 - postgresql
+- redis-server
 install:
 - ./TravisScripts/install.sh
+
+before-script:
+- python ./Server/manage.py runserver
+
 script:
 - ./TravisScripts/build.sh

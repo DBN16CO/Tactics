@@ -46,7 +46,11 @@ INSTALLED_APPS = [
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'asgiref.inmemory.ChannelLayer',
+        #'BACKEND': 'asgiref.inmemory.ChannelLayer',
+        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
         'ROUTING': 'Server.router.channel_routing',
     },
 }
