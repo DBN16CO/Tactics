@@ -2,10 +2,6 @@ import json
 import logging
 
 def processRequest(message):
-
-	#Set the logging level default
-	logging.basicConfig(level=logging.DEBUG)
-
 	#Get the request
 	request = message.content['bytes']
 
