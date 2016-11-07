@@ -3,3 +3,4 @@ omit =
   *migration*
   *__init__*
   *admin.py
+  *models.py
