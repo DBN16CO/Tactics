@@ -41,12 +41,29 @@ INSTALLED_APPS = [
     'Communication',
     'Game',
     'Static',
-    'User'
+    'User',
+    'django_nose'
+]
+
+# Use nose to run all tests
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+# Tell nose to measure coverage
+NOSE_ARGS = [
+    '--with-coverage',
+    '--cover-package=Communication,Game,Static,User',
+    '--nocapture',
+    '--nologcapture',
+    '--verbosity=3'
 ]
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'asgiref.inmemory.ChannelLayer',
+        #'BACKEND': 'asgiref.inmemory.ChannelLayer',
+        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
         'ROUTING': 'Server.router.channel_routing',
     },
 }
