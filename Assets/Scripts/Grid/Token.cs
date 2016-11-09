@@ -6,6 +6,8 @@ public class Token : MonoBehaviour {
 
 	private int _x;					// X value of token
 	private int _y;					// Y value of token
+	private bool _canAttack;		// Can the selected unit attack this token
+	private bool _canMove;			// Can the selected unit move to this token
 
 	private TokenTerrain _terrain;	// The token's current terrain
 	private Unit 	_unit;			// The unit currently on the token
@@ -32,20 +34,76 @@ public class Token : MonoBehaviour {
 		get{return _y;}
 		set{_y = value;}
 	}
+	// Returns _canAttack
+	public bool CanAttack {
+		get{return _canAttack;}
+		set{_canAttack = value;}
+	}
+	// Returns _canMove
+	public bool CanMove {
+		get{return _canMove;}
+		set{_canMove = value;}
+	}
 #endregion
 
+
+	// Called when token added to scene
+	void Start() {
+		// Initialize vars
+		CanMove = false;
+		CanAttack = false;
+	}
 
 	// Called when the token is clicked
 	void OnMouseDown() {
 		// If a unit is on the selected token
 		if(CurrentUnit != null) {
 			// Call unit's clicked function
-			CurrentUnit.Clicked();
+			CurrentUnit.Clicked(this);
 		}
 		// Else if there is no unit
 		else{
-			Debug.Log(CurrentTerrain.Name + "(" + X + "," + Y + ")");
+			// If CanMove, then you must already have a selected unit, so move
+			// Moves to this newly selected token, passing in the previously selected token
+			if(CanMove) {
+				MoveUnit(GameController.SelectedToken);
+			}
 		}
+	}
+
+	// Move unit from input prevToken to this token
+	private void MoveUnit(Token prevToken) {
+		Unit unit = prevToken.CurrentUnit;
+		// Update current unit of 2 party tokens
+		CurrentUnit = unit;
+		prevToken.CurrentUnit = null;
+		// Move unit's position
+		unit.transform.position = gameObject.transform.position;
+		// Unselect the unit
+		unit.UnselectUnit();
+	}
+
+	// Sets properties based on action
+	public void SetActionProperties(string action) {
+		switch(action) {
+			case "move":
+				CanMove = true;
+				break;
+			case "attack":
+				CanAttack = true;
+				break;
+			case "clear":
+				CanMove = false;
+				CanAttack = false;
+				break;
+		}
+		// Paint token based on action
+		PaintAction(action);
+	}
+
+	// Paints the token per the current available action
+	private void PaintAction(string action) {
+		gameObject.GetComponent<SpriteRenderer>().material = Resources.Load("Materials/" + action) as Material;
 	}
 
 	// Sets the token's terrain based on string input

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class SpawnController : MonoBehaviour {
 
@@ -42,7 +43,9 @@ public class SpawnController : MonoBehaviour {
 				tokens[width][height] = token;
 			}
 		}
-		// Return token array
+		// Set game vars and return token array
+		gameObject.GetComponent<GameController>().GridLength = tokens.Length - 1;
+		gameObject.GetComponent<GameController>().GridHeight = tokens[0].Length - 1;
 		return tokens;
 	}
 
@@ -52,6 +55,7 @@ public class SpawnController : MonoBehaviour {
 		Unit ret = (Instantiate(Resources.Load("Prefabs/" + unit),Vector3.zero,Quaternion.identity) as GameObject).GetComponent<Unit>();
 		// Set the position to the token's position
 		ret.transform.position = gameObject.GetComponent<GameController>().Tokens[x][y].transform.position;
+		ret.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
 		// Remove (clone) from the name
 		ret.name = ret.name.Substring(0, ret.name.Length-7);
 		// Return final unit
