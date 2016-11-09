@@ -51,4 +51,5 @@ ehthumbs.db
 *.sqlite3
 *.coverage
 *trace.log
+/Server/*/migrations/
 
