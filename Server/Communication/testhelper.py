@@ -73,7 +73,7 @@ class TestHelper(ChannelTestCase):
 		# Create the stats
 		counter=0
 		for stt in stats:
-			for unt in Unit.objects.values_list('pk', flat=True):
+			for unt in Class.objects.values_list('pk', flat=True):
 				counter += 1
 				statObject = Stat(name=stt, unit_id=unt, value=counter, version_id=ver_id)
 				statObject.save()
