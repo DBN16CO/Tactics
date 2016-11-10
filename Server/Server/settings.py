@@ -52,6 +52,7 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 NOSE_ARGS = [
     '--with-coverage',
     '--cover-package=Communication,Game,Static,User',
+    '--cover-inclusive',
     '--nocapture',
     '--nologcapture',
     '--verbosity=3'

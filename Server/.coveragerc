@@ -4,3 +4,5 @@ omit =
   *__init__*
   *admin.py
   *models.py
+  *apps.py*
+  *views.py*
