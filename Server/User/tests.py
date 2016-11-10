@@ -7,22 +7,41 @@ class TestUser(TestCase):
 		self.channel = TestHelper()
 
 	def test_create_user(self):
-		self.channel.send('{"Command":"CU","username":"testuser1","pw":"12345","email":"a@a.com"}')
+		logging.debug("Starting create user test.")
+		self.channel.send('{"Command":"CU","username":"successUsr1","pw":"12345","email":"success@a.com"}')
 		result = self.channel.receive()
 		self.assertEqual(result, json.dumps({"Success":True}))
+		logging.debug("Exiting create user test.\n")
 
 	def test_duplicate_username(self):
-		self.channel.send('{"Command":"CU","username":"testuser1","pw":"12345","email":"a@a.com"}')
+		logging.debug("Starting duplicate user test.")
+		self.channel.send('{"Command":"CU","username":"testDupUser1","pw":"12345","email":"dupUser@a.com"}')
 		result = self.channel.receive()
 		self.assertEqual(result, json.dumps({"Success":True}))
-		self.channel.send('{"Command":"CU","username":"testuser1","pw":"12345","email":"b@b.com"}')
+		self.channel.send('{"Command":"CU","username":"testDupUser1","pw":"12345","email":"dupUser@b.com"}')
 		result = self.channel.receive()
 		self.assertEqual(result, json.dumps({"Success":False, "Error":"That username already exists."}))
+		logging.debug("Exiting duplicate user test.\n")
 
 	def test_duplicate_email(self):
-		self.channel.send('{"Command":"CU","username":"testuser1","pw":"12345","email":"a@a.com"}')
+		logging.debug("Starting duplicate email test.")
+		self.channel.send('{"Command":"CU","username":"dupEmailUsr1","pw":"12345","email":"dupEmail@a.com"}')
 		result = self.channel.receive()
 		self.assertEqual(result, json.dumps({"Success":True}))
-		self.channel.send('{"Command":"CU","username":"testuser2","pw":"12345","email":"a@a.com"}')
+		self.channel.send('{"Command":"CU","username":"dupEmailUsr2","pw":"12345","email":"dupEmail@a.com"}')
 		result = self.channel.receive()
 		self.assertEqual(result, json.dumps({"Success":False, "Error":"That email is already in use."}))
+		logging.debug("Exiting duplicat email test.\n")
+
+# TODO Necessary?
+#	def test_missing_username(self):
+#		logging.debug("Starting missing username test.")
+#		self.channel.send('{"Command":"CU","pw":"12345","email":"nousername@a.com"}')
+#		result = self.channel.receive()
+#		self.assertEqual(result, json.dumps({"Success":True}))
+#		logging.debug("Exiting missing username test.\n")
+
+#	def test_invalid_email(self):
+#		self.channel.send('{"Command":"CU","username":"invalEmailUsr","pw":"12345","email":"aaa"}')
+#		result = self.channel.receive()
+#		self.assertEqual(result, json.dumps({"Success":False, "Error":"That email is already in use."}))

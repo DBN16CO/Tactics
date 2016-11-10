@@ -2,7 +2,7 @@
 
 # This script is used to populate the static fields of the Database
 
-version="1.0.0"
+version="1.0"
 versionNum=1
 
 # Version Database
@@ -12,7 +12,7 @@ sudo -u postgres psql -d tactics -c "$sql"
 
 # Action
 sql=""
-actions=('Attack' 'Wait' 'Heal')
+actions=('Attack' 'Wait' 'Move' 'Heal')
 for i in "${actions[@]}"
 do
     sql="$sql INSERT INTO \"Static_action\" (name, version_id) VALUES ('${i}', ${versionNum});  "
@@ -22,7 +22,7 @@ sudo -u postgres psql -d tactics -c "$sql"
 
 # Class
 sql=""
-classes=('Swordsman' 'Archer' 'Mage')
+classes=('Archer' 'Mage' 'Healer' 'Swordsman' 'Horseman' 'Flier' 'Thief')
 for i in "${classes[@]}"
 do
     sql="$sql INSERT INTO \"Static_class\" (name, version_id) VALUES ('${i}', ${versionNum});  "
