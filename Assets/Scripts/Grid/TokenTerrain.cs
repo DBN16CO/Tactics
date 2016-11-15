@@ -24,6 +24,7 @@ public class TokenTerrain {
 	// Sets sprite on input token's SpriteRenderer
 	public void SetSprite(GameObject token) {
 		// Get Sprite Renderer component and set equal to the sprite in the resources folder
+		SpriteName = token.name + GameController.GridAlpha;
 		token.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Sprites/Terrain/" + SpriteName);
 	}
 

@@ -10,8 +10,11 @@ public class GameController : MonoBehaviour {
 	private int _gridLength;
 
 	private List<Unit> _units;
-	public static Token _selectedToken;
+	private static Token _selectedToken;
 	private List<ValidAction> _actions;		// Array of valid moves
+
+	// Game Settings
+	public static string GridAlpha;
 
 
 #region Setters and Getters
@@ -49,16 +52,30 @@ public class GameController : MonoBehaviour {
 
 
 	void Start() {
-		// Testing
+		// Initialize vars
 		Actions = new List<ValidAction>();
 		Units = new List<Unit>();
+
+		// Set game vars
+		GridAlpha = "33";
+
+		// Testing
 		Test();
+		StartTurn();
+	}
+
+	public void StartTurn() {
+		foreach(Unit unit in Units) {
+			if(unit.MyTeam) {
+				unit.Reset();
+			}
+		}
 	}
 
 	public void SelectUnit(Unit unit, Token token, bool takenAction) {
 		SelectedToken = token;
 		if(!takenAction) {
-			SetValidActions(unit.name, token);
+			SetValidActions(unit, token);
 		}else{
 			ShowUnitInfo(unit);
 		}
@@ -73,55 +90,64 @@ public class GameController : MonoBehaviour {
 		ClearValidActions();
 	}
 
-	private void SetValidActions(string unitName, Token token) {
-		float range = 3f; // = Unit.GetRangeFromServer
-		EvalSurroundingTokenActions(unitName, range, token);
+	private void SetValidActions(Unit unit, Token token) {
+		float range = unit.RemainingMoveRange;
+		Actions.Add(AddValidAction("move", token));
+		EvalSurroundingTokenActions(unit, token, range, "move");
+		//EvalNextToken(unit, token, range, "move");
 
 		foreach(ValidAction action in Actions) {
 			Tokens[action.col][action.row].SetActionProperties(action.action);
 		}
 	}
 
-	private void EvalSurroundingTokenActions(string unitName, float range, Token token) {
+	private void EvalSurroundingTokenActions(Unit unit, Token token, float range, string action) {
 		Token nextToken;
 		// Start with above token
 		if(token.Y < GridHeight) {
 			nextToken = Tokens[token.X][token.Y+1];
-			EvalNextToken(unitName, range, nextToken);
+			EvalNextToken(unit, nextToken, range, action);
 		}
 		// Start with left token
 		if(token.X > 0) {
 			nextToken = Tokens[token.X-1][token.Y];
-			EvalNextToken(unitName, range, nextToken);
+			EvalNextToken(unit, nextToken, range, action);
 		}
 		// Start with below token
 		if(token.Y > 0) {
 			nextToken = Tokens[token.X][token.Y-1];
-			EvalNextToken(unitName, range, nextToken);
+			EvalNextToken(unit, nextToken, range, action);
 		}
 		// Start with right token
 		if(token.X < GridLength) {
 			nextToken = Tokens[token.X+1][token.Y];
-			EvalNextToken(unitName, range, nextToken);
+			EvalNextToken(unit, nextToken, range, action);
 		}
 	}
 
-	private void EvalNextToken(string unitName, float range, Token token) {
+	private void EvalNextToken(Unit unit, Token token, float range, string action) {
 		if(!token.CanMove && !token.CanAttack) {
 			float remainingRange;
-			remainingRange = EvalToken(unitName, range, token);
+			remainingRange = EvalToken(unit.name, token, range, action);
 			if(remainingRange > 0f) {
-				EvalSurroundingTokenActions(unitName, remainingRange, token);
+				EvalSurroundingTokenActions(unit, token, remainingRange, "move");
+			}else if(action == "move") {
+				EvalSurroundingTokenActions(unit, token, unit.GetStat("AttackRange").Value, "attack");
 			}
 		}
 	}
 
-	private float EvalToken(string unitName, float range, Token token) {
-		float remainingRange = range - TerrainMod.TerrainWeight(unitName, token.name);
-		if(remainingRange >= 0f) {
-			Actions.Add(AddValidAction("move", token.X, token.Y));
+	private float EvalToken(string unitName, Token token, float range, string action) {
+		if(token.CurrentUnit != null) {
+			if(!token.CurrentUnit.MyTeam) {
+				return -1f;
+			}
 		}
-		return (remainingRange >= 0f)? remainingRange : -1f;
+		float remainingRange = (token == SelectedToken)? range : (action == "move")? range - TerrainMod.TerrainWeight(unitName, token.name) : range - 1f;
+		if(remainingRange >= 0f) {
+			Actions.Add(AddValidAction(action, token));
+		}
+		return remainingRange;
 	}
 
 	private void ClearValidActions() {
@@ -131,11 +157,11 @@ public class GameController : MonoBehaviour {
 		Actions.Clear();
 	}
 
-	private ValidAction AddValidAction(string act, int col, int row) {
+	private ValidAction AddValidAction(string act, Token token) {
 		ValidAction action;
 		action.action = act;
-		action.col = col;
-		action.row = row;
+		action.col = token.X;
+		action.row = token.Y;
 		return action;
 	}
 
@@ -144,9 +170,11 @@ public class GameController : MonoBehaviour {
 	private void Test() {
 		// Create Grid and add test units
 		SpawnController SC = gameObject.AddComponent<SpawnController>();
-		Tokens = SC.CreateGrid(10);
-		Units.Add(Tokens[2][3].CurrentUnit = SC.CreateUnit("Warrior",2,3));
+		Tokens = SC.CreateGrid(12);
+		Units.Add(Tokens[4][4].CurrentUnit = SC.CreateUnit("Warrior",4,4));
+		Units.Add(Tokens[6][6].CurrentUnit = SC.CreateUnit("Warrior",6,6));
 		Units[0].MyTeam = true;
+		Units[1].MyTeam = true;
 
 		// Create terrain weight map
 		TerrainMod.CreateWeightMap();

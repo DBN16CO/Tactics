@@ -59,6 +59,11 @@ public class Token : MonoBehaviour {
 		// If a unit is on the selected token
 		if(CurrentUnit != null) {
 			// Call unit's clicked function
+			if(CurrentUnit.MyTeam && GameController.SelectedToken != null) {
+				if(this != GameController.SelectedToken) {
+					GameController.SelectedToken.CurrentUnit.UnselectUnit();
+				}
+			}
 			CurrentUnit.Clicked(this);
 		}
 		// Else if there is no unit
@@ -113,6 +118,9 @@ public class Token : MonoBehaviour {
 		switch(terrain) {
 			case "Grass":
 				CurrentTerrain = new Grass(gameObject);
+				break;
+			case "Forest":
+				CurrentTerrain = new Forest(gameObject);
 				break;
 		}
 	}

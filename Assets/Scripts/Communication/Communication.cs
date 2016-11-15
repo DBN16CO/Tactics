@@ -44,7 +44,7 @@ public static class Communication{
 		string protocol = mUrl.Scheme;
 		if (!protocol.Equals("ws") && !protocol.Equals("wss"))
 			throw new ArgumentException("Unsupported protocol: " + protocol);
-		
+
 		m_Socket = new WebSocketSharp.WebSocket(mUrl.ToString());
 		m_Socket.OnMessage += (sender, e) => m_Messages.Enqueue (e.RawData);
 		m_Socket.OnOpen += (sender, e) => m_IsConnected = true;
