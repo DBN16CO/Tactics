@@ -2,6 +2,22 @@ import logging
 import User.userhelper
 from User.models import Users
 
+
+def login(data):
+	username = data["username"]
+	password = data["pw"]
+
+	user = Users.objects.get(username=username)
+	if user:
+		verified = User.userhelper.verifyPassword(password, user.password)
+		if verified:
+			return {"Success": True, "UserID": user.id}
+		
+	return {"Success": False, "Error": "Invalid Username/Password"}
+
+
+
+
 """
 This file will handle all routed methods managing users
 All methods must follow the following standards:
@@ -40,7 +56,7 @@ def createUser(data):
 	# Verify that the user was added
 	usr2 = Users.objects.get(username=username)
 	if usr1 == usr2:
-		response = {"Success": True}
+		response = {"Success": True, "UserID": usr2.id}
 	else:
 		response = {"Success": False}
 

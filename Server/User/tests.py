@@ -10,7 +10,7 @@ class TestUser(TestCase):
 		logging.debug("Starting create user test.")
 		self.channel.send('{"Command":"CU","username":"successUsr1","pw":"12345","email":"success@a.com"}')
 		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":True}))
+		self.assertEqual(result, json.dumps({"Success":True, "UserID": 1}))
 		logging.debug("Exiting create user test.\n")
 
 	def test_duplicate_username(self):
@@ -32,6 +32,29 @@ class TestUser(TestCase):
 		result = self.channel.receive()
 		self.assertEqual(result, json.dumps({"Success":False, "Error":"That email is already in use."}))
 		logging.debug("Exiting duplicat email test.\n")
+
+	def test_login_success(self):
+		logging.debug("Starting login success test.")
+		self.channel.send('{"Command":"CU","username":"successUsr1","pw":"12345","email":"success@a.com"}')
+		result = self.channel.receive()
+		self.assertEqual(result, json.dumps({"Success":True, "UserID": 1}))
+		self.channel.send('{"Command":"LGN","username":"successUsr1","pw":"12345"}')
+		result = self.channel.receive()
+		self.assertEqual(result, json.dumps({"Success":True, "UserID": 1}))
+		logging.debug("Exiting login success test.")
+
+	def test_login_failure(self):
+		logging.debug("Starting login failure test.")
+		self.channel.send('{"Command":"CU","username":"successUsr1","pw":"12345","email":"success@a.com"}')
+		result = self.channel.receive()
+		self.assertEqual(result, json.dumps({"Success":True, "UserID": 1}))
+		self.channel.send('{"Command":"LGN","username":"successUsr1","pw":"123456"}')
+		result = self.channel.receive()
+		self.assertEqual(result, json.dumps({"Success":False, "Error": "Invalid Username/Password"}))
+		logging.debug("Exiting login success test.")
+
+
+
 
 # TODO Necessary?
 #	def test_missing_username(self):
