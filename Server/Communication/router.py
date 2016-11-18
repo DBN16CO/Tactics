@@ -6,6 +6,7 @@ import Game.routeunithelper
 import Game.unithelper
 import User.routehelper
 import User.userhelper
+import Communication.routehelper
 
 from channels.sessions import channel_session
 
@@ -45,19 +46,22 @@ def processRequest(message):
 			'text': json.dumps({"Success": False, "Error": "User is not authenticated, please login."})
 			})
 			return
+	else:
+		data['session_username'] = user
 
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
 			  "LGN":User.routehelper.login,	
 			  "UC":Game.routeunithelper.unitCreation,
 			  "TA":Game.routeunithelper.takeAction,
+			  "PA":Communication.routehelper.pingAuthentication,
 	}
 	
 	response = commands[cmd](data)
 
 	#If the requested command was to create a new user or login to an existing user, set the channel session
 	if "Success" in response and response['Success'] and (cmd == 'LGN' or cmd == 'CU'):
-		message.channel_session['user'] = response['UserID']
+		message.channel_session['user'] = response.pop('Username')
 	
 	#Reply back
 	message.reply_channel.send({

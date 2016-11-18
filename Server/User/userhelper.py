@@ -2,6 +2,7 @@
 from User.models import Users
 from passlib.hash import bcrypt
 import logging
+import uuid
 
 """ 
 This file is used to store all methods helping with the processing of user objects
@@ -12,6 +13,12 @@ def encrypt(password):
 
 def verifyPassword(password, dbHash):
 	return bcrypt.verify(password, dbHash)
+
+def generateLoginToken(user):
+	user.token = uuid.uuid4().hex
+	user.save()
+
+	return user.token
 
 # Creates a user with the provided values
 def createUser(username, password, email):

@@ -2,22 +2,6 @@ import logging
 import User.userhelper
 from User.models import Users
 
-
-def login(data):
-	username = data["username"]
-	password = data["pw"]
-
-	user = Users.objects.get(username=username)
-	if user:
-		verified = User.userhelper.verifyPassword(password, user.password)
-		if verified:
-			return {"Success": True, "UserID": user.id}
-		
-	return {"Success": False, "Error": "Invalid Username/Password"}
-
-
-
-
 """
 This file will handle all routed methods managing users
 All methods must follow the following standards:
@@ -28,6 +12,34 @@ Outputs - they will pass back a formatted JSON response object
     which will detail the success or failure of the command
     as well as any other necessary information regarding the command.
 """
+
+# Login either with username/password or token
+def login(data):
+	username = None
+	pw = None
+	token = None
+	user = None
+
+	if "username" in data and "pw" in data:
+		username = data["username"]
+		password = data["pw"]
+
+		user = Users.objects.filter(username=username).first()
+		if user:
+			verified = User.userhelper.verifyPassword(password, user.password)
+			if verified:
+				return {"Success": True, "Token": User.userhelper.generateLoginToken(user), "Username": user.username}
+
+	elif "token" in data:
+		token = data['token']
+		user = Users.objects.filter(token=token).first()
+
+		if user:
+			return {"Success": True, "Token": token, "Username": user.username}
+		
+	return {"Success": False, "Error": "Invalid Username/Password"}
+
+
 # Creates a user with the given input values
 def createUser(data):
 	# Parse the necessary JSON values and validate
@@ -54,9 +66,9 @@ def createUser(data):
 		return response
 
 	# Verify that the user was added
-	usr2 = Users.objects.get(username=username)
+	usr2 = Users.objects.filter(username=username).first()
 	if usr1 == usr2:
-		response = {"Success": True, "UserID": usr2.id}
+		response = {"Success": True, "Token": User.userhelper.generateLoginToken(usr2), "Username": usr2.username}
 	else:
 		response = {"Success": False}
 
