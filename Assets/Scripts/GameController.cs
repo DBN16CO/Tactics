@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
-using System;
+//using System;
 using System.Collections.Generic;
 
 
 public class GameController : MonoBehaviour {
+
+	// Server variables
+	public int UserID;
 
 	private Token[][] _tokens;
 	private int _gridHeight;
@@ -52,6 +55,14 @@ public class GameController : MonoBehaviour {
 
 
 	void Start() {
+		// Start the websocket connection
+		Server.Connect();
+
+		// Create user if necessary
+		//Server.CreateUser("npriore", "tactics", "nr.priore@gmail.com");
+		UserID = 1;
+
+
 		// Initialize vars
 		Actions = new List<ValidAction>();
 		Units = new List<Unit>();
@@ -92,12 +103,12 @@ public class GameController : MonoBehaviour {
 
 	private void SetValidActions(Unit unit, Token token) {
 		float range = unit.RemainingMoveRange;
-		Actions.Add(AddValidAction("move", token));
+		AddValidAction("move", token);
 		EvalSurroundingTokenActions(unit, token, range, "move");
 		//EvalNextToken(unit, token, range, "move");
 
 		foreach(ValidAction action in Actions) {
-			Tokens[action.col][action.row].SetActionProperties(action.action);
+			Tokens[action.col][action.row].PaintAction(action.action);
 		}
 	}
 
@@ -106,46 +117,59 @@ public class GameController : MonoBehaviour {
 		// Start with above token
 		if(token.Y < GridHeight) {
 			nextToken = Tokens[token.X][token.Y+1];
-			EvalNextToken(unit, nextToken, range, action);
+			EvalNextToken(unit, nextToken, token, range, action);
 		}
 		// Start with left token
 		if(token.X > 0) {
 			nextToken = Tokens[token.X-1][token.Y];
-			EvalNextToken(unit, nextToken, range, action);
+			EvalNextToken(unit, nextToken, token, range, action);
 		}
 		// Start with below token
 		if(token.Y > 0) {
 			nextToken = Tokens[token.X][token.Y-1];
-			EvalNextToken(unit, nextToken, range, action);
+			EvalNextToken(unit, nextToken, token, range, action);
 		}
 		// Start with right token
 		if(token.X < GridLength) {
 			nextToken = Tokens[token.X+1][token.Y];
-			EvalNextToken(unit, nextToken, range, action);
+			EvalNextToken(unit, nextToken, token, range, action);
 		}
 	}
 
-	private void EvalNextToken(Unit unit, Token token, float range, string action) {
-		if(!token.CanMove && !token.CanAttack) {
-			float remainingRange;
-			remainingRange = EvalToken(unit.name, token, range, action);
-			if(remainingRange > 0f) {
-				EvalSurroundingTokenActions(unit, token, remainingRange, "move");
-			}else if(action == "move") {
-				EvalSurroundingTokenActions(unit, token, unit.GetStat("AttackRange").Value, "attack");
+	private void EvalNextToken(Unit unit, Token token, Token prevToken, float range, string action) {
+		float remainingRange;
+		remainingRange = EvalToken(unit.name, token, range, action);
+		if(remainingRange >= 0f) {
+			EvalSurroundingTokenActions(unit, token, remainingRange, action);
+		}else if(action == "move") {
+			if(action == "move" && prevToken.CurrentUnit != null) {
+				EvalSurroundingTokenActions(unit, prevToken, unit.GetStat("AttackRange").Value-1, "attack");
+			}else if(token.CurrentUnit != null) {
+				if(!token.CurrentUnit.MyTeam) {
+					EvalNextToken(unit, token, null, unit.GetStat("AttackRange").Value, "attack");
+				}else{
+					EvalSurroundingTokenActions(unit, token, unit.GetStat("AttackRange").Value-1, "attack");
+				}
+			}else{
+				EvalNextToken(unit, token, null, unit.GetStat("AttackRange").Value, "attack");
 			}
 		}
 	}
 
 	private float EvalToken(string unitName, Token token, float range, string action) {
-		if(token.CurrentUnit != null) {
+		if(token.CurrentUnit != null && action == "move") {
 			if(!token.CurrentUnit.MyTeam) {
 				return -1f;
 			}
 		}
-		float remainingRange = (token == SelectedToken)? range : (action == "move")? range - TerrainMod.TerrainWeight(unitName, token.name) : range - 1f;
+		float remainingRange = (action == "move")? range - TerrainMod.TerrainWeight(unitName, token.name) : range - 1;
 		if(remainingRange >= 0f) {
-			Actions.Add(AddValidAction(action, token));
+			if(token.CurrentUnit != null) {
+				if(token.CurrentUnit.MyTeam) {
+					return remainingRange;
+				}
+			}
+			AddValidAction(action, token);
 		}
 		return remainingRange;
 	}
@@ -157,11 +181,31 @@ public class GameController : MonoBehaviour {
 		Actions.Clear();
 	}
 
-	private ValidAction AddValidAction(string act, Token token) {
+	private void AddValidAction(string act, Token token) {
+		if(!token.CanMove && !token.CanAttack) {
+			Actions.Add(CreateValidAction(act, token));
+		}else if(act == "move" && token.CanAttack){
+			RemoveValidAction(token);
+			Actions.Add(CreateValidAction(act, token));
+		}
+	}
+
+	private void RemoveValidAction(Token token) {
+		for(int index = 0; index < Actions.Count; index++) {
+			ValidAction currAction = Actions[index];
+			if(currAction.col == token.X && currAction.row == token.Y) {
+				Actions.Remove(currAction);
+				token.SetActionProperties("overwrite");
+			}
+		}
+	}
+
+	private ValidAction CreateValidAction(string act, Token token) {
 		ValidAction action;
 		action.action = act;
 		action.col = token.X;
 		action.row = token.Y;
+		token.SetActionProperties(act);
 		return action;
 	}
 
@@ -171,10 +215,14 @@ public class GameController : MonoBehaviour {
 		// Create Grid and add test units
 		SpawnController SC = gameObject.AddComponent<SpawnController>();
 		Tokens = SC.CreateGrid(12);
-		Units.Add(Tokens[4][4].CurrentUnit = SC.CreateUnit("Warrior",4,4));
+		Units.Add(Tokens[4][6].CurrentUnit = SC.CreateUnit("Warrior",4,6));
+		Units.Add(Tokens[6][8].CurrentUnit = SC.CreateUnit("Warrior",6,8));
+		Units.Add(Tokens[7][5].CurrentUnit = SC.CreateUnit("Warrior",7,5));
 		Units.Add(Tokens[6][6].CurrentUnit = SC.CreateUnit("Warrior",6,6));
 		Units[0].MyTeam = true;
 		Units[1].MyTeam = true;
+		Units[2].MyTeam = false;
+		Units[3].MyTeam = false;
 
 		// Create terrain weight map
 		TerrainMod.CreateWeightMap();

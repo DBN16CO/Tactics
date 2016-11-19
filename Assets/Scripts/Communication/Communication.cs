@@ -52,7 +52,7 @@ public static class Communication{
 		m_Socket.ConnectAsync();
 
 		while (!m_IsConnected && m_Error == null) {
-			Debug.Log ("Waiting for connection...");
+			//Debug.Log ("Waiting for connection...");
 			Thread.Sleep (1000);
 		}
 
