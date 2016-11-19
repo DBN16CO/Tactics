@@ -23,6 +23,26 @@ class TestHelper(ChannelTestCase):
 		result = self.get_next_message(u'Test', require=True)
 		return result.content['text']
 
+	def createTestUser(self, credentials):
+		request = {"Command": "CU", "username": credentials["username"], "pw": credentials["password"], "email": credentials["email"]}
+		self.send(json.dumps(request))
+		result = json.loads(self.receive())
+
+		return result
+
+	def login(self, credentials):
+		request = {"Command": "LGN"}
+		if "username" in credentials and "password" in credentials:
+			request["username"] = credentials["username"]
+			request["pw"] = credentials["password"]
+		elif "token" in credentials:
+			request["token"] = credentials["token"]
+
+		self.send(json.dumps(request))
+		result = json.loads(self.receive())
+
+		return result
+
 	def initStaticData(self):
 		# Ensure that the data does not already exist
 		if Version.objects.count() > 0:
