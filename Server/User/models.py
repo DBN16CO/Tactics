@@ -14,3 +14,4 @@ class Users(models.Model):
 	created    = models.DateTimeField(auto_now=False, auto_now_add=True)
 	last_login = models.DateTimeField(auto_now=False, auto_now_add=True)
 	pref_grid  = models.IntegerField(default=100)
+	token      = models.CharField(max_length=50, unique=True, default=None, null=True)
