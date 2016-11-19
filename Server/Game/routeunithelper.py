@@ -15,7 +15,7 @@ Outputs - they will pass back a formatted JSON response object
 # Creates a unit of given type for user
 def unitCreation(data):
 	# Parse the necessary JSON values and validate
-	username  = data["owner"]
+	username  = data["session_username"]
 	unitClass = data["class"]
 	version   = data["v"]
 
