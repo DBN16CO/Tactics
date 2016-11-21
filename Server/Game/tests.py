@@ -18,6 +18,6 @@ class TestUnit(TestCase):
 		self.assertTrue(result["Success"])
 
 		# Create the archer unit
-		self.channel.send('{"Command":"UC","class":"Archer","owner":"archerowner","v":"1.0"}')
+		self.channel.send('{"Command":"UC","class":"Archer","v":"1.0"}')
 		result = self.channel.receive()
 		self.assertEqual(result, json.dumps({"Success":True,"uid":Unit.objects.latest('pk').id}))
