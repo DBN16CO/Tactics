@@ -6,14 +6,15 @@ from User.models import Users
 This file will handle all routed methods managing users
 All methods must follow the following standards:
 
-Inputs - they will all take in only one input, the JSON data
+Inputs - they will all take in only two inputs, 
+    the userID (ignore if it doesn't make sense), and the JSON data
 
 Outputs - they will pass back a formatted JSON response object
     which will detail the success or failure of the command
     as well as any other necessary information regarding the command.
 """
 # Creates a user with the given input values
-def createUser(data):
+def createUser(userID, data):
 	# Parse the necessary JSON values and validate
 	username = data["username"]
 	pw		 = data["pw"]

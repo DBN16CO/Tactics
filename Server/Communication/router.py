@@ -6,6 +6,7 @@ import Game.routeunithelper
 import Game.unithelper
 import User.routehelper
 import User.userhelper
+import Static.routehelper
 
 def processRequest(message):
 	#Get the request
@@ -27,14 +28,18 @@ def processRequest(message):
 			})
 		return
 
+	# TODO remove
+	username = "archerowner"
+
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
+			  "IL":Static.routehelper.getAllStaticData,
 			  "UC":Game.routeunithelper.unitCreation,
 			  "TA":Game.routeunithelper.takeAction,
 	}
 	cmd = data["Command"]
 	logging.debug("Received command: " + str(cmd))
-	response = commands[cmd](data)
+	response = commands[cmd](username, data)
 	
 	#Reply back
 	message.reply_channel.send({
