@@ -6,3 +6,4 @@ omit =
   *models.py
   *apps.py*
   *views.py*
+  Static/management/commands/db_init.py
