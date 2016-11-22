@@ -1,7 +1,6 @@
 from django.test import TestCase
 from Game.models import Unit
 from Communication.testhelper import *
-from Communication.testutil import *
 import json
 
 class TestUnit(TestCase):
