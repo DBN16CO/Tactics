@@ -2,10 +2,12 @@ import json
 import logging
 
 from User.models import Users
+from Static.models import Version
 import Game.routeunithelper
 import Game.unithelper
 import User.routehelper
 import User.userhelper
+import Static.routehelper
 import Communication.routehelper
 
 from channels.sessions import channel_session
@@ -52,6 +54,7 @@ def processRequest(message):
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
 			  "LGN":User.routehelper.login,	
+			  "IL":Static.routehelper.getAllStaticData,
 			  "UC":Game.routeunithelper.unitCreation,
 			  "TA":Game.routeunithelper.takeAction,
 			  "PA":Communication.routehelper.pingAuthentication,

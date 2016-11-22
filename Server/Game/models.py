@@ -10,6 +10,8 @@ class Game(models.Model):
 	created      = models.DateTimeField(auto_now=False, auto_now_add=True)
 	last_move    = models.DateTimeField(auto_now=True,  auto_now_add=False)
 	finished     = models.BooleanField(default=False)
+	version      = models.ForeignKey('Static.Version',on_delete=models.DO_NOTHING)
+	
 
 class Game_User(models.Model):
 	game         = models.ForeignKey(Game,   		  on_delete=models.DO_NOTHING)
@@ -22,15 +24,15 @@ class Game_User(models.Model):
 	victorious   = models.BooleanField(default=False)
 
 class Unit(models.Model):
-    unit_class   = models.ForeignKey('Static.Class',  on_delete=models.DO_NOTHING)
-    hp_remaining = models.IntegerField(default=0)
-    prev_hp      = models.IntegerField(default=0)
-    x_pos        = models.IntegerField(default=-1)
-    y_pos        = models.IntegerField(default=-1)
-    prev_x       = models.IntegerField(default=0)
-    prev_y       = models.IntegerField(default=0)
-    prev_target  = models.ForeignKey('self',          on_delete=models.DO_NOTHING, null=True, default=None)
-    prev_action  = models.ForeignKey('Static.Action', on_delete=models.DO_NOTHING, null=True, default=None)
-    owner        = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
-    game         = models.ForeignKey('Game',          on_delete=models.DO_NOTHING, null=True, default=None)
-    version      = models.DecimalField(default=0.0,   decimal_places=3, max_digits=5)
+	unit_class   = models.ForeignKey('Static.Class',  on_delete=models.DO_NOTHING)
+	hp_remaining = models.IntegerField(default=0)
+	prev_hp      = models.IntegerField(default=0)
+	x_pos        = models.IntegerField(default=-1)
+	y_pos        = models.IntegerField(default=-1)
+	prev_x       = models.IntegerField(default=0)
+	prev_y       = models.IntegerField(default=0)
+	prev_target  = models.ForeignKey('self',          on_delete=models.DO_NOTHING, null=True, default=None)
+	prev_action  = models.ForeignKey('Static.Action', on_delete=models.DO_NOTHING, null=True, default=None)
+	owner        = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
+	game         = models.ForeignKey('Game',          on_delete=models.DO_NOTHING, null=True, default=None)
+	version      = models.ForeignKey('Static.Version',on_delete=models.DO_NOTHING)
