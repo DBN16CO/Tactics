@@ -60,7 +60,7 @@ def processRequest(message):
 			dbUser.save()
 			response = {"Success": True}
 		except Exception, e:
-			logging.error("Database update to remove the user's login token failed")
+			logging.error("Database update to remove the user's login token failed: " + str(e))
 			response = {"Success": False, "Error": "Internal Server Error during logout"}
 
 		
