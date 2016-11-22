@@ -43,7 +43,7 @@ public class Unit : MonoBehaviour {
 		for(int cnt = 0; cnt < Stats.Length; cnt++) {
 			Stats[cnt] = new Stat(Enum.GetName(typeof(UnitStats), cnt));
 		}
-		_gc = GameObject.Find("Game Controller").GetComponent<GameController>();
+		_gc = GameObject.Find("GameController").GetComponent<GameController>();
 	}
 
 	// Called from the clicked token when there is a unit

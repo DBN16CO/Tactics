@@ -1,12 +1,10 @@
 ﻿using UnityEngine;
 //using System;
+//using System.Collections;
 using System.Collections.Generic;
 
 
 public class GameController : MonoBehaviour {
-
-	// Server variables
-	public int UserID;
 
 	private Token[][] _tokens;
 	private int _gridHeight;
@@ -58,10 +56,18 @@ public class GameController : MonoBehaviour {
 		// Start the websocket connection
 		Server.Connect();
 
-		// Create user if necessary
-		//Server.CreateUser("npriore", "tactics", "nr.priore@gmail.com");
-		UserID = 1;
+		// For Testing - uncomment as needed
+		//PlayerPrefs.DeleteAll();
+		//PlayerPrefs.DeleteKey("session");
 
+		// Login testUser. If doesn't exist, create user
+		if(PlayerPrefs.HasKey("session")) {
+			Server.RetryLogin();
+		}else if(!Server.Login("testUser", "tactics")) {
+			Debug.Log("Login failed, creating user...");
+			Server.CreateUser("testUser", "tactics", "tactics@gmail.com");
+			Server.Login("testUser", "tactics");
+		}
 
 		// Initialize vars
 		Actions = new List<ValidAction>();
@@ -208,6 +214,7 @@ public class GameController : MonoBehaviour {
 		token.SetActionProperties(act);
 		return action;
 	}
+
 
 #region Development
 	// Runs at start of game
