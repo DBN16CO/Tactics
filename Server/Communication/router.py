@@ -51,6 +51,24 @@ def processRequest(message):
 	else:
 		data['session_username'] = user
 
+	# If the user is authenticated and the command is LGO, delete the session and return success
+	if cmd == 'LGO':
+		message.channel_session['user'] = None
+		try:
+			dbUser = Users.objects.filter(username=user).first()
+			dbUser.token = None
+			dbUser.save()
+			response = {"Success": True}
+		except Exception, e:
+			logging.error("Database update to remove the user's login token failed")
+			response = {"Success": False, "Error": "Internal Server Error during logout"}
+
+		
+		message.reply_channel.send({
+		'text': json.dumps(response)
+		})
+		return
+
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
 			  "LGN":User.routehelper.login,	
