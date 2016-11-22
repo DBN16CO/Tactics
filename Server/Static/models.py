@@ -9,12 +9,14 @@ class Version(models.Model):
 class Action(models.Model):	
 	name         = models.CharField(max_length=16)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
+	description  = models.CharField(max_length=100)
 
 	class Meta:
 		unique_together = ('name', 'version')
 
 class Class(models.Model):	
 	name         = models.CharField(max_length=16)
+	description  = models.CharField(max_length=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
@@ -22,6 +24,7 @@ class Class(models.Model):
 
 class Hero_Ability(models.Model):
 	name         = models.CharField(max_length=16)
+	description  = models.CharField(max_length=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
@@ -30,6 +33,7 @@ class Hero_Ability(models.Model):
 class Leader(models.Model):	
 	name         = models.CharField(max_length=16)
 	ability      = models.ForeignKey(Hero_Ability, on_delete=models.DO_NOTHING)
+	description  = models.CharField(max_length=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
@@ -37,12 +41,15 @@ class Leader(models.Model):
 
 class Perk(models.Model):
 	name         = models.CharField(max_length=16)
+	description  = models.CharField(max_length=100)
+	tier         = models.IntegerField(default=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
 		unique_together = ('name', 'version')
 
-class Map(models.Model):	
+class Map(models.Model):
+	name         = models.CharField(max_length=16)	
 	file_path    = models.CharField(max_length=128)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
@@ -52,7 +59,7 @@ class Map(models.Model):
 class Stat(models.Model):
 	name         = models.CharField(max_length=16)   # HP, Strength, Agility
 	unit         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
-	value        = models.IntegerField(default=0)
+	value        = models.FloatField(default=0)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
@@ -61,7 +68,7 @@ class Stat(models.Model):
 class Terrain(models.Model):
 	name		 = models.CharField(max_length=16)	# Mountain, Grass, Road
 	unit         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
-	move         = models.IntegerField(default=1)
+	move         = models.FloatField(default=1.0)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:

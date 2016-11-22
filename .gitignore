@@ -51,4 +51,4 @@ ehthumbs.db
 *.sqlite3
 *.coverage
 *trace.log
-
+nohup.out

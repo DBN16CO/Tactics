@@ -6,8 +6,9 @@ import Game.unithelper
 This file will handle all routed methods managing users
 All methods must follow the following standards:
 
-Inputs - they will all take in only one input, the JSON data
-
+Inputs - they will all take in only two inputs, 
+    the userID (ignore if it doesn't make sense), and the JSON data
+    
 Outputs - they will pass back a formatted JSON response object
     which will detail the success or failure of the command
     as well as any other necessary information regarding the command.
@@ -39,8 +40,34 @@ def unitCreation(data):
 
 	return response
 
+# Handles any action a single unit can take
 def takeAction(data):
-	return
+	username = data["session_username"]
+	unit_id  = data.get("unit")
+	action   = data.get("actn")
+	newX     = data.get("x")
+	newY     = data.get("y")
+	target   = data.get("tgt")
+
+	error = None
+	if unit_id == None or action == None:
+		logging.error("TA: User ID was not provided." if unit_id == None else "TA: Action was not provided.")
+		logging.error(data)
+		error = "Internal error."
+	else:
+		try:
+			unit1 = Game.unithelper.takeAction(unit_id, action, newX, newY, target)
+		except Exception, e:
+			error = str(e)
+
+
+	if unit1.id > 0:
+		response = {"Success": True}
+	else:
+		response = {"Success": False,
+					"Error": error}
+
+	return response
 
 """
 # Moves the unit to the desired location, if valid
