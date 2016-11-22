@@ -51,10 +51,6 @@ def processRequest(message):
 	else:
 		data['session_username'] = user
 
-	# If the command is IL, get the most current version
-	if cmd == 'IL':
-		data['ver_id'] = Version.objects.latest('pk').id
-
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
 			  "LGN":User.routehelper.login,	

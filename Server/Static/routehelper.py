@@ -18,14 +18,10 @@ def getAllStaticData(data):
 
 	error_list = []
 
-	# Get the version ID passed in
-	ver_id = data["ver_id"]
-
-	# Get the version name
-	version = Version.objects.get(pk=ver_id)
+	# Get the most current version's info
+	version = Version.objects.latest('pk')
+	ver_id = version.id
 	version_name = version.name
-	if version_name == None:
-		error_list.append("Version")
 
 	# Get all of the actions
 	logging.debug("Loading action data...")
