@@ -5,3 +5,5 @@ daphne>=0.11.1
 Psycopg2==2.6.2
 coverage>=4.2
 django-nose>=1.4.4
+passlib>=1.6.5
+bcrypt>=2.0.0

@@ -14,8 +14,9 @@ Outputs - they will pass back a formatted JSON response object
     as well as any other necessary information regarding the command.
 """
 # Creates a unit of given type for user
-def unitCreation(username, data):
+def unitCreation(data):
 	# Parse the necessary JSON values and validate
+	username  = data["session_username"]
 	unitClass = data["class"]
 	version   = data["v"]
 
@@ -40,12 +41,13 @@ def unitCreation(username, data):
 	return response
 
 # Handles any action a single unit can take
-def takeAction(userID, data):
-	unit_id = data.get("unit")
-	action  = data.get("actn")
-	newX    = data.get("x")
-	newY    = data.get("y")
-	target  = data.get("tgt")
+def takeAction(data):
+	username = data["session_username"]
+	unit_id  = data.get("unit")
+	action   = data.get("actn")
+	newX     = data.get("x")
+	newY     = data.get("y")
+	target   = data.get("tgt")
 
 	error = None
 	if unit_id == None or action == None:
