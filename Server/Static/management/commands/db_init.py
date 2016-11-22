@@ -11,13 +11,11 @@ class Command(BaseCommand):
 
 	def handle(self, *args, **options):
 		for version in options['version']:
-			try:
-				ver = Version.objects.get(name=version)
-			except Exception:
-				pass
-			else:
-				self.stderr.write("Version already exists in database, exiting...")
-				return
+			ver = Version.objects.filter(name=version).first()
+			
+			if not ver == None:
+				self.stderr.write("Version already exists in database, skipping...")
+				continue
 
 			success = setup_static_db(version)
 			if success == True:
