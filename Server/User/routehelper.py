@@ -42,7 +42,7 @@ def login(data):
 
 
 # Creates a user with the given input values
-def createUser(userID, data):
+def createUser(data):
 	# Parse the necessary JSON values and validate
 	username = data["username"]
 	pw		 = data["pw"]
