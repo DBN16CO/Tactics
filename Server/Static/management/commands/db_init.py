@@ -13,7 +13,7 @@ class Command(BaseCommand):
 		for version in options['version']:
 			ver = Version.objects.filter(name=version).first()
 			
-			if not ver == None:
+			if ver != None:
 				self.stderr.write("Version already exists in database, skipping...")
 				continue
 
