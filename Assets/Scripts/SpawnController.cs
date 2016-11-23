@@ -34,8 +34,9 @@ public class SpawnController : MonoBehaviour {
 				// Set scale to scale factor
 				token.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
 				// Assign terrain based on preset map
-				// For development, just setting to grass
-				token.SetTerrain("Grass");
+				// For development, set to w/e we want
+				string terr = (Random.value > 0.3f)? "Grass" : "Forest";
+				token.SetTerrain(terr);
 				// Asign token variables
 				token.X = width;
 				token.Y = height;

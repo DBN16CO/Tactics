@@ -59,6 +59,11 @@ public class Token : MonoBehaviour {
 		// If a unit is on the selected token
 		if(CurrentUnit != null) {
 			// Call unit's clicked function
+			if(CurrentUnit.MyTeam && GameController.SelectedToken != null) {
+				if(this != GameController.SelectedToken) {
+					GameController.SelectedToken.CurrentUnit.UnselectUnit();
+				}
+			}
 			CurrentUnit.Clicked(this);
 		}
 		// Else if there is no unit
@@ -92,17 +97,22 @@ public class Token : MonoBehaviour {
 			case "attack":
 				CanAttack = true;
 				break;
-			case "clear":
+			case "overwrite":
 				CanMove = false;
 				CanAttack = false;
 				break;
+			case "clear":
+				CanMove = false;
+				CanAttack = false;
+				PaintAction(action);
+				break;
 		}
 		// Paint token based on action
-		PaintAction(action);
+		//PaintAction(action);
 	}
 
 	// Paints the token per the current available action
-	private void PaintAction(string action) {
+	public void PaintAction(string action) {
 		gameObject.GetComponent<SpriteRenderer>().material = Resources.Load("Materials/" + action) as Material;
 	}
 
@@ -113,6 +123,9 @@ public class Token : MonoBehaviour {
 		switch(terrain) {
 			case "Grass":
 				CurrentTerrain = new Grass(gameObject);
+				break;
+			case "Forest":
+				CurrentTerrain = new Forest(gameObject);
 				break;
 		}
 	}
