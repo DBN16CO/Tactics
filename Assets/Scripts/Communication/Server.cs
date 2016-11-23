@@ -6,9 +6,10 @@ using Common.Cryptography;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
+// This class contains all of the Server call functions
 public static class Server {
 
-	private const float SERVER_TIMEOUT = 5f;
+	//private const float SERVER_TIMEOUT = 5f;			// Seconds before server call times out
 
 	//private static bool _timedOut;
 
@@ -31,38 +32,48 @@ public static class Server {
 		}
 	}*/
 
+	// Used to login to server with username and password
 	public static bool Login(string username, string pw) {
+		// Create the request, set data to pass, and send it
 		var request = new Dictionary<string, object>();
 		request["Command"] 	= "LGN";
 		request["username"]	= username;
 		request["pw"]		= pw;
 		Communication.SendString(Json.ToString(request));
-		string response = null;
-		while(response == null) {
-			response = Communication.RecvString();
+		// Wait for the response, then parse
+		string strResponse = null;
+		while(strResponse == null) {
+			strResponse = Communication.RecvString();
 		}
-		bool success = (bool)Json.ToDict(response)["Success"];
+		var response = Json.ToDict(strResponse);
+		// If login successful, encrypt and store session token
+		bool success = (bool)response["Success"];
 		if(success) {
-			string _loginToken = Json.ToDict(response)["Token"].ToString();
-			string _encryptedToken = AES.Encrypt(_loginToken, GeneratePasswordHash());
+			string _loginToken = response["Token"].ToString();
+			string _encryptedToken = AES.Encrypt(_loginToken, GenerateAESKey());
 			PlayerPrefs.SetString("session", _encryptedToken);
 			Debug.Log("user '" + username + "' logged in with token: " + _loginToken);
 		}
 		return success;
 	}
 
+	// Used to login to server with cached session token
 	public static bool RetryLogin() {
+		// Create the request, decrypt session token, and send it
 		var request = new Dictionary<string, object>();
 		string _encryptedToken = PlayerPrefs.GetString("session");
-		string _loginToken = AES.Decrypt(_encryptedToken, GeneratePasswordHash());
+		string _loginToken = AES.Decrypt(_encryptedToken, GenerateAESKey());
 		request["Command"] 	= "LGN";
 		request["token"] 	= _loginToken;
 		Communication.SendString(Json.ToString(request));
-		string response = null;
-		while(response == null) {
-			response = Communication.RecvString();
+		// Wait for the response, then parse
+		string strResponse = null;
+		while(strResponse == null) {
+			strResponse = Communication.RecvString();
 		}
-		bool success = (bool)Json.ToDict(response)["Success"];
+		var response = Json.ToDict(strResponse);
+		// Error Handling
+		bool success = (bool)response["Success"];
 		if(success) {
 			Debug.Log("user re-logged in with token: " + _loginToken);
 		}else {
@@ -71,34 +82,43 @@ public static class Server {
 		return success;
 	}
 
+	// Used to create a user in the database
 	public static bool CreateUser(string username, string pw, string email) {
+		// Create the request, set the data, and send
 		var request = new Dictionary<string, object>();
 		request["Command"] 	= "CU";
 		request["username"]	= username;
 		request["pw"]		= pw;
 		request["email"]	= email;
 		Communication.SendString(Json.ToString(request));
-		string response = null;
-		while (response == null) {
-			response = Communication.RecvString();
+		// Wait for the response, then parse
+		string strResponse = null;
+		while (strResponse == null) {
+			strResponse = Communication.RecvString();
 		}
-		bool success = (bool)Json.ToDict(response)["Success"];
+		var response = Json.ToDict(strResponse);
+		// Error Handling
+		bool success = (bool)response["Success"];
 		Debug.Log("user '" + username + "' created: " + success);
 		return success;
 	}
 
-	public static string GeneratePasswordHash() {
+	// Generates the key to use for AES encryption
+	public static string GenerateAESKey() {
 	    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
 	    byte[] tmpSource;
 	    byte[] tmpHash;
 
+	    // Get unique identifier for device
 	    string source = SystemInfo.deviceUniqueIdentifier;
 		Regex regX = new Regex(@"([<>""'%;()&])");
     	source = regX.Replace(source, "");
 
+    	// Convert to byte[] and compute MD5 hash
 	    tmpSource = ASCIIEncoding.ASCII.GetBytes(source);
 	    tmpHash = md5.ComputeHash(tmpSource);
 
+	    // Convert to hexadecimal to ensure valid characters
 	    StringBuilder sOutput = new StringBuilder(tmpHash.Length);
 	    for (int i = 0; i < tmpHash.Length; i++) {
 	        sOutput.Append(tmpHash[i].ToString("X2"));  // X2 formats to hexadecimal

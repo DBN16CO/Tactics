@@ -33,6 +33,10 @@ public class Unit : MonoBehaviour {
 		get{return _remainingMoveRange;}
 		set{_remainingMoveRange = value;}
 	}
+	public bool TakenAction {
+		get{return _takenAction;}
+		set{_takenAction = value;}
+	}
 #endregion
 
 	// Runs on unit instantiation
@@ -54,13 +58,8 @@ public class Unit : MonoBehaviour {
 		// Else select the unit
 		}else {
 			_selected = true;
-		// UI Options if the unit is yours and has/hasn't taken its turn
-			if(MyTeam) {
-				_gc.SelectUnit(this, token, _takenAction);
-		// UI Options if the unit isn't yours
-			}else {
-				_gc.ShowUnitInfo(this);
-			}
+		// UI Options
+			_gc.SelectUnit(this, token);
 		}
 	}
 
