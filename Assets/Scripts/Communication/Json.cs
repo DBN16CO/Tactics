@@ -9,7 +9,7 @@ public static class Json {
 
 		var request = new Dictionary<string, object>();
 		request["PING"] = "PING";
-		
+
 		//Example sending and receiving data synchronously
 		Communication.Connect(new Uri("ws://localhost:8000"));
 		Communication.SendString (Json.ToString(request));
@@ -50,7 +50,7 @@ public static class Json {
         return JsonConvert.SerializeObject(map);
 	}
 
-	
+
 	public static Dictionary<string, object> ToDict(string json){
 		return JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
 	}

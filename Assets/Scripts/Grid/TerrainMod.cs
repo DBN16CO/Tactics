@@ -16,7 +16,7 @@ public static class TerrainMod {
 		// Testing - will get these values from the server
 		// Larger numbers mean more weight. Values of 0 means impassable
 		terrainWeight[(int)UnitTypes.Warrior][(int)TerrainTypes.Grass 	] 	= 1f;
-		terrainWeight[(int)UnitTypes.Warrior][(int)TerrainTypes.Forest	] 	= 1f;
+		terrainWeight[(int)UnitTypes.Warrior][(int)TerrainTypes.Forest	] 	= 1.5f;
 		terrainWeight[(int)UnitTypes.Warrior][(int)TerrainTypes.Road	] 	= 0.5f;
 		terrainWeight[(int)UnitTypes.Warrior][(int)TerrainTypes.Mountain]	= 0f;
 
@@ -42,7 +42,7 @@ public enum TerrainTypes {
     Mountain
 }
 
-// List of terrain types
+// List of unit types
 public enum UnitTypes {
     Warrior,
     Gryphon
