@@ -51,8 +51,6 @@ class ListConverter : CustomCreationConverter<IList<object>>
         if (reader.TokenType == JsonToken.Null || reader.TokenType == JsonToken.StartArray)
             return base.ReadJson(reader, objectType, existingValue, serializer);
 
-        // if the next token is not an object
-        // then fall back on standard deserializer (strings, numbers etc.)
         return serializer.Deserialize(reader);
     }
 }
