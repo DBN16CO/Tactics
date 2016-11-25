@@ -14,12 +14,18 @@ def encrypt(password):
 def verifyPassword(password, dbHash):
 	return bcrypt.verify(password, dbHash)
 
+"""
+Generates and saves a login token for a particular user.
+This function should validate the token hasn't been taken before assigning it to a user.
+"""
 def generateLoginToken(user):
 	tokenTaken = True
 	maxAttempts = 20
 	attempt = 0
 	while tokenTaken and attempt < maxAttempts:
 		token = uuid.uuid4().hex
+
+		# Check to see if a user already has the generated token and retry if their is a match
 		conflictUser = Users.objects.filter(token=token).first()
 		if not conflictUser:
 			user.token = token
