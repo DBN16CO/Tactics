@@ -19,32 +19,26 @@ public class GameController : MonoBehaviour {
 
 
 #region Setters and Getters
-	// Returns _tokens
 	public Token[][] Tokens {
 		get{return _tokens;}
 		set{_tokens = value;}
 	}
-	// Returns _gridHeight
 	public int GridHeight {
 		get{return _gridHeight;}
 		set{_gridHeight = value;}
 	}
-	// Returns _gridLength
 	public int GridLength {
 		get{return _gridLength;}
 		set{_gridLength = value;}
 	}
-	// Returns _units
 	public List<Unit> Units {
 		get{return _units;}
 		set{_units = value;}
 	}
-	// Returns _selectedToken
 	public static Token SelectedToken {
 		get{return _selectedToken;}
 		set{_selectedToken = value;}
 	}
-	// Returns valid moves array
 	public List<ValidAction> Actions {
 		get{return _actions;}
 		set{_actions = value;}
@@ -83,14 +77,12 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
-	// Runs when a unit is selected
+	// Runs when a unit is selected. Take action if possible, otherwise show unit info
 	public void SelectUnit(Unit unit, Token token) {
 		SelectedToken = token;
 		if(unit.MyTeam && !unit.TakenAction) {
-			// If your unit hasn't taken its turn
 			SetValidActions(unit, token);
 		}else{
-			// Else show info (also includes enemy units)
 			ShowUnitInfo(unit);
 		}
 	}
@@ -107,15 +99,13 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Begins the process to asses valid moves for the selected unit
+	// Set range to unit's remaining range (in case we make units able to move twice if it has leftover)
+	// After all actions have been assessed, paint the tokens
 	private void SetValidActions(Unit unit, Token token) {
-		// Set range to unit's remaining range (in case we make units able to move twice if it has leftover)
 		float range = unit.RemainingMoveRange;
-		// Add token unit is currently standing on, because looks better
 		AddValidAction("move", token);
-		// Evaluate surrounding tokens, starting with the token the selected unit is on
 		EvalSurroundingTokenActions(unit, token, range, "move");
 
-		// After all actions have been assessed, paint the tokens
 		foreach(ValidAction action in Actions) {
 			Tokens[action.col][action.row].PaintAction(action.action);
 		}
@@ -147,75 +137,59 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Evaluates the specified token and determines to either continue movement, switch to attack, or end
+	// If there is range remaining, evaluate surrounding tokens with whatever the current action is (move or attack)
+	// If there is no range remaining, switch to attack action or end
 	private void EvalNextToken(Unit unit, Token token, Token prevToken, float range, string action) {
-		// Evaluate this token for valid actions, and calculate remaining range, if any
 		float remainingRange;
 		remainingRange = EvalToken(unit.name, token, range, action);
 		if(remainingRange >= 0f) {
-			// If there is range remaining, evaluate surrounding tokens with whatever the current action is (move or attack)
 			EvalSurroundingTokenActions(unit, token, remainingRange, action);
 		}else if(action == "move") {
-			// If there is no range remaining (i.e. the unit can NOT move into this token)
-			// and the action is currently "move"
 			if(prevToken.CurrentUnit != null) {
-				// We can't move here (remainingrange is less than 0)
-				// We also can't move to the previous token because prevToken.CurrentUnit != null
-				// So we need to evaluate the tokens surrounding the PREVIOUS token
-				// Use AtkRange-1 because the previous token uses the first tick of attack range
-				// If we saved the previous previous token, we could eval surrounding with AtkRange
+				// We can't move to this token or the previous token
+				// Evaluate the prevToken with atkrange-1 since we're really trying to eval prevprevtoken
 				EvalSurroundingTokenActions(unit, prevToken, unit.GetStat("AttackRange").Value-1, "attack");
 			}else{
-				// We still can't move here (remainingrange is less than 0)
-				// This time, there's no unit in the previous token so start attack action from there
 				EvalSurroundingTokenActions(unit, prevToken, unit.GetStat("AttackRange").Value, "attack");
 			}
 		}
 		// Otherwise, the action must be attack, which elicits no further action once that range runs out
 	}
 
-	// Specifically evaluates the valid action of the token
+	// Returns remainingRange if unit can move into this token based on terrainMod, negative means the unit can not move here
+	// Note - you can move through your own units so don't return negative
 	private float EvalToken(string unitName, Token token, float range, string action) {
-		// If "move" action and current token contains an enemy unit, return -1 (stop movement)
-		// This doesn't apply to our own team because units can move through those on their own team
 		if(token.CurrentUnit != null && action == "move") {
 			if(!token.CurrentUnit.MyTeam) {
 				return -1f;
 			}
 		}
-		// subtract from remainingrange based on TerrainMod if moving, or simply -1 if attacking
 		float remainingRange = (action == "move")? range - TerrainMod.TerrainWeight(unitName, token.name) : range - 1;
-		// If remainingrange > 0 (can potentially move further) and there's a unit on our team
-		// Don't add movement action since you can't move to a token your unit is on
-		// Return positive remainingRange to continue movement check
 		if(remainingRange >= 0f) {
 			if(token.CurrentUnit != null) {
 				if(token.CurrentUnit.MyTeam) {
 					return remainingRange;
 				}
 			}
-			// Else if no unit, add the action to the list
+			// Else if no unit, just add the action to the list
 			AddValidAction(action, token);
 		}
 		return remainingRange;
 	}
 
-	// Clears the list of actions
+	// Clears the token vars and actions list
 	private void ClearValidActions() {
 		foreach(ValidAction action in Actions) {
-			// Clear the CanMove or CanAttack vars off the tokens
 			Tokens[action.col][action.row].SetActionProperties("clear");
 		}
-		// Clear the list
 		Actions.Clear();
 	}
 
-	// Adds the specified action to the token and list
+	// Adds the specified action to the token and list - Move overwrites Attack
 	private void AddValidAction(string act, Token token) {
 		if(!token.CanMove && !token.CanAttack) {
-			// If no actions on the token yet, just add
 			Actions.Add(CreateValidAction(act, token));
 		}else if(act == "move" && token.CanAttack){
-			// Move overwrites Attack, so remove and add
 			RemoveValidAction(token);
 			Actions.Add(CreateValidAction(act, token));
 		}
@@ -227,23 +201,18 @@ public class GameController : MonoBehaviour {
 		for(int index = 0; index < Actions.Count; index++) {
 			ValidAction currAction = Actions[index];
 			if(currAction.col == token.X && currAction.row == token.Y) {
-				// Remove from list and overwrite token properties
-				// The parameter 'overwrite' was created because 'clear' also repaints the token
-				// I don't want to remove the attack paint then add move paint
-				// Overwrite simply clears CanMove / CanAttack
 				Actions.Remove(currAction);
 				token.SetActionProperties("overwrite");
 			}
 		}
 	}
 
-	// Creates the action
+	// Creates the action and set the token properties
 	private ValidAction CreateValidAction(string act, Token token) {
 		ValidAction action;
 		action.action = act;
 		action.col = token.X;
 		action.row = token.Y;
-		// Set token properties (CanMove/CanAttack)
 		token.SetActionProperties(act);
 		return action;
 	}
@@ -269,6 +238,7 @@ public class GameController : MonoBehaviour {
 			Server.CreateUser("testUser", "tactics", "tactics@gmail.com");
 			Server.Login("testUser", "tactics");
 		}
+		//Server.Logout();
 	}
 
 	// For testing - gameplay variables and functionality
