@@ -1,18 +1,21 @@
 from django.test import TestCase
 from Communication.testhelper import *
 import json
+from User.models import Users
 
 class TestUser(TestCase):
 	def setUp(self):
 		self.channel = TestHelper()
 
-	def test1_create_user(self):
-		logging.debug("==== Starting create user test ====")
+	def test1_create_user_success(self):
+		logging.debug("==== Starting create user success test ====")
 
 		result = self.channel.createTestUser({"username":"successUsr1","password":"12345","email":"success@a.com"})
 		self.assertTrue(result["Success"])
+		self.assertTrue(result["Token"] != None)
+		self.assertTrue(Users.objects.get(username="successUsr1").token != None)
 
-		logging.debug("==== Exiting create user test ====")
+		logging.debug("==== Exiting create user success test ====")
 
 	def test2_duplicate_username(self):
 		logging.debug("==== Starting duplicate user test ====")
@@ -47,6 +50,7 @@ class TestUser(TestCase):
 		result = self.channel.login({"username": "testLoginSuccess", "password": "12345"})
 		self.assertTrue(result["Success"])
 		self.assertTrue(result["Token"] != None)
+		self.assertTrue(Users.objects.get(username="testLoginSuccess").token != None)
 
 		self.channel.send('{"Command": "PA"}')
 		result = json.loads(self.channel.receive())
@@ -75,6 +79,7 @@ class TestUser(TestCase):
 
 		result = self.channel.login({"token": result["Token"]})
 		self.assertTrue(result["Success"])
+		self.assertTrue(Users.objects.get(username="testLoginSToken").token != None)
 
 		self.channel.send('{"Command": "PA"}')
 		result = json.loads(self.channel.receive())
@@ -94,6 +99,38 @@ class TestUser(TestCase):
 		self.assertEqual(result["Error"], "Invalid Username/Password")
 
 		logging.debug("==== Exiting login failure token test ====")
+
+	def test8_logout_success(self):
+		logging.debug("==== Starting logout success test ====")
+
+		self.assertTrue(self.channel.createUserAndLogin({"username": "testLogoutS", "password": "12345", "email": "logoutSuccess@a.com"}))
+		self.assertTrue(Users.objects.get(username="testLogoutS").token != None)
+
+
+		self.channel.send('{"Command": "LGO"}')
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+
+		self.assertTrue(Users.objects.get(username="testLogoutS").token == None)
+
+		self.channel.send('{"Command": "PA"}')
+		result = json.loads(self.channel.receive())
+
+		self.assertTrue("Success" in result)
+		self.assertFalse(result["Success"])
+		self.assertEqual(result["Error"], "User is not authenticated, please login.")
+
+		logging.debug("==== Exiting logout success test ====")
+
+	def test9_logout_failure(self):
+		logging.debug("==== Starting logout failure test ====")
+
+		self.channel.send('{"Command": "LGO"}')
+		result = json.loads(self.channel.receive())
+		self.assertFalse(result["Success"])
+		self.assertEquals(result["Error"], "User is not authenticated, please login.")
+
+		logging.debug("==== Exiting logout failure test ====")
 
 
 
