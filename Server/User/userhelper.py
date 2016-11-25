@@ -15,8 +15,21 @@ def verifyPassword(password, dbHash):
 	return bcrypt.verify(password, dbHash)
 
 def generateLoginToken(user):
-	user.token = uuid.uuid4().hex
-	user.save()
+	tokenTaken = True
+	maxAttempts = 20
+	attempt = 0
+	while tokenTaken and attempt < maxAttempts:
+		token = uuid.uuid4().hex
+		conflictUser = Users.objects.filter(token=token).first()
+		if not conflictUser:
+			user.token = token
+			user.save()
+			tokenTaken = False
+
+		attempt += 1
+
+	if tokenTaken:
+		logging.error("Login Token Generation Failed: 20 Attempts to generate a random token resulted in user conflicts")
 
 	return user.token
 
