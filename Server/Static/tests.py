@@ -28,22 +28,24 @@ class TestStatic(TestCase):
 		expected_data = json.loads(json.dumps(expected_data))
 		logging.debug(data)
 
-		self.assertEqual(data["Version"], expected_data["version"])
-		self.assertEqual(data["Actions"], expected_data["actions"])
-		self.assertEqual(data["Classes"], expected_data["classes"])
+		self.assertEqual(data["Version"], expected_data["Version"])
+		self.assertEqual(data["Actions"], expected_data["Actions"])
+		self.assertEqual(data["Classes"], expected_data["Classes"])
 
 		# Ensure the keys match and their values are not null
-		self.assertEqual(sorted(data["Leaders"]), sorted(expected_data["leaders"]))
+		self.assertEqual(sorted(data["Leaders"]), sorted(expected_data["Leaders"]))
 		for key in data["Leaders"].keys():
 			self.assertTrue(data["Leaders"][key] != None)
-		self.assertEqual(sorted(data["Maps"]), sorted(expected_data["maps"]))
+		self.assertEqual(sorted(data["Maps"]), sorted(expected_data["Maps"]))
 		for key in data["Maps"].keys():
 			self.assertTrue(data["Maps"][key] != None)
-		self.assertEqual(data["Perks"], expected_data["perks"])
-		self.assertEqual(data["Stats"], expected_data["stats"])
-		self.assertEqual(sorted(data["Terrain"]), sorted(expected_data["terrain"]))
+		self.assertEqual(data["Perks"], expected_data["Perks"])
+		self.assertEqual(data["Stats"], expected_data["Stats"])
+		self.assertEqual(sorted(data["Terrain"]), sorted(expected_data["Terrain"]))
 		for key in data["Terrain"].keys():
 			self.assertTrue(data["Terrain"][key] != None)
+			for clss in data["Terrain"][key]["Units"].keys():
+				self.assertTrue(data["Terrain"][key]["Units"][clss] != None)
 
 		# Verify the success
 		self.assertEqual(data["Success"], True)

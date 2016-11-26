@@ -69,6 +69,7 @@ class Terrain(models.Model):
 	name		 = models.CharField(max_length=16)	# Mountain, Grass, Road
 	unit         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
 	move         = models.FloatField(default=1.0)
+	shortname    = models.CharField(max_length=8)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
