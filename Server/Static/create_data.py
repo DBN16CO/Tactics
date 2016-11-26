@@ -1,4 +1,4 @@
-from Static.models import Version, Action, Class, Hero_Ability, Leader, Perk, Map, Stat, Terrain
+from Static.models import Version, Action, Class, Hero_Ability, Leader, Leader_Ability, Perk, Map, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
 import logging
 
 # Will load the databse with all necessary static data based on the provided version name
@@ -19,52 +19,67 @@ def setup_static_db(version):
 	ver.save()
 
 	# Save the action data
+	logging.info("Creating Action objects...")
 	for actn in data["Actions"].keys():
 		action = Action(name=actn, description=data["Actions"][actn], version_id=ver.id)
 		action.save()
 
 	# Save the class data
+	logging.info("Creating Class objects...")
 	for clss in data["Classes"].keys():
 		class_inst = Class(name=clss, description=data["Classes"][clss], version_id=ver.id)
 		class_inst.save()
 
 	# Save the Hero Ability Data
+	logging.info("Creating Hero Ability objects...")
 	for hero_abil in data["Hero_Abils"].keys():
 		ha_inst = Hero_Ability(name=hero_abil, description=data["Hero_Abils"][hero_abil], version_id=ver.id)
 		ha_inst.save()
 
 	# Save the Leader Data
+	logging.info("Creating Leader objects...")
 	for ldr in data["Leaders"]:
+		ldr_inst =  Leader(name=ldr, description=data["Leaders"][ldr]["Description"], version_id=ver.id)
+		ldr_inst.save()
 		for abil in data["Leaders"][ldr]["Abilities"]:
 			abil_id = Hero_Ability.objects.get(name=abil, version_id=ver.id).id
-			ldr_inst = Leader(name=ldr, description=data["Leaders"][ldr]["Description"], ability_id=abil_id, version_id=ver.id)
-			ldr_inst.save()
+			ldr_abil_inst = Leader_Ability(leader_id=ldr_inst.id, ability_id=abil_id, version_id=ver.id)
+			ldr_abil_inst.save()
 
 	# Save the Perk Data
+	logging.info("Creating Perk objects...")
 	for prk in data["Perks"].keys():
 		perk_inst = Perk(name=prk, description=data["Perks"][prk]["Description"], 
 			tier=data["Perks"][prk]["Tier"], version_id=ver.id)
 		perk_inst.save()
 
 	# Save the Map Data
+	logging.info("Creating Map objects...")
 	for mp in data["Maps"].keys():
 		map_inst = Map(name=mp, file_path=str(data["Map_Base"]) + data["Maps"][mp], version_id=ver.id)
 		map_inst.save()
 
 	# Save the Stat Data
+	logging.info("Creating Stat objects...")
 	for stt in data["Stats"].keys():
+		stt_inst = Stat(name=stt, version_id=ver.id)
+		stt_inst.save()
 		for clss in data["Stats"][stt].keys():
 			clss_id = Class.objects.get(name=clss, version_id=ver.id).id
-			stt_inst = Stat(name=stt, unit_id=clss_id, value=data["Stats"][stt][clss], version_id=ver.id)
-			stt_inst.save()
+			stt_unit_inst = Unit_Stat(stat_id=stt_inst.id, unit_id=clss_id, 
+				value=data["Stats"][stt][clss], version_id=ver.id)
+			stt_unit_inst.save()
 
 	# Save the Terrain Data
+	logging.info("Creating Terrain objects...")
 	for ter in data["Terrain"].keys():
+		ter_inst = Terrain(name=ter, shortname=data["Terrain"][ter]["Shortname"], version_id=ver.id)
+		ter_inst.save()
 		for clss in data["Terrain"][ter]["Units"].keys():
 			clss_id = Class.objects.get(name=clss, version_id=ver.id).id
-			ter_inst = Terrain(name=ter, unit_id=clss_id, shortname=data["Terrain"][ter]["Shortname"],
+			ter_unt_mv_inst = Terrain_Unit_Movement(terrain_id=ter_inst.id, unit_id=clss_id, 
 				move=data["Terrain"][ter]["Units"][clss], version_id=ver.id)
-			ter_inst.save()
+			ter_unt_mv_inst.save()
 
 	return True
 
