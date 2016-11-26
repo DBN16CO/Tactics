@@ -32,12 +32,19 @@ class Hero_Ability(models.Model):
 
 class Leader(models.Model):	
 	name         = models.CharField(max_length=16)
-	ability      = models.ForeignKey(Hero_Ability, on_delete=models.DO_NOTHING)
 	description  = models.CharField(max_length=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
-		unique_together = ('name', 'ability', 'version')
+		unique_together = ('name', 'version')
+
+class Leader_Ability(models.Model):
+	leader 		 = models.ForeignKey(Leader,       on_delete=models.DO_NOTHING)
+	ability      = models.ForeignKey(Hero_Ability, on_delete=models.DO_NOTHING)
+	version 	 = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
+
+	class Meta:
+		unique_together = ('leader', 'ability', 'version')
 
 class Perk(models.Model):
 	name         = models.CharField(max_length=16)
@@ -58,19 +65,34 @@ class Map(models.Model):
 
 class Stat(models.Model):
 	name         = models.CharField(max_length=16)   # HP, Strength, Agility
+	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
+
+	class Meta:
+		unique_together = ('name', 'version')
+
+class Unit_Stat(models.Model):
+	stat 		 = models.ForeignKey(Stat,		   on_delete=models.DO_NOTHING)
 	unit         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
 	value        = models.FloatField(default=0)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
-		unique_together = ('name', 'unit', 'version')
+		unique_together = ('stat', 'unit', 'version')
 
 class Terrain(models.Model):
 	name		 = models.CharField(max_length=16)	# Mountain, Grass, Road
+	shortname    = models.CharField(max_length=8)
+	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
+
+	class Meta:
+		unique_together = ('name', 'version')
+
+class Terrain_Unit_Movement(models.Model):
+	terrain 	 = models.ForeignKey(Terrain,	   on_delete=models.DO_NOTHING)
 	unit         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
 	move         = models.FloatField(default=1.0)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
-		unique_together = ('name', 'unit', 'version')
+		unique_together = ('terrain', 'unit', 'version')
 

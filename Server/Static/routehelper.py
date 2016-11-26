@@ -24,43 +24,49 @@ def getAllStaticData(data):
 	version_name = version.name
 
 	# Get all of the actions
-	logging.debug("Loading action data...")
+	logging.debug("Loading Action data...")
 	actions = Static.statichelper.getActionData(ver_id)
 	if actions == None or len(actions) == 0:
 		error_list.append("Actions")
 
 	# Get all of the classes
-	logging.debug("Loading class data...")
+	logging.debug("Loading Class data...")
 	classes = Static.statichelper.getClassData(ver_id)
 	if classes == None or len(classes) == 0:
 		error_list.append("Classes")
 
+	# Get all of the Hero Abilities
+	logging.debug("Loading Hero Ability data...")
+	hero_abil = Static.statichelper.getHeroAbilData(ver_id)
+	if hero_abil == None or len(hero_abil) == 0:
+		error_list.append("Hero_Abils")
+
 	# Get all of the Leaders
-	logging.debug("Loading leader data...")
+	logging.debug("Loading Leader data...")
 	leaders = Static.statichelper.getLeaderData(ver_id)
 	if leaders == None or len(leaders) == 0:
 		error_list.append("Leaders")
 
 	# Get all of the maps
-	logging.debug("Loading map data...")
+	logging.debug("Loading Map data...")
 	maps = Static.statichelper.getMapData(ver_id)
 	if maps == None or len(maps) == 0:
 		error_list.append("Maps")
 
 	# Get all of the perks
-	logging.debug("Loading perk data...")
+	logging.debug("Loading Perk data...")
 	perks = Static.statichelper.getPerkData(ver_id)
 	if perks == None or len(perks) == 0:
 		error_list.append("Perks")
 
 	# Get all of the stat information
-	logging.debug("Loading stat data...")
+	logging.debug("Loading Stat data...")
 	stats = Static.statichelper.getStatData(ver_id)
 	if stats == None or len(stats) == 0:
 		error_list.append("Stats")
 
 	# Get all of the terrain information
-	logging.debug("Loading terrain data...")
+	logging.debug("Loading Terrain data...")
 	terrain = Static.statichelper.getTerrainData(ver_id)
 	if terrain == None or len(terrain) == 0:
 		error_list.append("Terrain")
@@ -71,6 +77,7 @@ def getAllStaticData(data):
 					"Version": version_name,
 					"Actions": actions,
 					"Classes": classes,
+			 	 "Hero_Abils": hero_abil,
 					"Leaders": leaders,
 					"Maps"   : maps,
 					"Perks"  : perks,
