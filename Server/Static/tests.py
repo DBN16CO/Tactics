@@ -41,7 +41,9 @@ class TestStatic(TestCase):
 			self.assertTrue(data["Maps"][key] != None)
 		self.assertEqual(data["Perks"], expected_data["perks"])
 		self.assertEqual(data["Stats"], expected_data["stats"])
-		self.assertEqual(data["Terrain"], expected_data["terrain"])
+		self.assertEqual(sorted(data["Terrain"]), sorted(expected_data["terrain"]))
+		for key in data["Terrain"].keys():
+			self.assertTrue(data["Terrain"][key] != None)
 
 		# Verify the success
 		self.assertEqual(data["Success"], True)

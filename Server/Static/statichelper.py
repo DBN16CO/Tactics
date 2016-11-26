@@ -190,15 +190,23 @@ def getStatData(ver_id):
 # Gets the terrain information for the specified version
 # Returns a dictionary of thie following form:
 # {"Grass":
-# 	{
-# 		"Archer":1,	// 1 is move consumed moving over grass for archer
-# 		"Flier":1,
-# 	},
+# 	[
+# 	"Units":
+# 		{
+# 			"Archer":1,	// 1 is move consumed moving over grass for archer
+# 			"Flier":1,
+# 		},
+# 	"ID":1,
+# 	],	
 #  "Forest":
-#  	{
-#  		"Archer":2,
-#  		"Flier":1,
-#  	},
+#  [
+#  	"Units":
+#  		{
+#  			"Archer":2,
+#  			"Flier":1,
+#  		},
+#  	"ID":2.
+#  ],
 # }
 def getTerrainData(ver_id):
 	# Get all the terrains for that version
@@ -212,6 +220,8 @@ def getTerrainData(ver_id):
 		# If the specified terrain has yet to be encountered
 		if not ter.name in terrain_dict:
 			terrain_dict[ter.name] = {}
+			terrain_dict[ter.name]["ID"] = ter.id
+			terrain_dict[ter.name]["Units"] = {}
 
 		# Ensure that the specified unit(class) ID exists in the dictionary input
 		if not ter.unit_id in class_dict:
@@ -219,8 +229,8 @@ def getTerrainData(ver_id):
 			class_dict[ter.unit_id] = Class.objects.get(ter.unit_id).name
 
 		# If the specified class doesn't exist in the specific terrain dict
-		if not class_dict[ter.unit_id] in terrain_dict[ter.name]:
-			terrain_dict[ter.name][class_dict[ter.unit_id]] = ter.move
+		if not class_dict[ter.unit_id] in terrain_dict[ter.name]["Units"]:
+			terrain_dict[ter.name]["Units"][class_dict[ter.unit_id]] = ter.move
 		else:
 			logging.error("Duplicate unit class for terrain type.")
 
