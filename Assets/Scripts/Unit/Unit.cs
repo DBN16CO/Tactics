@@ -50,15 +50,13 @@ public class Unit : MonoBehaviour {
 		_gc = GameObject.Find("GameController").GetComponent<GameController>();
 	}
 
-	// Called from the clicked token when there is a unit
+	// Called from the clicked token - deselect if already selected
 	public void Clicked(Token token) {
-		// If the unit is already selected, deselect
 		if(_selected) {
 			UnselectUnit();
-		// Else select the unit
 		}else {
 			_selected = true;
-		// UI Options
+		// UI Options in GameController
 			_gc.SelectUnit(this, token);
 		}
 	}
@@ -66,7 +64,6 @@ public class Unit : MonoBehaviour {
 	// Public function to deselect this unit
 	public void UnselectUnit() {
 		_selected = false;
-		// Run associated game functions like re-painting grid
 		_gc.UnselectUnit();
 	}
 

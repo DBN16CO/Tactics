@@ -52,6 +52,7 @@ public static class Server {
 			string _loginToken = response["Token"].ToString();
 			string _encryptedToken = AES.Encrypt(_loginToken, GenerateAESKey());
 			PlayerPrefs.SetString("session", _encryptedToken);
+			PlayerPrefs.Save();
 			Debug.Log("user '" + username + "' logged in with token: " + _loginToken);
 		}
 		return success;
@@ -78,6 +79,30 @@ public static class Server {
 			Debug.Log("user re-logged in with token: " + _loginToken);
 		}else {
 			Debug.Log("error logging user in with existing token");
+			PlayerPrefs.DeleteKey("session");
+			PlayerPrefs.Save();
+		}
+		return success;
+	}
+
+	// Used to logout of the server
+	public static bool Logout() {
+		// Create the request, decrypt session token, and send it
+		var request = new Dictionary<string, object>();
+		request["Command"] = "LGO";
+		Communication.SendString(Json.ToString(request));
+		// Wait for the response, then parse
+		string strResponse = null;
+		while(strResponse == null) {
+			strResponse = Communication.RecvString();
+		}
+		var response = Json.ToDict(strResponse);
+		// If successful, delete cached token
+		bool success = (bool)response["Success"];
+		if(success) {
+			Debug.Log("User logged out");
+			PlayerPrefs.DeleteKey("session");
+			PlayerPrefs.Save();
 		}
 		return success;
 	}
