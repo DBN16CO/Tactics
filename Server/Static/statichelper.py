@@ -23,9 +23,18 @@ def getActionData(ver_id):
 # Gets the class information for the specified version
 # Returns an array of the following form:
 # {
-# 	"Archer":"An archer guy.",
-# 	"Mage":"A ranged mage caster man.",
-# 	"Flier":"It's a bird, it's a plane, it's a flier!"
+# 	 "Archer":    {
+#    	"Description":"Ranged unit with low armor.  Good at defeating Fliers.", 
+#       "Stats": {
+#       	"HP":10.0, "Move": 6.0, "Agility": 8.5, "Intelligence": 4.0, "Strength": 7.0, "Luck": 7.0,
+#       },
+#       "Terrain": {
+#       	"G": 1.0, "F": 2.0, "W":99.0, "M": 4.0, "R": 1.0,
+#       },
+#     },
+#     "Mage": {
+#     	...
+#     },
 # }
 def getClassData(ver_id):
 	# Gets all class objects for specified version
@@ -36,7 +45,26 @@ def getClassData(ver_id):
 
 	# Add the name and descrption to the dictionary
 	for clss in all_ver_classes:
-		class_dict[clss.name] = clss.description
+		class_dict[clss.name] = {}
+		class_dict[clss.name]["Description"] = clss.description
+
+		# Add The Stat information
+		class_dict[clss.name]["Stats"] = {}
+		all_ver_clss_stat = Unit_Stat.objects.filter(version_id=ver_id, unit_id=clss.id)
+		logging.debug("There are " + str(len(all_ver_clss_stat)) + " objects in Unit_Stat for class " 
+			+ str(clss.name) + " version " + str(ver_id) + ".")
+		for unt_stt in all_ver_clss_stat:
+			class_dict[clss.name]["Stats"][unt_stt.stat.name] = unt_stt.value
+
+		# Add The Terrain information
+		class_dict[clss.name]["Terrain"] = {}
+		all_ver_clss_ter_mov = Terrain_Unit_Movement.objects.filter(version_id=ver_id, unit_id=clss.id)
+		logging.debug("There are " + str(len(all_ver_clss_ter_mov)) + " objects in Terrain_Unit_Movement for class " 
+			+ str(clss.name) + " version " + str(ver_id) + ".")
+		for unt_ter_mov in all_ver_clss_ter_mov:
+			class_dict[clss.name]["Terrain"][unt_ter_mov.terrain.shortname] = unt_ter_mov.move
+
+
 
 	return class_dict
 
@@ -161,80 +189,55 @@ def getPerkData(ver_id):
 # Returns a dictionary of thie following form:
 # {"HP":
 # 	{
-# 		"Archer":10,
-# 		"Flier":10,
+# 		"Description":"Health points, duh",
 # 	},
 #  "Move":
 #  	{
-#  		"Archer":5,
-#  		"Flier":8,
+#  		"Description":"How far you can move.",
 #  	},
 # }
 def getStatData(ver_id):
 	# Get all the stats for that version
-	all_ver_unit_stat = Unit_Stat.objects.filter(version_id=ver_id)
-	logging.debug("There are " + str(len(all_ver_unit_stat)) + " objects in stat for version " + str(ver_id) + ".")
-
-	#class_dict = getClassDict(ver_id)
+	all_ver_stat = Stat.objects.filter(version_id=ver_id)
+	logging.debug("There are " + str(len(all_ver_stat)) + " objects in stat for version " + str(ver_id) + ".")
 
 	stat_dict = {}
 
 	# Add all the stats
-	for unt_stt in all_ver_unit_stat:
+	for stt in all_ver_stat:
 
-		# If the stat has yet to be added to the stat dictionary
-		if not unt_stt.stat.name in stat_dict:
-			stat_dict[unt_stt.stat.name] = {}
-
-		# If the specified class doesn't exist in the specific stat dict (Expected)
-		if not unt_stt.unit.name in stat_dict[unt_stt.stat.name]:
-			stat_dict[unt_stt.stat.name][unt_stt.unit.name] = unt_stt.value
-		else:
-			logging.error("Duplicate unit class for stat type.")
+		# Create a dictionary entry with the shortname as the key and populate it
+		stat_dict[stt.name] = {}
+		stat_dict[stt.name]["Description"] = stt.description
 
 	return stat_dict
 
 # Gets the terrain information for the specified version
 # Returns a dictionary of thie following form:
-# {"Grass":
-# 	{}
-# 	"Units":
-# 		{
-# 			"Archer":1,	// 1 is move consumed moving over grass for archer
-# 			"Flier":1,
-# 		},
-# 	"ID":1,
-# 	},	
-#  "Forest":
-#  {
-#  	"Units":
-#  		{
-#  			"Archer":2,
-#  			"Flier":1,
-#  		},
-#  	"ID":2.
-#  },
+# {"G": // The shortname in the table
+# 	{
+# 		"Description":"Grasssssy."
+# 		"DisplayName":"Grass"
+# 	},
+#  "F":
+#   {
+#  		"Description":"Trees! Trees everywhere!"
+#  		"DisplayName":"Forest"
+#   },
 # }
 def getTerrainData(ver_id):
 	# Get all the terrains for that version
-	all_ver_terrain_unit_move = Terrain_Unit_Movement.objects.filter(version_id=ver_id)
-	logging.debug("There are " + str(len(all_ver_terrain_unit_move)) + " objects in terrain for version " + str(ver_id) + ".")
+	all_ver_terrain = Terrain.objects.filter(version_id=ver_id)
+	logging.debug("There are " + str(len(all_ver_terrain)) + " objects in terrain for version " + str(ver_id) + ".")
 	
 	terrain_dict = {}
 
 	# Add all the terrains
-	for ter_unt_mv in all_ver_terrain_unit_move:
+	for ter in all_ver_terrain:
 
-		# If the specified terrain has yet to be encountered
-		if not ter_unt_mv.terrain.name in terrain_dict:
-			terrain_dict[ter_unt_mv.terrain.name] = {}
-			terrain_dict[ter_unt_mv.terrain.name]["Shortname"] = ter_unt_mv.terrain.shortname
-			terrain_dict[ter_unt_mv.terrain.name]["Units"] = {}
-
-		# If the specified class doesn't exist in the specific terrain dict (Expected)
-		if not ter_unt_mv.unit.name in terrain_dict[ter_unt_mv.terrain.name]["Units"]:
-			terrain_dict[ter_unt_mv.terrain.name]["Units"][ter_unt_mv.unit.name] = ter_unt_mv.move
-		else:
-			logging.error("Duplicate unit class for terrain type.")
+		# Create a dictionary entry with the shortname as the key and populate it
+		terrain_dict[ter.shortname] = {}
+		terrain_dict[ter.shortname]["Description"] = ter.description
+		terrain_dict[ter.shortname]["DisplayName"] = ter.name
 
 	return terrain_dict
