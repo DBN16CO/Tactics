@@ -65,6 +65,7 @@ class Map(models.Model):
 
 class Stat(models.Model):
 	name         = models.CharField(max_length=16)   # HP, Strength, Agility
+	description  = models.CharField(max_length=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
@@ -82,10 +83,11 @@ class Unit_Stat(models.Model):
 class Terrain(models.Model):
 	name		 = models.CharField(max_length=16)	# Mountain, Grass, Road
 	shortname    = models.CharField(max_length=8)
+	description  = models.CharField(max_length=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
-		unique_together = ('name', 'version')
+		unique_together = ('shortname', 'version')
 
 class Terrain_Unit_Movement(models.Model):
 	terrain 	 = models.ForeignKey(Terrain,	   on_delete=models.DO_NOTHING)
