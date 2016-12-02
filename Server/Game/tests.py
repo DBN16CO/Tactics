@@ -7,6 +7,19 @@ class TestUnit(TestCase):
 	def setUp(self):
 		self.channel = TestHelper()
 
+	def test1_set_team_empty_unit(self):
+		startTestLog("test1_set_team_empty_unit")
+		self.assertTrue(self.channel.createUserAndLogin(
+			{"username":"set_team_user","password":"abc12345","email":"setTeam@email.com"}))
+
+		self.channel.send('{"Command":"ST"}')
+		result = self.channel.receive()
+		logging.debug(result)
+
+		self.assertEqual(result, json.dumps({"Success":False,"Error":"There were no units selected in the team."}))
+
+		endTestLog("test1_set_team_empty_unit")
+
 """
 	def test_create_unit_archer(self):
 		startTestLog("test_create_unit_archer")

@@ -64,6 +64,14 @@ def setTeam(data):
 	else:
 		pass
 		# Look through all of the units for their 
+	
+	if len(error) == 0:
+		response = {"Success":True}
+	else:
+		response = {"Success":False,
+					"Error":error}
+
+	return response
 
 
 # Handles any action a single unit can take
