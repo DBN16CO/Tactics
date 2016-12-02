@@ -15,7 +15,9 @@ def setup_static_db(version):
 	data = cmd[version]()
 
 	# Save the version data
-	ver = Version(name=data["Version"])
+	logging.info("Creating Version object...")
+	ver = Version(name=data["Version"]["Name"], price_max=data["Version"]["Price_Max"],
+		unit_count=data["Version"]["Unit_Count"])
 	ver.save()
 
 	# Save the action data
@@ -69,7 +71,8 @@ def setup_static_db(version):
 	# Save the class data
 	logging.info("Creating Class objects...")
 	for clss in data["Classes"].keys():
-		clss_inst = Class(name=clss, description=data["Classes"][clss]["Description"], version_id=ver.id)
+		clss_inst = Class(name=clss, description=data["Classes"][clss]["Description"], 
+			price=data["Classes"][clss]["Price"], version_id=ver.id)
 		clss_inst.save()
 
 		for stt in data["Classes"][clss]["Stats"].keys():
@@ -91,7 +94,11 @@ def ver_1_0_static_data():
 	data = {}
 
 	# Version Data
-	data["Version"] = "1.0"
+	data["Version"] = {
+		"Name":"1.0",
+		"Price_Max":1000,
+		"Unit_Count":8,
+	}
 
 	# Action Data
 	data["Actions"] = {
@@ -110,6 +117,7 @@ def ver_1_0_static_data():
 			"Terrain": {
 				"G": 1.0, "F": 2.0, "W":99.0, "M": 4.0, "R": 1.0,
 			},
+			"Price":150,
 		},
 		"Swordsman": {
 			"Description":"Standard melee unit with average stats.", 
@@ -119,6 +127,7 @@ def ver_1_0_static_data():
 			"Terrain": {
 				"G": 1.0, "F": 3.0, "W":99.0, "M": 4.0, "R": 1.0,
 			},
+			"Price":100,
 		},
 		"Mage":      {
 			"Description":"Magical ranged attacker with low defense.  Good at defeating armored units.", 
@@ -128,6 +137,7 @@ def ver_1_0_static_data():
 			"Terrain": {
 				"G": 1.0, "F": 2.0, "W":99.0, "M": 3.0, "R": 1.0,
 			},
+			"Price":150,
 		},
 		"Rogue":     {
 			"Description":"Fast evasive melee unit.  Has low defense but high attack potential.", 
@@ -137,6 +147,7 @@ def ver_1_0_static_data():
 			"Terrain": {
 				"G": 1.0, "F": 1.0, "W":99.0, "M": 2.0, "R": 0.5,
 			},
+			"Price":200,
 		},
 		"Armor":     {
 			"Description":"Melee unit with very high physical defense, but low magical resistance.", 
@@ -146,6 +157,7 @@ def ver_1_0_static_data():
 			"Terrain": {
 				"G": 1.0, "F": 3.0, "W":99.0, "M":99.0, "R": 1.0,
 			},
+			"Price":300,
 		},
 		"Horseman":  {
 			"Description":"Mounted melee unit with high mobility.", 
@@ -155,6 +167,7 @@ def ver_1_0_static_data():
 			"Terrain": {
 				"G": 1.0, "F": 3.0, "W":99.0, "M":99.0, "R": 0.5,
 			},
+			"Price":250,
 		},
 		"Flier":     {
 			"Description":"Flying melee unit, can move over any tile.  Low defense, especially to archers.",
@@ -164,6 +177,7 @@ def ver_1_0_static_data():
 			"Terrain": {
 				"G": 1.0, "F": 1.0, "W": 1.0, "M": 1.0, "R": 1.0,
 			},
+			"Price":200,
 		},
 	}
 

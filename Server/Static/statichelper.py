@@ -47,6 +47,7 @@ def getClassData(ver_id):
 	for clss in all_ver_classes:
 		class_dict[clss.name] = {}
 		class_dict[clss.name]["Description"] = clss.description
+		class_dict[clss.name]["Price"]       = clss.price
 
 		# Add The Stat information
 		class_dict[clss.name]["Stats"] = {}
@@ -241,3 +242,19 @@ def getTerrainData(ver_id):
 		terrain_dict[ter.shortname]["DisplayName"] = ter.name
 
 	return terrain_dict
+
+# Converts the provided version object into the expected JSON output:
+# {
+# 	"Name":"1.0",
+# 	"Price_Max":1000,
+# 	"Unit_Count":8,
+# }
+def getVersionData(version):
+
+	ver_dict = {}
+
+	ver_dict["Name"]       = version.name
+	ver_dict["Price_Max"]  = version.price_max
+	ver_dict["Unit_Count"] = version.unit_count
+
+	return ver_dict

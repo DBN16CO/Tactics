@@ -19,9 +19,11 @@ def getAllStaticData(data):
 	error_list = []
 
 	# Get the most current version's info
-	version = Version.objects.latest('pk')
-	ver_id = version.id
-	version_name = version.name
+	logging.debug("Loading Version data...")
+	version_obj = Version.objects.latest('pk')
+	ver_id = version_obj.id
+	version = Static.statichelper.getVersionData(version_obj)
+	logging.debug("Using latest version: " + str(version_obj.name))
 
 	# Get all of the actions
 	logging.debug("Loading Action data...")
@@ -74,7 +76,7 @@ def getAllStaticData(data):
 	if len(error_list) == 0:
 		# Get all of the terrain info
 		response = {"Success": True, 
-					"Version": version_name,
+					"Version": version,
 					"Actions": actions,
 					"Classes": classes,
 			 	 "Hero_Abils": hero_abil,
