@@ -5,6 +5,8 @@ from django.db import models
 # Create your models here.
 class Version(models.Model):
 	name         = models.CharField(max_length=16, unique=True)
+	price_max    = models.IntegerField(default=1000)
+	unit_count   = models.IntegerField(default=8)
 	
 class Action(models.Model):	
 	name         = models.CharField(max_length=16)
@@ -17,6 +19,7 @@ class Action(models.Model):
 class Class(models.Model):	
 	name         = models.CharField(max_length=16)
 	description  = models.CharField(max_length=100)
+	price        = models.IntegerField(default=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
