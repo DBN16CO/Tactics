@@ -46,9 +46,19 @@ def setTeam(data):
 
 	error = ""
 
-	# Ensure there were at least some units and a leader selected
+	# Get Version data, for use in validation - if setting team, must be newest version
+	version = Version.objects.latest('pk')
+
+	# Ensure that the 'Units' key exists' there were at least some units and a leader selected
 	if not "Units" in data:
 		error = "There were no units selected in the team."
+	# Ensure the user selected the proper number of units - too many, cheater!
+	elif count(data["Units"] >= version.unit_count):
+		error = "Too many units have been selected."
+	# Ensure the user selected the proper number of units - too few, oops, add a few!
+	elif count(data["Units"] <= version.unit_count):
+		error = "You must select " + str(version.unit_count) + " units, only " 
+			+ count(data["Units"]) + " were chosen."
 	elif not "Leader" in data or not "Ability" in data:
 		error = "The leader information was not properly set."
 	else:
