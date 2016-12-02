@@ -41,16 +41,20 @@ class TestStatic(TestCase):
 		self.assertEqual(data["Hero_Abils"], expected_data["Hero_Abils"])
 
 		# Leader Check - Ensure leader keys match, their values are not null, and ability lists, sorted, match
-		self.assertEqual(sorted(data["Leaders"]), sorted(expected_data["Leaders"]))
-		for key in data["Leaders"].keys():
-			self.assertTrue(data["Leaders"][key] != None)
-			self.assertTrue(sorted(data["Leaders"][key]["Abilities"]) == 
-				sorted(expected_data["Leaders"][key]["Abilities"]))
+		self.assertEqual(data["Leaders"], expected_data["Leaders"])
 
 		# Map Check - Ensure that each map name exists as a key, and its data is not null
 		self.assertEqual(sorted(data["Maps"]), sorted(expected_data["Maps"]))
 		for key in data["Maps"].keys():
 			self.assertTrue(data["Maps"][key] != None)
+
+			# Test that the map data matches what is saved in the file
+			split_map = data["Maps"][key].split("n")
+			with open(expected_data["Map_Base"] + expected_data["Maps"][key]) as file:
+				counter = 0
+				for line in file:
+					self.assertTrue(split_map[counter] == line.strip())
+					counter += 1
 
 		# Perk Check - do the dictionaries match?
 		self.assertEqual(data["Perks"], expected_data["Perks"])

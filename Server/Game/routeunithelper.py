@@ -1,6 +1,6 @@
 import logging
 
-import Game.unithelper
+import Game.unithelper 
 
 """
 This file will handle all routed methods managing users
@@ -39,6 +39,22 @@ def unitCreation(data):
 		response = {"Success": False}
 
 	return response
+
+# Handles setting a team
+def setTeam(data):
+	username = data["session_username"]
+
+	error = ""
+
+	# Ensure there were at least some units and a leader selected
+	if not "Units" in data:
+		error = "There were no units selected in the team."
+	elif not "Leader" in data or not "Ability" in data:
+		error = "The leader information was not properly set."
+	else:
+		pass
+		# Look through all of the units for their 
+
 
 # Handles any action a single unit can take
 def takeAction(data):
