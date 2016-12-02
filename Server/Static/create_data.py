@@ -112,7 +112,7 @@ def ver_1_0_static_data():
 		"Archer":    {
 			"Description":"Ranged unit with low armor.  Good at defeating Fliers.", 
 			"Stats": {
-				"HP":10.0, "Move": 6.0, "Agility": 8.5, "Intelligence": 4.0, "Strength": 7.0, "Luck": 7.0, "Attack Range":1,
+				"HP":10.0, "Move": 6.0, "Agility": 8.5, "Intelligence": 4.0, "Strength": 7.0, "Luck": 7.0, "Attack Range":2,
 			},
 			"Terrain": {
 				"G": 1.0, "F": 2.0, "W":99.0, "M": 4.0, "R": 1.0,
@@ -132,7 +132,7 @@ def ver_1_0_static_data():
 		"Mage":      {
 			"Description":"Magical ranged attacker with low defense.  Good at defeating armored units.", 
 			"Stats": {
-				"HP":10.0, "Move": 5.0, "Agility": 5.0, "Intelligence":10.5, "Strength": 1.0, "Luck": 7.0, "Attack Range":1,
+				"HP":10.0, "Move": 5.0, "Agility": 5.0, "Intelligence":10.5, "Strength": 1.0, "Luck": 7.0, "Attack Range":2,
 			},
 			"Terrain": {
 				"G": 1.0, "F": 2.0, "W":99.0, "M": 3.0, "R": 1.0,
