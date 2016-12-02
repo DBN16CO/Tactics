@@ -52,6 +52,14 @@ class TestStatic(TestCase):
 		for key in data["Maps"].keys():
 			self.assertTrue(data["Maps"][key] != None)
 
+			# Test that the map data matches what is saved in the file
+			split_map = data["Maps"][key].split("n")
+			with open(expected_data["Map_Base"] + expected_data["Maps"][key]) as file:
+				counter = 0
+				for line in file:
+					self.assertTrue(split_map[counter] == line.strip())
+					counter += 1
+
 		# Perk Check - do the dictionaries match?
 		self.assertEqual(data["Perks"], expected_data["Perks"])
 
