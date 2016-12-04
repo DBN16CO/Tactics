@@ -8,3 +8,5 @@
 | Dev       | [![Build Status](https://travis-ci.org/DBN16CO/Tactics.svg?branch=dev)](https://travis-ci.org/DBN16CO/Tactics)    |
 | Nick      | [![Build Status](https://travis-ci.org/DBN16CO/Tactics.svg?branch=nick)](https://travis-ci.org/DBN16CO/Tactics)   |
 | Brennan   | [![Build Status](https://travis-ci.org/DBN16CO/Tactics.svg?branch=brennan)](https://travis-ci.org/DBN16CO/Tactics)|
+
+Documentation: https://dbn16co.github.io/Tactics/
