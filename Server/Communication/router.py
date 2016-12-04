@@ -16,14 +16,17 @@ from channels.sessions import channel_session
 def processRequest(message):
 	#Get the request
 	request = message.content['bytes']
+	logging.debug("Parsing incoming json request: ")
+	logging.debug(str(request))
 
 	#Parse the Json
 	try:
-		logging.debug("Parsing incoming json request: ")
 		data = json.loads(request)
-		logging.debug(str(data))
 	except Exception, e:
-		logging.error(str(e))
+		logging.exception(e)
+		message.reply_channel.send({
+			'text': json.dumps({"Success":False, "Error":"Input JSON invalid."})
+		})
 		return
 
 	#Send keepalive message if the message contained a PING

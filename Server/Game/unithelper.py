@@ -1,6 +1,6 @@
 import logging
-from Game.models import Game, Unit
-from Static.models import Action, Class, Stat, Version
+from Game.models import Game, Game_User, Unit
+from Static.models import Action, Class, Hero_Ability, Leader, Leader_Ability, Perk, Stat, Version
 from User.models import Users
 import validation
 
@@ -59,7 +59,70 @@ def takeAction(unitId, action, newX, newY, target):
 	return unit
 
 
+def setTeam(leader_ability, perks, units, username, version):
+	"""
+	Validates an inputted team a user has provided and then updates
+	the database for that user.
+	
+	:type leader_ability: Leader_Ability
+	:param leader_ability: The user's specified leader chosen and that leader's ability
 
+	:type perks: List<Perk>
+	:param perks: The user's specified perks chosen
+
+	:type units: List<Unit>
+	:param units: The user's specified units chosen
+
+	:type username: String
+	:param units: The user's username
+	
+	:type version: Version
+	:param version: The object for the most current version
+	
+	:rtype: String
+	:return: An empty string unless the information provided was invalid, \
+			 in which case, an error message will be provided, including when:
+			 - The user has gone over the price limit
+	"""
+	err_msg = ''
+
+	# Ensure the user did not spend too much selecting a team
+	price_max = version.price_max
+	money_spent = 0
+	for unit in units:
+		money_spent += unit.price
+	if money_spent > price_max:
+		return "The selected team is " + str(money_spent - price_max) + " over the unit budget."
+
+	# Get the user object from the username
+	user = Users.objects.get(username=username)
+
+	# Ensure the user has not already set a team, if so, clear it
+	if Game_User.objects.filter(game=None, user=user).first() != None:
+		logging.info(username + " has resubmitted their team information, clearing existing data.")
+		Game_User.objects.filter(game=None, user=user).delete()
+		Unit.objects.filter(owner=user, game=None).delete()
+
+	# Create a game user object for the leader and perk information
+	game_user = Game_User(user=user, leader_abil=leader_ability)
+
+	# Add each of the perks
+	perk_count = len(perks)
+	if perk_count > 0:
+		game_user.perk_1 = perks[0]
+	if perk_count > 1:
+		game_user.perk_2 = perks[1]
+	if perk_count > 2:
+		game_user.perk_3 = perks[2]
+
+	game_user.save()
+
+	# Add each of the units
+	for lst_unt in units:
+		unit = Unit(unit_class=lst_unt, owner=user, version=version)
+		unit.save()
+
+	return err_msg
 
 def validateMove(unit, game, newX, newY):
 	return False
