@@ -14,14 +14,17 @@ class Game(models.Model):
 	
 
 class Game_User(models.Model):
-	game         = models.ForeignKey(Game,   		  on_delete=models.DO_NOTHING)
+	game         = models.ForeignKey(Game,   		  on_delete=models.DO_NOTHING, null=True, default=None)
 	user         = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
 	team         = models.IntegerField(default=0)
-	leader       = models.ForeignKey('Static.Leader', on_delete=models.DO_NOTHING)
+	leader_abil  = models.ForeignKey('Static.Leader_Ability', on_delete=models.DO_NOTHING)
 	perk_1       = models.ForeignKey('Static.Perk',   on_delete=models.DO_NOTHING, null=True, related_name='perk_1')
 	perk_2       = models.ForeignKey('Static.Perk',   on_delete=models.DO_NOTHING, null=True, related_name='perk_2')
 	perk_3       = models.ForeignKey('Static.Perk',   on_delete=models.DO_NOTHING, null=True, related_name='perk_3')
 	victorious   = models.BooleanField(default=False)
+
+	class Meta:
+		unique_together = ('game', 'user')
 
 class Unit(models.Model):
 	unit_class   = models.ForeignKey('Static.Class',  on_delete=models.DO_NOTHING)
