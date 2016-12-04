@@ -88,8 +88,6 @@ class TestUnit(TestCase):
 		result = self.channel.receive()
 		self.assertEqual(result, json.dumps({"Success":False,"Error":"The Sniper cannot use the ability Steal."}))
 
-		endTestLog("test1_set_team_bad_json_input")
-
 		# Test invaild unit name
 		self.channel.send('{"Command":"ST","Units":[' + invalid_unit_name_str + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
 		result = self.channel.receive()
@@ -129,7 +127,7 @@ class TestUnit(TestCase):
 		endTestLog("test2_set_team_price_max_exceeded")
 
 	def test3_set_team_valid_input(self):
-		startTestLog("test2_set_team_valid_input")
+		startTestLog("test3_set_team_valid_input")
 
 		# Create user and login
 		self.assertTrue(self.channel.createUserAndLogin(
@@ -155,7 +153,7 @@ class TestUnit(TestCase):
 			self.assertEqual(Game_User.objects.filter(user=user).count(), 1)
 			self.assertEqual(Unit.objects.filter(owner=user).count(), 8)
 
-		endTestLog("test2_set_team_valid_input")
+		endTestLog("test3_set_team_valid_input")
 
 """
 	def test_create_unit_archer(self):
