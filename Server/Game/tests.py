@@ -18,23 +18,23 @@ class TestUnit(TestCase):
 		# Setup values
 		version = Version.objects.latest('pk')
 		too_many_units = ''
-		for i in range(version.unit_count+1):
+		for _ in range(version.unit_count+1):
 			too_many_units += '"Archer",'
 		too_many_units =too_many_units.strip(",")
 		valid_unit_list = ''
-		for i in range(version.unit_count):
+		for _ in range(version.unit_count):
 			valid_unit_list += '"Archer",'
 		valid_unit_list = valid_unit_list.strip(",")
 		invalid_unit_name_list = ''
 		invalid_unit_name_str  = ''
-		for i in range(version.unit_count):
+		for _ in range(version.unit_count):
 			invalid_unit_name_list += "fake_unit,"
 			invalid_unit_name_str += '"fake_unit",'
 		invalid_unit_name_list = invalid_unit_name_list.strip(",")
 		invalid_unit_name_str = invalid_unit_name_str.strip(",")
 		invalid_perk_list = ''
 		invalid_perk_str = ''
-		for i in range(3):
+		for _ in range(3):
 			invalid_perk_list += "fake_perk,"
 			invalid_perk_str += '"fake_perk",'
 		invalid_perk_list = invalid_perk_list.strip(",")
@@ -55,7 +55,7 @@ class TestUnit(TestCase):
 		# Test too few units selected
 		self.channel.send('{"Command":"ST","Units":["Archer"],"Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
 		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"You must select " 
+		self.assertEqual(result, json.dumps({"Success":False,"Error":"You must select "
 			+ str(version.unit_count) + " units, only 1 chosen."}))
 
 		# Test too many units selected

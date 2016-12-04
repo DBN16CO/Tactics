@@ -1,6 +1,6 @@
 import logging
 from Game.models import Game, Game_User, Unit
-from Static.models import Action, Class, Hero_Ability, Leader, Leader_Ability, Perk, Stat, Version
+from Static.models import Action, Class, Leader_Ability, Perk, Stat, Version
 from User.models import Users
 import validation
 
@@ -58,12 +58,11 @@ def takeAction(unitId, action, newX, newY, target):
 
 	return unit
 
-
 def setTeam(leader_ability, perks, units, username, version):
 	"""
 	Validates an inputted team a user has provided and then updates
 	the database for that user.
-	
+
 	:type leader_ability: Leader_Ability
 	:param leader_ability: The user's specified leader chosen and that leader's ability
 

@@ -20,7 +20,7 @@ def formJsonResult(error_msg, data=None):
 
 	:type error_msg: String
 	:param error_msg: The error message to be printed if the function did not execute sucessfuly.
-	
+
 	:type data: Dictionary
 	:param data: The inputted JSON command data that resulted in an error.
 
@@ -28,7 +28,6 @@ def formJsonResult(error_msg, data=None):
 	:return: The response which can be sent back to the front-end user.
 			 Note: If the result is a success, additional values may need to be added \
 			 to the response dictionary.
-
 	"""
 	if len(error_msg) == 0:
 		response = {"Success":True}
