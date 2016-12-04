@@ -117,7 +117,7 @@ class TestUnit(TestCase):
 		# Setup values
 		version = Version.objects.latest('pk')
 		too_expensive_team = ''
-		for i in range(version.unit_count):
+		for _ in range(version.unit_count):
 			too_expensive_team += '"Armor",'
 		too_expensive_team = too_expensive_team.strip(",")
 
@@ -138,14 +138,14 @@ class TestUnit(TestCase):
 		# Setup values
 		version = Version.objects.latest('pk')
 		team = ''
-		for i in range(version.unit_count):
+		for _ in range(version.unit_count):
 			team += '"Swordsman",'
 		team = team.strip(",")
 		perks = '"Extra Money", "Forest Fighter", "Mountain Fighter"'
 		user = Users.objects.get(username="set_team_user")
 
 		# Run command twice to ensure first run's DB entries are properly cleared
-		for i in range(2):
+		for _ in range(2):
 			# Test that the expected response was returned
 			self.channel.send('{"Command":"ST","Units":[' + team + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[' + perks + ']}')
 			result = self.channel.receive()
