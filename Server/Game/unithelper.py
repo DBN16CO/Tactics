@@ -1,6 +1,6 @@
 import logging
 from Game.models import Game, Game_User, Unit
-from Static.models import Action, Class, Perk, Stat, Version
+from Static.models import Action, Class, Stat, Version
 from User.models import Users
 import validation
 
