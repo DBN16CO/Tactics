@@ -53,6 +53,7 @@ clean:
 gh-pages:
 	git checkout gh-pages
 	rm -rf build _sources _static
+	rm -rf ../../_sources ../../_static
 	git checkout sphinx-integration $(GH_PAGE_SOURCES)
 	git reset HEAD
 	make html
