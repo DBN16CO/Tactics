@@ -54,13 +54,13 @@ gh-pages:
 	git checkout gh-pages
 	rm -rf build _sources _static
 	rm -rf ../../_sources ../../_static
-	git checkout sphinx-integration $(GH_PAGE_SOURCES)
+	git checkout dev $(GH_PAGE_SOURCES)
 	git reset HEAD
 	make html
 	mv -fv build/html/* ../..
 	rm -rf $(GH_PAGE_SOURCES) build
 	git add -A
-	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout sphinx-integration
+	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout dev
 
 
 .PHONY: html
