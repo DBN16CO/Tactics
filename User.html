@@ -255,37 +255,10 @@ object the first time, the query is executed.</p>
 </div>
 <div class="section" id="module-User.routehelper">
 <span id="user-routehelper-module"></span><h2>User.routehelper module<a class="headerlink" href="#module-User.routehelper" title="Permalink to this headline">¶</a></h2>
-<p>This file will handle all routed methods managing users
-All methods must follow the following standards:</p>
-<dl class="docutils">
-<dt>Inputs - they will all take in only two inputs, </dt>
-<dd>the userID (ignore if it doesn&#8217;t make sense), and the JSON data</dd>
-<dt>Outputs - they will pass back a formatted JSON response object</dt>
-<dd>which will detail the success or failure of the command
-as well as any other necessary information regarding the command.</dd>
-</dl>
 <dl class="function">
 <dt id="User.routehelper.createUser">
 <code class="descclassname">User.routehelper.</code><code class="descname">createUser</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#User.routehelper.createUser" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="function">
-<dt id="User.routehelper.getUserInfo">
-<code class="descclassname">User.routehelper.</code><code class="descname">getUserInfo</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#User.routehelper.getUserInfo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called to obtain all user-related data. This will likely be called once by the front end after login.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>Dictionary</em>) &#8211; The input dictionary which only needs to contain the session_username that router provides</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">All the user information such as username, email, level, experience etc</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
 
 <dl class="function">
 <dt id="User.routehelper.login">
