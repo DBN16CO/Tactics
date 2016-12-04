@@ -1,0 +1,242 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Communication package &#8212; Tactics 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Tactics 1.0 documentation" href="index.html" />
+    <link rel="next" title="User package" href="User.html" />
+    <link rel="prev" title="Welcome to Tactics’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="communication-package">
+<h1>Communication package<a class="headerlink" href="#communication-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Communication.admin">
+<span id="communication-admin-module"></span><h2>Communication.admin module<a class="headerlink" href="#module-Communication.admin" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Communication.apps">
+<span id="communication-apps-module"></span><h2>Communication.apps module<a class="headerlink" href="#module-Communication.apps" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Communication.apps.CommunicationConfig">
+<em class="property">class </em><code class="descclassname">Communication.apps.</code><code class="descname">CommunicationConfig</code><span class="sig-paren">(</span><em>app_name</em>, <em>app_module</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.apps.CommunicationConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.apps.config.AppConfig</span></code></p>
+<dl class="attribute">
+<dt id="Communication.apps.CommunicationConfig.name">
+<code class="descname">name</code><em class="property"> = u'Communication'</em><a class="headerlink" href="#Communication.apps.CommunicationConfig.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Communication.models">
+<span id="communication-models-module"></span><h2>Communication.models module<a class="headerlink" href="#module-Communication.models" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Communication.routehelper">
+<span id="communication-routehelper-module"></span><h2>Communication.routehelper module<a class="headerlink" href="#module-Communication.routehelper" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Communication.routehelper.pingAuthentication">
+<code class="descclassname">Communication.routehelper.</code><code class="descname">pingAuthentication</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.routehelper.pingAuthentication" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-Communication.router">
+<span id="communication-router-module"></span><h2>Communication.router module<a class="headerlink" href="#module-Communication.router" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Communication.router.processRequest">
+<code class="descclassname">Communication.router.</code><code class="descname">processRequest</code><span class="sig-paren">(</span><em>message</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.router.processRequest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-Communication.testhelper">
+<span id="communication-testhelper-module"></span><h2>Communication.testhelper module<a class="headerlink" href="#module-Communication.testhelper" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Communication.testhelper.TestHelper">
+<em class="property">class </em><code class="descclassname">Communication.testhelper.</code><code class="descname">TestHelper</code><a class="headerlink" href="#Communication.testhelper.TestHelper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">channels.tests.base.ChannelTestCase</span></code></p>
+<dl class="method">
+<dt id="Communication.testhelper.TestHelper.createTestUser">
+<code class="descname">createTestUser</code><span class="sig-paren">(</span><em>credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createTestUser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Communication.testhelper.TestHelper.createUserAndLogin">
+<code class="descname">createUserAndLogin</code><span class="sig-paren">(</span><em>credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createUserAndLogin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Communication.testhelper.TestHelper.initStaticData">
+<code class="descname">initStaticData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.initStaticData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Communication.testhelper.TestHelper.login">
+<code class="descname">login</code><span class="sig-paren">(</span><em>credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.login" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Communication.testhelper.TestHelper.receive">
+<code class="descname">receive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.receive" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Communication.testhelper.TestHelper.send">
+<code class="descname">send</code><span class="sig-paren">(</span><em>payload</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.send" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Communication.testhelper.TestHelper.setupConfig">
+<code class="descname">setupConfig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.setupConfig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="Communication.testhelper.endTestLog">
+<code class="descclassname">Communication.testhelper.</code><code class="descname">endTestLog</code><span class="sig-paren">(</span><em>testName</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.endTestLog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="Communication.testhelper.startTestLog">
+<code class="descclassname">Communication.testhelper.</code><code class="descname">startTestLog</code><span class="sig-paren">(</span><em>testName</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.startTestLog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-Communication.tests">
+<span id="communication-tests-module"></span><h2>Communication.tests module<a class="headerlink" href="#module-Communication.tests" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Communication.tests.TestCommunication">
+<em class="property">class </em><code class="descclassname">Communication.tests.</code><code class="descname">TestCommunication</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.tests.TestCommunication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.test.testcases.TestCase</span></code></p>
+<dl class="method">
+<dt id="Communication.tests.TestCommunication.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.tests.TestCommunication.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Communication.tests.TestCommunication.test_ping_server">
+<code class="descname">test_ping_server</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.tests.TestCommunication.test_ping_server" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Communication.views">
+<span id="communication-views-module"></span><h2>Communication.views module<a class="headerlink" href="#module-Communication.views" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Communication">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Communication" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Communication package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-Communication.admin">Communication.admin module</a></li>
+<li><a class="reference internal" href="#module-Communication.apps">Communication.apps module</a></li>
+<li><a class="reference internal" href="#module-Communication.models">Communication.models module</a></li>
+<li><a class="reference internal" href="#module-Communication.routehelper">Communication.routehelper module</a></li>
+<li><a class="reference internal" href="#module-Communication.router">Communication.router module</a></li>
+<li><a class="reference internal" href="#module-Communication.testhelper">Communication.testhelper module</a></li>
+<li><a class="reference internal" href="#module-Communication.tests">Communication.tests module</a></li>
+<li><a class="reference internal" href="#module-Communication.views">Communication.views module</a></li>
+<li><a class="reference internal" href="#module-Communication">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to Tactics&#8217;s documentation!</a></li>
+      <li>Next: <a href="User.html" title="next chapter">User package</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Communication.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Drew, Brennan, and Nick.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/Communication.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
