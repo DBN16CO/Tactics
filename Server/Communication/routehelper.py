@@ -4,7 +4,6 @@
    			  any helper methods that other Apps' route helper modules might need.
 
 .. moduleauthor:: Drew, Brennan, and Nick
-
 """
 import logging
 

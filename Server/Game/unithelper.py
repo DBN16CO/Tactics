@@ -1,6 +1,6 @@
 import logging
 from Game.models import Game, Game_User, Unit
-from Static.models import Action, Class, Leader_Ability, Perk, Stat, Version
+from Static.models import Action, Class, Perk, Stat, Version
 from User.models import Users
 import validation
 
@@ -74,10 +74,10 @@ def setTeam(leader_ability, perks, units, username, version):
 
 	:type username: String
 	:param units: The user's username
-	
+
 	:type version: Version
 	:param version: The object for the most current version
-	
+
 	:rtype: String
 	:return: An empty string unless the information provided was invalid, \
 			 in which case, an error message will be provided, including when:
