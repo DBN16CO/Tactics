@@ -41,11 +41,7 @@ class TestStatic(TestCase):
 		self.assertEqual(data["Hero_Abils"], expected_data["Hero_Abils"])
 
 		# Leader Check - Ensure leader keys match, their values are not null, and ability lists, sorted, match
-		self.assertEqual(sorted(data["Leaders"]), sorted(expected_data["Leaders"]))
-		for key in data["Leaders"].keys():
-			self.assertTrue(data["Leaders"][key] != None)
-			self.assertTrue(sorted(data["Leaders"][key]["Abilities"]) == 
-				sorted(expected_data["Leaders"][key]["Abilities"]))
+		self.assertEqual(data["Leaders"], expected_data["Leaders"])
 
 		# Map Check - Ensure that each map name exists as a key, and its data is not null
 		self.assertEqual(sorted(data["Maps"]), sorted(expected_data["Maps"]))
