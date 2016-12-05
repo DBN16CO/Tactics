@@ -1,13 +1,13 @@
 """
 .. module:: routeunithelper
-   :synopsis: Handles any router commands received from the front end which \
+   :synopsis: Handles any router commands received from the front end which
    			  relate specifically to units in the game
 
 .. moduleauthor:: Drew, Brennan, and Nick
 
 """
 import logging
-from Static.models import Ability, Action, Class, Leader, Leader_Ability, Map, Perk, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
+from Static.models import Ability, Action, Class, Leader_Ability, Map, Perk, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
 
 def getAbilityData(version):
 	"""

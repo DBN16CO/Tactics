@@ -3,7 +3,7 @@ This file will handle all routed methods managing static data
 All methods must follow the following standards:\n
 Inputs - they will all take in only one input: the JSON data\n
 Outputs - they will pass back a formatted JSON response object
-which will detail the success or failure of the command 
+which will detail the success or failure of the command
 as well as any other necessary information regarding the command.
 
 """
