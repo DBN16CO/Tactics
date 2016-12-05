@@ -7,7 +7,7 @@
 
 """
 import logging
-from Static.models import Ability, Action, Class, Leader, Leader_Ability, Map, Perk, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement, Version
+from Static.models import Ability, Action, Class, Leader, Leader_Ability, Map, Perk, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
 
 def getAbilityData(version):
 	"""

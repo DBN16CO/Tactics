@@ -8,7 +8,6 @@ from channels import Channel
 from channels.tests import ChannelTestCase
 from router import *
 from Server.config import *
-from Static.models import Version, Ability, Action, Class, Leader, Map, Perk, Stat, Terrain
 from Game.models import Unit
 import Static.create_data
 
@@ -99,7 +98,8 @@ class TestHelper(ChannelTestCase):
 	
 		return result["Success"]
 
-	def initStaticData(self, version_name):
+	@staticmethod
+	def initStaticData(version_name):
 		"""
 		Initializes all data in the Static app that may be needed for testing
 		"""

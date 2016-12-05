@@ -18,7 +18,7 @@ def setup_static_db(version):
 	:rtype: Boolean
 	:return: True only if the provided version's definition exists later in the module, currently includes versions:\n
 			 1.0
-	"""	
+	"""
 	cmd = {
 		"1.0":ver_1_0_static_data
 	}
@@ -99,7 +99,7 @@ def setup_static_db(version):
 
 		for ter in data["Classes"][clss]["Terrain"].keys():
 			terrain = Terrain.objects.get(shortname=ter, version_id=ver.id)
-			ter_unt_mv_inst = Terrain_Unit_Movement(terrain=terrain, unit=clss_inst, 
+			ter_unt_mv_inst = Terrain_Unit_Movement(terrain=terrain, unit=clss_inst,
 				move=data["Classes"][clss]["Terrain"][ter], version=ver)
 			ter_unt_mv_inst.save()
 
