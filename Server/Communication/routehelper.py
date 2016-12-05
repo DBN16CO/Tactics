@@ -8,6 +8,18 @@
 import logging
 
 def pingAuthentication(data):
+	"""
+	A ping that ensures the user has been authenticated
+
+	Command: PA (Ping Authentication)
+
+	:type data: Dictionary
+	:param data: The inputted JSON command which should include the 'session_username' provided  in :func:`processRequest`,
+				 if not, then the session is invalid.
+
+	:rtype: Dictionary
+	:return: The response which can be sent back to the front end
+	"""
 	if "session_username" in data:
 		return {"PONG_AUTH": "PONG_AUTH"}
 	else:
@@ -24,8 +36,8 @@ def formJsonResult(error_msg, data=None):
 	:param data: The inputted JSON command data that resulted in an error.
 
 	:rtype: Dictionary
-	:return: The response which can be sent back to the front-end user.
-			 Note: If the result is a success, additional values may need to be added \
+	:return: The response which can be sent back to the front-end user.\n
+			 Note: If the result is a success, additional values may need to be added
 			 to the response dictionary.
 	"""
 	if len(error_msg) == 0:

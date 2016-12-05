@@ -1,9 +1,5 @@
-import logging
 
-""" 
-This file is used to validate any possible action that a unit can perform
-"""
-
+#File is unused - if not implemented when issue 34 is resolved, should be deleted
 def attack():
 	return
 

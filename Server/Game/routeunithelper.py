@@ -1,29 +1,21 @@
 """
-.. module:: routeunithelper
-   :synopsis: Handles any router commands received from the front end which \
-   			  relate specifically to units in the game
-
-.. moduleauthor:: Drew, Brennan, and Nick
+This file will handle all routed methods managing static data
+All methods must follow the following standards:\n
+Inputs - they will all take in only one input: the JSON data\n
+Outputs - they will pass back a formatted JSON response object 
+which will detail the success or failure of the command 
+as well as any other necessary information regarding the command.
 
 """
 import logging
 import Game.unithelper
 from Communication.routehelper import formJsonResult
-from Static.models import Class, Hero_Ability, Leader, Leader_Ability, Perk, Version
+from Static.models import Ability, Class, Leader, Leader_Ability, Perk, Version
 
 """
-This file will handle all routed methods managing users
-All methods must follow the following standards:
-
-Inputs - they will all take in only two inputs, 
-    the userID (ignore if it doesn't make sense), and the JSON data
-    
-Outputs - they will pass back a formatted JSON response object
-    which will detail the success or failure of the command
-    as well as any other necessary information regarding the command.
-"""
-# Creates a unit of given type for user
 def unitCreation(data):
+	# INCOMPLETE - if not implemented when issue 52 is resolved, should be deleted
+
 	# Parse the necessary JSON values and validate
 	username  = data["session_username"]
 	unitClass = data["class"]
@@ -48,6 +40,7 @@ def unitCreation(data):
 		response = {"Success": False}
 
 	return response
+"""
 
 def setTeam(data):
 	"""
@@ -57,25 +50,25 @@ def setTeam(data):
 
 	:type  data: Dictionary
 	:param data: The necessary input information to process the command, should
-	             be of the following format:
-	             {
-	             	"Leader":"Sniper",
-	             	"Ability":"Increased Range"
-	             	"Units":["Archer","Archer","Mage","Flier","Swordsman","Swordsman","Swordsman","Swordsman"],
-	             	"Perks":["Extra Money","Strong Arrows","Mountain Fighter"]
-	             }
-	             Notes:
-	             	- All of the values provided for each key are the X{Name} chosen for that key.
+	             be of the following format:\n
+	             {\n
+	             	"Leader":"Sniper",\n
+	             	"Ability":"Increased Range"\n
+	             	"Units":["Archer","Archer","Mage","Flier","Swordsman","Swordsman","Swordsman","Swordsman"],\n
+	             	"Perks":["Extra Money","Strong Arrows","Mountain Fighter"]\n
+	             }\n
+	             Notes:\n
+	             	- All of the values provided for each key are the X{Name} chosen for that key.\n
 	             	- If no perks are chosen an empty list should still still be sent for that key
 
 	:rtype: 	 Dictionary
-	:return: 	 A JSON object noting the success of the method call:
-				 	If Successful:
-				 {"Success":True}
-				 If Unsuccessful:
-				 	{"Successful":False,
-				 	 "Error":"You did not provide the necessary information."}
-				 Notes:
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {"Success":True}\n
+				 If Unsuccessful:\n
+				 	{"Successful":False,\n
+				 	 "Error":"You did not provide the necessary information."}\n
+				 Notes:\n
 				 	- The error message provided should be of an acceptable form such that
 				 	  errors can be directly displayed for the user.
 	"""
@@ -105,7 +98,7 @@ def setTeam(data):
 	# All expected JSON keys existed
 	else:
 		# Get the ability and leader data and validate it
-		ability = Hero_Ability.objects.filter(version=version, name=data["Ability"]).first()
+		ability = Ability.objects.filter(version=version, name=data["Ability"]).first()
 		leader = Leader.objects.filter(version=version, name=data["Leader"]).first()
 		leader_ability = Leader_Ability.objects.filter(ability=ability, leader=leader, version=version).first()
 
@@ -156,8 +149,10 @@ def setTeam(data):
 					
 	return formJsonResult(error, data)
 
-# Handles any action a single unit can take
+"""
 def takeAction(data):
+	# INCOMPLETE - if not implemented when issue 34 is resolved, should be deleted
+
 	username = data["session_username"]
 	unit_id  = data.get("unit")
 	action   = data.get("actn")
@@ -184,10 +179,13 @@ def takeAction(data):
 					"Error": error}
 
 	return response
+"""
 
 """
 # Moves the unit to the desired location, if valid
 def moveUnit(data):
+	# INCOMPLETE - if not implemented when issue 34 is resolved, should be deleted
+
 	# Parse the necessary JSON values and validate
 	username = data["owner"]
 	unit_id  = data["uid"]

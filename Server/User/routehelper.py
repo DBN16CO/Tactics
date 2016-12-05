@@ -1,21 +1,43 @@
+"""
+This file will handle all routed methods managing static data
+All methods must follow the following standards:\n
+Inputs - they will all take in only one input: the JSON data\n
+Outputs - they will pass back a formatted JSON response object 
+which will detail the success or failure of the command 
+as well as any other necessary information regarding the command.
+"""
 import logging
 import User.userhelper
 from User.models import Users
 
-"""
-This file will handle all routed methods managing users
-All methods must follow the following standards:
-
-Inputs - they will all take in only two inputs, 
-    the userID (ignore if it doesn't make sense), and the JSON data
-
-Outputs - they will pass back a formatted JSON response object
-    which will detail the success or failure of the command
-    as well as any other necessary information regarding the command.
-"""
-
-# Login either with username/password or token
 def login(data):
+	"""
+	Login either with username/password or token
+
+	Command: LGN (Login)
+
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+	             be of the following format:\n
+	             {\n
+	             	"username":"CoolUserName",\n
+	             	"pw":"12345"\n
+	             }\n
+	             -- OR --\n
+	             {\n
+	             	"token":"dklaf00hdskalfhdsfsdf"\n
+	             }\n
+
+	:rtype: 	 Dictionary
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {"Success":True, "Token":"dklaf00hdskalfhdsfsdf","Username":"CoolUserName"}\n
+				 If Unsuccessful:\n
+				 {"Successful":False,"Error":"Invalid Username/Password."}\n
+				 Notes:\n
+				 	- The error message provided should be of an acceptable form such that
+				 	  errors can be directly displayed for the user.
+	"""
 	username = None
 	pw = None
 	token = None
@@ -38,11 +60,33 @@ def login(data):
 		if user:
 			return {"Success": True, "Token": token, "Username": user.username}
 		
-	return {"Success": False, "Error": "Invalid Username/Password"}
+	return {"Success": False, "Error": "Invalid Username/Password."}
 
-
-# Creates a user with the given input values
 def createUser(data):
+	"""
+	Create a user with the provided credentials
+
+	Command: CU (Create User)
+
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+	             be of the following format:\n
+	             {\n
+	             	"username":"CoolUserName",\n
+	             	"pw":"12345",\n
+	             	"email":"lameEmail@email.com"\n
+	             }\n
+
+	:rtype: 	 Dictionary
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {"Success":True, "Token":"dklaf00hdskalfhdsfsdf","Username":"CoolUserName"}\n
+				 If Unsuccessful:\n
+				 {"Successful":False,"Error":"Invalid Username/Password."}\n
+				 Notes:\n
+				 	- The error message provided should be of an acceptable form such that
+				 	  errors can be directly displayed for the user.
+	"""
 	# Parse the necessary JSON values and validate
 	username = data["username"]
 	pw		 = data["pw"]

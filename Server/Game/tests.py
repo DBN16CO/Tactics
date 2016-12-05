@@ -156,6 +156,7 @@ class TestUnit(TestCase):
 		endTestLog("test3_set_team_valid_input")
 
 """
+INCOMPLETE - if not implemented when issue 52 is resolved, should be deleted
 	def test_create_unit_archer(self):
 		startTestLog("test_create_unit_archer")
 		# Create a user to use for the tests
@@ -177,4 +178,4 @@ class TestUnit(TestCase):
 		result = self.channel.receive()
 		self.assertEqual(result, json.dumps({"Success":True,"uid":Unit.objects.latest('pk').id}))
 		endTestLog("test_create_unit_archer")
-		"""
+"""

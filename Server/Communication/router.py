@@ -1,3 +1,9 @@
+"""
+.. module:: router
+   :synopsis: Receives any JSON input from the front end and routes it to the proper application for processing
+
+.. moduleauthor:: Drew, Brennan, and Nick
+"""
 import json
 import logging
 
@@ -14,12 +20,42 @@ from channels.sessions import channel_session
 
 @channel_session
 def processRequest(message):
-	#Get the request
+	"""
+	Communicates with the front end by sending and receiving JSON through a channel session
+
+	:type message: Channel Object
+	:param message: The message being received from the front end
+
+					The following commands have been implemented:
+
+					+-------+---------------+---------+--------------------+--------------------------------+
+					| Abrev | Command Name  | App     | Method Name        | Successful Test                |
+					+=======+===============+=========+====================+================================+
+					| CU    | Create User   | User    | createUser         | create_user_success            |
+					+-------+---------------+---------+--------------------+--------------------------------+
+					| IL    | Iniitial Load | Static  | getAllStaticData   | initial_load_v1_0              |
+					+-------+---------------+---------+--------------------+--------------------------------+
+					| LGN   | Login         | User    | login              | login_success_token            |
+					+-------+---------------+---------+--------------------+--------------------------------+
+					| PA    | Ping Auth     | Comm    | pingAuthentication |                                |
+					+-------+---------------+---------+--------------------+--------------------------------+
+					| ST    | Set Team      | Game    | setTeam            | set_team_valid_input           |
+					+-------+---------------+---------+--------------------+--------------------------------+
+
+					Notes about table above:\n
+					- To find the documentation on the command, go to ../<App>/routehelper.<Method Name>\n
+					- For an example input and output JSON, go to ../<App>/tests.testN_<Successful Test>
+
+	
+	:rtype: Dictionary
+	:return: A response to the incoming request from the front end
+	"""
+	# Get the request
 	request = message.content['bytes']
 	logging.debug("Parsing incoming json request: ")
 	logging.debug(str(request))
 
-	#Parse the Json
+	# Parse the Json
 	try:
 		data = json.loads(request)
 	except Exception, e:
@@ -29,7 +65,7 @@ def processRequest(message):
 		})
 		return
 
-	#Send keepalive message if the message contained a PING
+	# Send keepalive message if the message contained a PING
 	if "PING" in data:
 		message.reply_channel.send({
 			'text': json.dumps({"PONG":"PONG"})
@@ -39,12 +75,12 @@ def processRequest(message):
 	cmd = data["Command"]
 	logging.debug("Received command: " + str(cmd))
 
-	#Obtain username if user is authenticated
+	# Obtain username if user is authenticated
 	user = None
 	if 'user' in message.channel_session:
 		user = message.channel_session['user']
 
-	#If the user is not authenticated
+	# If the user is not authenticated
 	if not user:
 		if cmd != 'LGN' and cmd != 'CU':
 			message.reply_channel.send({
@@ -74,21 +110,21 @@ def processRequest(message):
 
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
-			  "LGN":User.routehelper.login,	
 			  "IL":Static.routehelper.getAllStaticData,
-			  "UC":Game.routeunithelper.unitCreation,
-			  "ST":Game.routeunithelper.setTeam,
-			  "TA":Game.routeunithelper.takeAction,
+			  "LGN":User.routehelper.login,	
 			  "PA":Communication.routehelper.pingAuthentication,
+			  "ST":Game.routeunithelper.setTeam,
+	#		  "TA":Game.routeunithelper.takeAction,
+	#		  "UC":Game.routeunithelper.unitCreation,
 	}
 	
 	response = commands[cmd](data)
 
-	#If the requested command was to create a new user or login to an existing user, set the channel session
+	# If the requested command was to create a new user or login to an existing user, set the channel session
 	if "Success" in response and response['Success'] and (cmd == 'LGN' or cmd == 'CU'):
 		message.channel_session['user'] = response.pop('Username')
 	
-	#Reply back
+	# Reply back
 	message.reply_channel.send({
 		'text': json.dumps(response)
 	})

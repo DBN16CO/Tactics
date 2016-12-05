@@ -7,6 +7,14 @@ class Version(models.Model):
 	name         = models.CharField(max_length=16, unique=True)
 	price_max    = models.IntegerField(default=1000)
 	unit_count   = models.IntegerField(default=8)
+
+class Ability(models.Model):
+	name         = models.CharField(max_length=16)
+	description  = models.CharField(max_length=100)
+	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
+
+	class Meta:
+		unique_together = ('name', 'version')
 	
 class Action(models.Model):	
 	name         = models.CharField(max_length=16)
@@ -25,14 +33,6 @@ class Class(models.Model):
 	class Meta:
 		unique_together = ('name', 'version')
 
-class Hero_Ability(models.Model):
-	name         = models.CharField(max_length=16)
-	description  = models.CharField(max_length=100)
-	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
-
-	class Meta:
-		unique_together = ('name', 'version')
-
 class Leader(models.Model):	
 	name         = models.CharField(max_length=16)
 	description  = models.CharField(max_length=100)
@@ -43,7 +43,7 @@ class Leader(models.Model):
 
 class Leader_Ability(models.Model):
 	leader 		 = models.ForeignKey(Leader,       on_delete=models.DO_NOTHING)
-	ability      = models.ForeignKey(Hero_Ability, on_delete=models.DO_NOTHING)
+	ability      = models.ForeignKey(Ability,      on_delete=models.DO_NOTHING)
 	version 	 = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
