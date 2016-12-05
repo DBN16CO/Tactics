@@ -14,7 +14,7 @@ import Static.create_data
 
 class TestHelper(ChannelTestCase):
 	"""
-	Used to set up any unit tests	
+	Used to set up any unit tests
 	"""
 	def __init__(self):
 		"""

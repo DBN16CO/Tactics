@@ -93,7 +93,7 @@ def setup_static_db(version):
 
 		for stt in data["Classes"][clss]["Stats"].keys():
 			stat = Stat.objects.get(name=stt, version_id=ver)
-			stt_unit_inst = Unit_Stat(stat=stat, unit=clss_inst, 
+			stt_unit_inst = Unit_Stat(stat=stat, unit=clss_inst,
 				value=data["Classes"][clss]["Stats"][stt], version=ver)
 			stt_unit_inst.save()
 
