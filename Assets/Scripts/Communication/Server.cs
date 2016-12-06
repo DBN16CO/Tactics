@@ -17,6 +17,25 @@ public static class Server {
 		Communication.Connect(new Uri("ws://localhost:8000"));
 	}
 
+	public static bool InitialLoad() {
+		// Create the request, set data to pass, and send it
+		var request = new Dictionary<string, object>();
+		request["Command"] = "IL";
+		Communication.SendString(Json.ToString(request));
+		// Wait for the response, then parse
+		string strResponse = null;
+		while(strResponse == null) {
+			strResponse = Communication.RecvString();
+		}
+		var response = Json.ToDict(strResponse);
+		bool success = (bool)response["Success"];
+		if(success) {
+			//Debug.Log(strResponse);
+			GameData.SetGameData(response);
+		}
+		return success;
+	}
+
 	/*public static IEnumerator Timeout(int timeout) {
 		Server._timedOut = false;
 		Debug.Log("Trying to connect to server...");

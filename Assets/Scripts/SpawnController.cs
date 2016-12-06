@@ -30,12 +30,12 @@ public class SpawnController : MonoBehaviour {
 		for(int width = 0; width < size; width++) {
 			for(int height = 0; height < size; height++) {
 				// Instantiate token at each grid position
-				Token token = (Instantiate(Resources.Load("Prefabs/Token"),new Vector2(((float)width*ScaleFactor)-orthoSize,((float)height*ScaleFactor)-orthoSize) + new Vector2(ScaleFactor/2f,ScaleFactor/2f),Quaternion.identity) as GameObject).GetComponent<Token>();
+				Token token = (Instantiate(Resources.Load("Prefabs/Token"),new Vector2(((float)width*ScaleFactor)-orthoSize,-((float)height*ScaleFactor)+orthoSize) + new Vector2(ScaleFactor/2f,-ScaleFactor/2f),Quaternion.identity) as GameObject).GetComponent<Token>();
 				// Set scale to scale factor
 				token.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
 				// Assign terrain based on preset map
 				// For development, set to w/e we want
-				string terr = (Random.value > 0.3f)? "Grass" : "Forest";
+				string terr = (Random.value > 0.3f)? "G" : "F";
 				token.SetTerrain(terr);
 				// Asign token variables
 				token.X = width;
@@ -57,8 +57,6 @@ public class SpawnController : MonoBehaviour {
 		// Set the position to the token's position
 		ret.transform.position = gameObject.GetComponent<GameController>().Tokens[x][y].transform.position;
 		ret.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
-		// Remove (clone) from the name
-		ret.name = ret.name.Substring(0, ret.name.Length-7);
 		// Return final unit
 		return ret;
 	}

@@ -164,7 +164,11 @@ public class GameController : MonoBehaviour {
 				return -1f;
 			}
 		}
-		float remainingRange = (action == "move")? range - TerrainMod.TerrainWeight(unitName, token.name) : range - 1;
+		float terrainWeight = GameData.TerrainWeight(unitName, token.CurrentTerrain.shortName);
+		if(terrainWeight == 99f) {
+			return -1;
+		}
+		float remainingRange = (action == "move")? range - terrainWeight : range - 1;
 		if(remainingRange >= 0f) {
 			if(token.CurrentUnit != null) {
 				if(token.CurrentUnit.MyTeam) {
@@ -232,20 +236,25 @@ public class GameController : MonoBehaviour {
 		Server.Connect();
 		// Login testUser. If doesn't exist, create user and login
 		if(PlayerPrefs.HasKey("session")) {
-			Server.RetryLogin();
+			if(!Server.RetryLogin()) {
+				// You probably cleared your used from the table but kept the session token
+				PlayerPrefs.DeleteKey("session");
+				Debug.Log("deleted old session - restart game");
+			}
 		}else if(!Server.Login("testUser", "tactics")) {
 			Debug.Log("Login failed, creating user...");
 			Server.CreateUser("testUser", "tactics", "tactics@gmail.com");
 			Server.Login("testUser", "tactics");
 		}
 		//Server.Logout();
+		Server.InitialLoad();
 	}
 
 	// For testing - gameplay variables and functionality
 	private void TestGamePlay() {
 		// Create Grid and add test units
 		SpawnController SC = gameObject.AddComponent<SpawnController>();
-		Tokens = SC.CreateGrid(12);
+		Tokens = SC.CreateGrid(10);
 		Units.Add(Tokens[4][6].CurrentUnit = SC.CreateUnit("Warrior",4,6));
 		Units.Add(Tokens[6][8].CurrentUnit = SC.CreateUnit("Warrior",6,8));
 		Units.Add(Tokens[7][5].CurrentUnit = SC.CreateUnit("Warrior",7,5));
@@ -256,7 +265,7 @@ public class GameController : MonoBehaviour {
 		Units[3].MyTeam = false;
 
 		// Create terrain weight map
-		TerrainMod.CreateWeightMap();
+		//TerrainMod.CreateWeightMap();
 	}
 
 	// Runs every frame
