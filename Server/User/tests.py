@@ -67,7 +67,7 @@ class TestUser(TestCase):
 
 		result = self.channel.login({"username": "testLoginFailure", "password": "asdfasdfa"})
 		self.assertFalse(result["Success"])
-		self.assertEquals(result["Error"], "Invalid Username/Password")
+		self.assertEquals(result["Error"], "Invalid Username/Password.")
 
 		logging.debug("==== Exiting login failure username/password test ====")
 
@@ -96,7 +96,7 @@ class TestUser(TestCase):
 
 		result = self.channel.login({"token": "asdljkfahsdjfkl23874ajkshdf"})
 		self.assertFalse(result["Success"])
-		self.assertEqual(result["Error"], "Invalid Username/Password")
+		self.assertEqual(result["Error"], "Invalid Username/Password.")
 
 		logging.debug("==== Exiting login failure token test ====")
 

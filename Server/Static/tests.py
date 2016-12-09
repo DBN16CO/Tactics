@@ -12,7 +12,7 @@ class TestStatic(TestCase):
 		self.assertFalse(result)
 
 	def test2_initial_load_v1_0(self):
-		startTestLog("test_initial_load_v1_0")
+		startTestLog("test2_initial_load_v1_0")
 		self.assertTrue(self.channel.createUserAndLogin(
 			{"username":"init_user","password":"abc12345","email":"initUser@email.com"}))
 
@@ -37,8 +37,8 @@ class TestStatic(TestCase):
 		# Class Check - do the dictionaries match?
 		self.assertEqual(data["Classes"], expected_data["Classes"])
 
-		# Hero Ability Check - do the dictionaries match?
-		self.assertEqual(data["Hero_Abils"], expected_data["Hero_Abils"])
+		# Ability Check - do the dictionaries match?
+		self.assertEqual(data["Abilities"], expected_data["Abilities"])
 
 		# Leader Check - Ensure leader keys match, their values are not null, and ability lists, sorted, match
 		self.assertEqual(data["Leaders"], expected_data["Leaders"])
@@ -68,10 +68,10 @@ class TestStatic(TestCase):
 		# Verify the success
 		self.assertEqual(data["Success"], True)
 
-		endTestLog("test_initial_load_v1_0")
+		endTestLog("test2_initial_load_v1_0")
 
-	def test3_bad_version(self):
-		startTestLog("test_initial_load_v1_0")
+	def test3_incomplete_version(self):
+		startTestLog("test3_incomplete_version")
 		self.assertTrue(self.channel.createUserAndLogin(
 			{"username":"init_user","password":"abc12345","email":"initUser@email.com"}))
 
@@ -82,4 +82,6 @@ class TestStatic(TestCase):
 		result = self.channel.receive()
 		logging.debug(result)
 
-		self.assertEqual(result, json.dumps({"Success": False, "Error": "The following tables could not be loaded: Actions, Classes, Hero_Abils, Leaders, Maps, Perks, Stats, Terrain"}))
+		self.assertEqual(result, json.dumps({"Success": False, "Error": "The following tables could not be loaded: Abilities, Actions, Classes, Leaders, Maps, Perks, Stats, Terrain"}))
+
+		endTestLog("test3_incomplete_version")

@@ -1,8 +1,13 @@
 from django.core.management.base import BaseCommand
 from Static.create_data import *
-from Static.models import Version, Terrain_Unit_Movement, Unit_Stat, Terrain, Stat, Map, Perk, Leader_Ability, Leader, Hero_Ability, Class, Action
+from Static.models import Version, Terrain_Unit_Movement, Unit_Stat, Terrain, Stat, Map, Perk, Leader_Ability, Leader, Class, Action, Ability
 
 class Command(BaseCommand):
+	"""
+	Provides the ability to initalize the database for a specified version or group of versions\n
+	If any version data previously existed for the specified version, it will be erased,\n
+	making the command good for development, but very dangerous to use in a production-level environment
+	"""
 
 	help = "This file will initialize the database using the inputted <version> data"
 
@@ -60,10 +65,6 @@ class Command(BaseCommand):
 		count = Leader.objects.filter(version_id=ver.id).count()
 		self.stdout.write("Removing (" + str(count) + ") objects from Leader.")
 		Leader.objects.filter(version_id=ver.id).delete()
-		# Hero_Ability
-		count = Hero_Ability.objects.filter(version_id=ver.id).count()
-		self.stdout.write("Removing (" + str(count) + ") objects from Hero_Ability.")
-		Hero_Ability.objects.filter(version_id=ver.id).delete()
 		# Class
 		count = Class.objects.filter(version_id=ver.id).count()
 		self.stdout.write("Removing (" + str(count) + ") objects from Class.")
@@ -72,6 +73,10 @@ class Command(BaseCommand):
 		count = Action.objects.filter(version_id=ver.id).count()
 		self.stdout.write("Removing (" + str(count) + ") objects from Action.")
 		Action.objects.filter(version_id=ver.id).delete()
+		# Ability
+		count = Ability.objects.filter(version_id=ver.id).count()
+		self.stdout.write("Removing (" + str(count) + ") objects from Ability.")
+		Ability.objects.filter(version_id=ver.id).delete()
 		# Version
 		count = Version.objects.filter(id=ver.id).count()
 		self.stdout.write("Removing (" + str(count) + ") objects from Version.")

@@ -1,13 +1,20 @@
+"""
+.. module:: unithelper
+   :synopsis: Handles any logic necessary to process commands received in routeunithelper,
+   			  and any necessary JSON handling on the input should have already been completed
+   			  in the calling module.
+
+.. moduleauthor:: Drew, Brennan, and Nick
+
+"""
 import logging
 from Game.models import Game, Game_User, Unit
 from Static.models import Action, Class, Stat, Version
 from User.models import Users
 import validation
 
-""" 
-This file is used to store all methods helping with the processing of unit objects
 """
-
+INCOMPLETE - if not implemented when issue 52 is resolved, should be deleted
 # Creates a unit of the given type for the given player
 def createUnit(ownr, clss, vrsn):
 	# Get necessary values to create unit
@@ -24,7 +31,10 @@ def createUnit(ownr, clss, vrsn):
 
 	# Return the unit
 	return retUnit
+"""
 
+"""
+INCOMPLETE - if not implemented when issue 34 is resolved, should be deleted
 def takeAction(unitId, action, newX, newY, target):
 	# Get the unit based on the ID provided
 	unit = Unit.objects.get(pk=unitId)
@@ -57,6 +67,7 @@ def takeAction(unitId, action, newX, newY, target):
 	unit.save()
 
 	return unit
+"""
 
 def setTeam(leader_ability, perks, units, username, version):
 	"""

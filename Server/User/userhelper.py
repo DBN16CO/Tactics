@@ -1,24 +1,38 @@
-#from ..Static.models import Class, Stat, Version
+"""
+.. module:: userhelper
+   :synopsis: This file is used to store all methods helping with the processing of user objects
+
+.. moduleauthor:: Drew, Brennan, and Nick
+
+"""
 from User.models import Users
 from passlib.hash import bcrypt
 import logging
 import uuid
 
-""" 
-This file is used to store all methods helping with the processing of user objects
-"""
-
 def encrypt(password):
+	"""
+	Encrypt the inputted passord
+	"""
 	return bcrypt.encrypt(password, rounds=12)
 
 def verifyPassword(password, dbHash):
+	"""
+	Verify that a hashed password matches its database-stored hash value
+	"""
 	return bcrypt.verify(password, dbHash)
 
-"""
-Generates and saves a login token for a particular user.
-This function should validate the token hasn't been taken before assigning it to a user.
-"""
 def generateLoginToken(user):
+	"""
+	Generates and saves a login token for a particular user.
+	This function should validate the token hasn't been taken before assigning it to a user.
+
+	:type user: User
+	:param user: The user whose login token is to be updated
+
+	:rtype: String
+	:returns: The token set to that user
+	"""
 	tokenTaken = True
 	maxAttempts = 20
 	attempt = 0
@@ -41,6 +55,22 @@ def generateLoginToken(user):
 
 # Creates a user with the provided values
 def createUser(username, password, email):
+	"""
+	Creates a user with the provided values
+
+	:type username: String
+	:param username: The username for the user
+
+	:type password: String
+	:param password: The password to be hashed for the user
+
+	:type email: String
+	:param email: The email address the user has provided
+
+	:rtype: User
+	:return: A user object representing the new user
+	"""
+
 	#TODO Create validation for user values
 	
 	#TODO encrypt the password

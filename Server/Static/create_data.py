@@ -1,8 +1,24 @@
-from Static.models import Version, Action, Class, Hero_Ability, Leader, Leader_Ability, Perk, Map, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
+"""
+.. module:: create_data
+   :synopsis: Creates all of the Static data in the database for each version
+
+.. moduleauthor:: Drew, Brennan, and Nick
+
+"""
+from Static.models import Version, Ability, Action, Class, Leader, Leader_Ability, Perk, Map, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
 import logging
 
-# Will load the databse with all necessary static data based on the provided version name
 def setup_static_db(version):
+	"""
+	Sets up the static database tables with all the information necessary for the specified version
+
+	:type version: String
+	:param version: The name of the version to populate
+
+	:rtype: Boolean
+	:return: True only if the provided version's definition exists later in the module, currently includes versions:\n
+			 1.0
+	"""
 	cmd = {
 		"1.0":ver_1_0_static_data
 	}
@@ -20,77 +36,84 @@ def setup_static_db(version):
 		unit_count=data["Version"]["Unit_Count"])
 	ver.save()
 
+	# Save the Ability Data
+	logging.info("Creating Ability objects...")
+	for abil in data["Abilities"].keys():
+		abil_inst = Ability(name=abil, description=data["Abilities"][abil], version=ver)
+		abil_inst.save()
+
 	# Save the action data
 	logging.info("Creating Action objects...")
 	for actn in data["Actions"].keys():
-		action = Action(name=actn, description=data["Actions"][actn], version_id=ver.id)
+		action = Action(name=actn, description=data["Actions"][actn], version=ver)
 		action.save()
-
-	# Save the Hero Ability Data
-	logging.info("Creating Hero Ability objects...")
-	for hero_abil in data["Hero_Abils"].keys():
-		ha_inst = Hero_Ability(name=hero_abil, description=data["Hero_Abils"][hero_abil], version_id=ver.id)
-		ha_inst.save()
 
 	# Save the Leader Data
 	logging.info("Creating Leader objects...")
 	for ldr in data["Leaders"]:
-		ldr_inst =  Leader(name=ldr, description=data["Leaders"][ldr]["Description"], version_id=ver.id)
+		ldr_inst =  Leader(name=ldr, description=data["Leaders"][ldr]["Description"], version=ver)
 		ldr_inst.save()
 		for abil in data["Leaders"][ldr]["Abilities"]:
-			abil_id = Hero_Ability.objects.get(name=abil, version_id=ver.id).id
-			ldr_abil_inst = Leader_Ability(leader_id=ldr_inst.id, ability_id=abil_id, version_id=ver.id)
+			ability = Ability.objects.get(name=abil, version=ver)
+			ldr_abil_inst = Leader_Ability(leader=ldr_inst, ability=ability, version=ver)
 			ldr_abil_inst.save()
 
 	# Save the Perk Data
 	logging.info("Creating Perk objects...")
 	for prk in data["Perks"].keys():
 		perk_inst = Perk(name=prk, description=data["Perks"][prk]["Description"], 
-			tier=data["Perks"][prk]["Tier"], version_id=ver.id)
+			tier=data["Perks"][prk]["Tier"], version=ver)
 		perk_inst.save()
 
 	# Save the Map Data
 	logging.info("Creating Map objects...")
 	for mp in data["Maps"].keys():
-		map_inst = Map(name=mp, file_path=str(data["Map_Base"]) + data["Maps"][mp], version_id=ver.id)
+		map_inst = Map(name=mp, file_path=str(data["Map_Base"]) + data["Maps"][mp], version=ver)
 		map_inst.save()
 
 	# Save the Stat Data
 	logging.info("Creating Stat objects...")
 	for stt in data["Stats"].keys():
-		stt_inst = Stat(name=stt, description=data["Stats"][stt]["Description"], version_id=ver.id)
+		stt_inst = Stat(name=stt, description=data["Stats"][stt]["Description"], version=ver)
 		stt_inst.save()
 
 	# Save the Terrain Data
 	logging.info("Creating Terrain objects...")
 	for ter in data["Terrain"].keys():
 		ter_inst = Terrain(name=data["Terrain"][ter]["DisplayName"], 
-			description=data["Terrain"][ter]["Description"], shortname=ter, version_id=ver.id)
+			description=data["Terrain"][ter]["Description"], shortname=ter, version=ver)
 		ter_inst.save()
 
 	# Save the class data
 	logging.info("Creating Class objects...")
 	for clss in data["Classes"].keys():
 		clss_inst = Class(name=clss, description=data["Classes"][clss]["Description"], 
-			price=data["Classes"][clss]["Price"], version_id=ver.id)
+			price=data["Classes"][clss]["Price"], version=ver)
 		clss_inst.save()
 
 		for stt in data["Classes"][clss]["Stats"].keys():
-			stt_id = Stat.objects.get(name=stt, version_id=ver.id).id
-			stt_unit_inst = Unit_Stat(stat_id=stt_id, unit_id=clss_inst.id, 
-				value=data["Classes"][clss]["Stats"][stt], version_id=ver.id)
+			stat = Stat.objects.get(name=stt, version_id=ver)
+			stt_unit_inst = Unit_Stat(stat=stat, unit=clss_inst,
+				value=data["Classes"][clss]["Stats"][stt], version=ver)
 			stt_unit_inst.save()
 
 		for ter in data["Classes"][clss]["Terrain"].keys():
-			ter_id = Terrain.objects.get(shortname=ter, version_id=ver.id).id
-			ter_unt_mv_inst = Terrain_Unit_Movement(terrain_id=ter_id, unit_id=clss_inst.id, 
-				move=data["Classes"][clss]["Terrain"][ter], version_id=ver.id)
+			terrain = Terrain.objects.get(shortname=ter, version_id=ver.id)
+			ter_unt_mv_inst = Terrain_Unit_Movement(terrain=terrain, unit=clss_inst,
+				move=data["Classes"][clss]["Terrain"][ter], version=ver)
 			ter_unt_mv_inst.save()
 
 	return True
 
 # Supplies all necessary setup data for version 1.0 of the game
 def ver_1_0_static_data():
+	"""
+	The definition of version 1.0 of Tactics.\n
+	Provides a return object detailing any information for the version.
+
+	:rtype: Dictionary
+	:return: All values necessary to properly populate the Static database tables for version 1.0
+	"""
 	data = {}
 
 	# Version Data
@@ -98,6 +121,14 @@ def ver_1_0_static_data():
 		"Name":"1.0",
 		"Price_Max":1000,
 		"Unit_Count":8,
+	}
+
+	# Hero Ability Data
+	data["Abilities"] = {
+		"Extra Range":  "Increase the maximum range of nearby range attacks by 1.",
+		"Steal":        "Provides nearby units the ability to steal items from the enemy.",
+		"Defense Aura": "Increases the defense of nearby units.",
+		"Evasion Aura": "Increases the chance your units will dodge an attack.",
 	}
 
 	# Action Data
@@ -179,14 +210,6 @@ def ver_1_0_static_data():
 			},
 			"Price":200,
 		},
-	}
-
-	# Hero Ability Data
-	data["Hero_Abils"] = {
-		"Extra Range":  "Increase the maximum range of nearby range attacks by 1.",
-		"Steal":        "Provides nearby units the ability to steal items from the enemy.",
-		"Defense Aura": "Increases the defense of nearby units.",
-		"Evasion Aura": "Increases the chance your units will dodge an attack.",
 	}
 
 	# Leader Data
