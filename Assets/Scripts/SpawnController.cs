@@ -16,26 +16,26 @@ public class SpawnController : MonoBehaviour {
 
 
 	// Call this to instantiate a new game grid
-	public Token[][] CreateGrid(int size) {
+	public Token[][] CreateMap(string mapKey) {
+		MapData map = GameData.Maps(mapKey);
 		// Initialize Tokens jagged array
-		Token[][] tokens = new Token[size][];
-		for(int x = 0; x < size; x++) {
-			tokens[x] = new Token[size];
+		Token[][] tokens = new Token[map.width][];
+		for(int x = 0; x < tokens.Length; x++) {
+			tokens[x] = new Token[map.height];
 		}
 		// Set scale factor based on orthographic camera settings
 		// Assumes PPU = resolution for each sprite
 		float orthoSize = Camera.main.orthographicSize;
-		ScaleFactor = (2f * orthoSize) / (float)size;
+		ScaleFactor = (2f * orthoSize) / (float)tokens.Length; 		// This will have to change if we want non-square maps
 		// Loop through each token
-		for(int width = 0; width < size; width++) {
-			for(int height = 0; height < size; height++) {
+		for(int width = 0; width < tokens.Length; width++) {
+			for(int height = 0; height < tokens[width].Length; height++) {
 				// Instantiate token at each grid position
 				Token token = (Instantiate(Resources.Load("Prefabs/Token"),new Vector2(((float)width*ScaleFactor)-orthoSize,-((float)height*ScaleFactor)+orthoSize) + new Vector2(ScaleFactor/2f,-ScaleFactor/2f),Quaternion.identity) as GameObject).GetComponent<Token>();
 				// Set scale to scale factor
 				token.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
 				// Assign terrain based on preset map
-				// For development, set to w/e we want
-				string terr = (Random.value > 0.3f)? "G" : "F";
+				string terr = map.terrain[width][height];
 				token.SetTerrain(terr);
 				// Asign token variables
 				token.X = width;

@@ -254,7 +254,7 @@ public class GameController : MonoBehaviour {
 	private void TestGamePlay() {
 		// Create Grid and add test units
 		SpawnController SC = gameObject.AddComponent<SpawnController>();
-		Tokens = SC.CreateGrid(10);
+		Tokens = SC.CreateMap("Forest Pattern");
 		Units.Add(Tokens[4][6].CurrentUnit = SC.CreateUnit("Warrior",4,6));
 		Units.Add(Tokens[6][8].CurrentUnit = SC.CreateUnit("Warrior",6,8));
 		Units.Add(Tokens[7][5].CurrentUnit = SC.CreateUnit("Warrior",7,5));

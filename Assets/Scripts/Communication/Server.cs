@@ -30,7 +30,7 @@ public static class Server {
 		var response = Json.ToDict(strResponse);
 		bool success = (bool)response["Success"];
 		if(success) {
-			//Debug.Log(strResponse);
+			//Debug.Log(strResponse); 				// Uncomment this if you want to see the incoming json
 			GameData.SetGameData(response);
 		}
 		return success;
