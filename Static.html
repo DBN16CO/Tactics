@@ -94,19 +94,124 @@
 </div>
 <div class="section" id="module-Static.create_data">
 <span id="static-create-data-module"></span><h2>Static.create_data module<a class="headerlink" href="#module-Static.create_data" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<span class="target" id="module-create_data"></span><dl class="function">
 <dt id="Static.create_data.setup_static_db">
 <code class="descclassname">Static.create_data.</code><code class="descname">setup_static_db</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.create_data.setup_static_db" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Sets up the static database tables with all the information necessary for the specified version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version</strong> (<em>String</em>) &#8211; The name of the version to populate</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Boolean</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True only if the provided version&#8217;s definition exists later in the module, currently includes versions:<p>1.0</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="Static.create_data.ver_1_0_static_data">
 <code class="descclassname">Static.create_data.</code><code class="descname">ver_1_0_static_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Static.create_data.ver_1_0_static_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The definition of version 1.0 of Tactics.</p>
+<p>Provides a return object detailing any information for the version.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">All values necessary to properly populate the Static database tables for version 1.0</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-Static.models">
 <span id="static-models-module"></span><h2>Static.models module<a class="headerlink" href="#module-Static.models" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Static.models.Ability">
+<em class="property">class </em><code class="descclassname">Static.models.</code><code class="descname">Ability</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>description</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.models.Ability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<dl class="exception">
+<dt id="Static.models.Ability.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#Static.models.Ability.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="Static.models.Ability.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">Ability.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#Static.models.Ability.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Ability.description">
+<code class="descclassname">Ability.</code><code class="descname">description</code><a class="headerlink" href="#Static.models.Ability.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Ability.id">
+<code class="descclassname">Ability.</code><code class="descname">id</code><a class="headerlink" href="#Static.models.Ability.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Ability.leader_ability_set">
+<code class="descclassname">Ability.</code><code class="descname">leader_ability_set</code><a class="headerlink" href="#Static.models.Ability.leader_ability_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related objects manager on the reverse side of a
+many-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">parent.children</span></code> is a <code class="docutils literal"><span class="pre">ReverseManyToOneDescriptor</span></code> instance.</p>
+<p>Most of the implementation is delegated to a dynamically defined manager
+class built by <code class="docutils literal"><span class="pre">create_forward_many_to_many_manager()</span></code> defined below.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Ability.name">
+<code class="descclassname">Ability.</code><code class="descname">name</code><a class="headerlink" href="#Static.models.Ability.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Ability.objects">
+<code class="descclassname">Ability.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#Static.models.Ability.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Ability.version">
+<code class="descclassname">Ability.</code><code class="descname">version</code><a class="headerlink" href="#Static.models.Ability.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related object on the forward side of a many-to-one or
+one-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">child.parent</span></code> is a <code class="docutils literal"><span class="pre">ForwardManyToOneDescriptor</span></code> instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Ability.version_id">
+<code class="descclassname">Ability.</code><code class="descname">version_id</code><a class="headerlink" href="#Static.models.Ability.version_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="class">
 <dt id="Static.models.Action">
 <em class="property">class </em><code class="descclassname">Static.models.</code><code class="descname">Action</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>version</em>, <em>description</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.models.Action" title="Permalink to this definition">¶</a></dt>
@@ -303,85 +408,6 @@ object the first time, the query is executed.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="Static.models.Hero_Ability">
-<em class="property">class </em><code class="descclassname">Static.models.</code><code class="descname">Hero_Ability</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>description</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.models.Hero_Ability" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
-<dl class="exception">
-<dt id="Static.models.Hero_Ability.DoesNotExist">
-<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#Static.models.Hero_Ability.DoesNotExist" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
-</dd></dl>
-
-<dl class="exception">
-<dt id="Static.models.Hero_Ability.MultipleObjectsReturned">
-<em class="property">exception </em><code class="descclassname">Hero_Ability.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#Static.models.Hero_Ability.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Static.models.Hero_Ability.description">
-<code class="descclassname">Hero_Ability.</code><code class="descname">description</code><a class="headerlink" href="#Static.models.Hero_Ability.description" title="Permalink to this definition">¶</a></dt>
-<dd><p>A wrapper for a deferred-loading field. When the value is read from this
-object the first time, the query is executed.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Static.models.Hero_Ability.id">
-<code class="descclassname">Hero_Ability.</code><code class="descname">id</code><a class="headerlink" href="#Static.models.Hero_Ability.id" title="Permalink to this definition">¶</a></dt>
-<dd><p>A wrapper for a deferred-loading field. When the value is read from this
-object the first time, the query is executed.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Static.models.Hero_Ability.leader_ability_set">
-<code class="descclassname">Hero_Ability.</code><code class="descname">leader_ability_set</code><a class="headerlink" href="#Static.models.Hero_Ability.leader_ability_set" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accessor to the related objects manager on the reverse side of a
-many-to-one relation.</p>
-<p>In the example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><code class="docutils literal"><span class="pre">parent.children</span></code> is a <code class="docutils literal"><span class="pre">ReverseManyToOneDescriptor</span></code> instance.</p>
-<p>Most of the implementation is delegated to a dynamically defined manager
-class built by <code class="docutils literal"><span class="pre">create_forward_many_to_many_manager()</span></code> defined below.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Static.models.Hero_Ability.name">
-<code class="descclassname">Hero_Ability.</code><code class="descname">name</code><a class="headerlink" href="#Static.models.Hero_Ability.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>A wrapper for a deferred-loading field. When the value is read from this
-object the first time, the query is executed.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Static.models.Hero_Ability.objects">
-<code class="descclassname">Hero_Ability.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#Static.models.Hero_Ability.objects" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="Static.models.Hero_Ability.version">
-<code class="descclassname">Hero_Ability.</code><code class="descname">version</code><a class="headerlink" href="#Static.models.Hero_Ability.version" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accessor to the related object on the forward side of a many-to-one or
-one-to-one relation.</p>
-<p>In the example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><code class="docutils literal"><span class="pre">child.parent</span></code> is a <code class="docutils literal"><span class="pre">ForwardManyToOneDescriptor</span></code> instance.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Static.models.Hero_Ability.version_id">
-<code class="descclassname">Hero_Ability.</code><code class="descname">version_id</code><a class="headerlink" href="#Static.models.Hero_Ability.version_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>A wrapper for a deferred-loading field. When the value is read from this
-object the first time, the query is executed.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="Static.models.Leader">
 <em class="property">class </em><code class="descclassname">Static.models.</code><code class="descname">Leader</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>description</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.models.Leader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
@@ -402,21 +428,6 @@ object the first time, the query is executed.</p>
 <code class="descclassname">Leader.</code><code class="descname">description</code><a class="headerlink" href="#Static.models.Leader.description" title="Permalink to this definition">¶</a></dt>
 <dd><p>A wrapper for a deferred-loading field. When the value is read from this
 object the first time, the query is executed.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Static.models.Leader.game_user_set">
-<code class="descclassname">Leader.</code><code class="descname">game_user_set</code><a class="headerlink" href="#Static.models.Leader.game_user_set" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accessor to the related objects manager on the reverse side of a
-many-to-one relation.</p>
-<p>In the example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><code class="docutils literal"><span class="pre">parent.children</span></code> is a <code class="docutils literal"><span class="pre">ReverseManyToOneDescriptor</span></code> instance.</p>
-<p>Most of the implementation is delegated to a dynamically defined manager
-class built by <code class="docutils literal"><span class="pre">create_forward_many_to_many_manager()</span></code> defined below.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -509,6 +520,21 @@ one-to-one relation.</p>
 <code class="descclassname">Leader_Ability.</code><code class="descname">ability_id</code><a class="headerlink" href="#Static.models.Leader_Ability.ability_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>A wrapper for a deferred-loading field. When the value is read from this
 object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Leader_Ability.game_user_set">
+<code class="descclassname">Leader_Ability.</code><code class="descname">game_user_set</code><a class="headerlink" href="#Static.models.Leader_Ability.game_user_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related objects manager on the reverse side of a
+many-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">parent.children</span></code> is a <code class="docutils literal"><span class="pre">ReverseManyToOneDescriptor</span></code> instance.</p>
+<p>Most of the implementation is delegated to a dynamically defined manager
+class built by <code class="docutils literal"><span class="pre">create_forward_many_to_many_manager()</span></code> defined below.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1136,6 +1162,21 @@ object the first time, the query is executed.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="Static.models.Version.ability_set">
+<code class="descclassname">Version.</code><code class="descname">ability_set</code><a class="headerlink" href="#Static.models.Version.ability_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related objects manager on the reverse side of a
+many-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">parent.children</span></code> is a <code class="docutils literal"><span class="pre">ReverseManyToOneDescriptor</span></code> instance.</p>
+<p>Most of the implementation is delegated to a dynamically defined manager
+class built by <code class="docutils literal"><span class="pre">create_forward_many_to_many_manager()</span></code> defined below.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="Static.models.Version.action_set">
 <code class="descclassname">Version.</code><code class="descname">action_set</code><a class="headerlink" href="#Static.models.Version.action_set" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor to the related objects manager on the reverse side of a
@@ -1168,21 +1209,6 @@ class built by <code class="docutils literal"><span class="pre">create_forward_m
 <dl class="attribute">
 <dt id="Static.models.Version.game_set">
 <code class="descclassname">Version.</code><code class="descname">game_set</code><a class="headerlink" href="#Static.models.Version.game_set" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accessor to the related objects manager on the reverse side of a
-many-to-one relation.</p>
-<p>In the example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><code class="docutils literal"><span class="pre">parent.children</span></code> is a <code class="docutils literal"><span class="pre">ReverseManyToOneDescriptor</span></code> instance.</p>
-<p>Most of the implementation is delegated to a dynamically defined manager
-class built by <code class="docutils literal"><span class="pre">create_forward_many_to_many_manager()</span></code> defined below.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Static.models.Version.hero_ability_set">
-<code class="descclassname">Version.</code><code class="descname">hero_ability_set</code><a class="headerlink" href="#Static.models.Version.hero_ability_set" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor to the related objects manager on the reverse side of a
 many-to-one relation.</p>
 <p>In the example:</p>
@@ -1368,58 +1394,400 @@ class built by <code class="docutils literal"><span class="pre">create_forward_m
 </div>
 <div class="section" id="module-Static.routehelper">
 <span id="static-routehelper-module"></span><h2>Static.routehelper module<a class="headerlink" href="#module-Static.routehelper" title="Permalink to this headline">¶</a></h2>
+<p>This file will handle all routed methods managing static data
+All methods must follow the following standards:</p>
+<p>Inputs - they will all take in only one input: the JSON data</p>
+<p>Outputs - they will pass back a formatted JSON response object
+which will detail the success or failure of the command
+as well as any other necessary information regarding the command.</p>
 <dl class="function">
 <dt id="Static.routehelper.getAllStaticData">
 <code class="descclassname">Static.routehelper.</code><code class="descname">getAllStaticData</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.routehelper.getAllStaticData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called when a user initially opens the app and needs to load all the data from the Static database
+Command: IL (Initial Load)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>Dictionary</em>) &#8211; No input information is needed, so simply an empty dictionary suffices</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A JSON object noting the success of the method call.<p>Example if Successful:</p>
+<p>{</p>
+<blockquote>
+<div>&#8220;Success&#8221;:True,<p>&#8220;Version&#8221;:{</p>
+<blockquote>
+<div>&#8220;Price_Max&#8221;:1000,<p>&#8220;Unit_Count&#8221;:8</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Abilities&#8221;:{</p>
+<blockquote>
+<div>&#8220;Extra Range&#8221;:  &#8220;Increase the maximum range of nearby range attacks by 1.&#8221;,<p>&lt;Next Ability&gt;,</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Actions&#8221;:{</p>
+<blockquote>
+<div>&#8220;Attack&#8221;: &#8220;Deal damage to target unit.&#8221;,<p>&lt;Next Action&gt;,</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Classes&#8221;:{</p>
+<blockquote>
+<div>&#8220;Archer&#8221;:    {<blockquote>
+<div>&#8220;Description&#8221;:&#8221;Ranged unit with low armor.  Good at defeating Fliers.&#8221;,<p>&#8220;Stats&#8221;: {</p>
+<blockquote>
+<div>&#8220;HP&#8221;:10.0, &#8220;Move&#8221;: 6.0, &#8220;Agility&#8221;: 8.5, &#8220;Intelligence&#8221;: 4.0, &#8220;Strength&#8221;: 7.0, &#8220;Luck&#8221;: 7.0, &#8220;Attack Range&#8221;:2,</div></blockquote>
+<p>},</p>
+<p>&#8220;Terrain&#8221;: {</p>
+<blockquote>
+<div>&#8220;G&#8221;: 1.0, &#8220;F&#8221;: 2.0, &#8220;W&#8221;:99.0, &#8220;M&#8221;: 4.0, &#8220;R&#8221;: 1.0,</div></blockquote>
+<p>},</p>
+<p>&#8220;Price&#8221;:150,</p>
+</div></blockquote>
+<p>},</p>
+<p>&lt;Next Class&gt;,</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Leaders&#8221;:{</p>
+<blockquote>
+<div>&#8220;Sniper&#8221;:{<blockquote>
+<div>&#8220;Abilities&#8221;:[&#8220;Extra Range&#8221;, &#8220;Evasion Aura&#8221;],<p>&#8220;Description&#8221;:&#8221;Ranged leader with very high damage output, but low armor.&#8221;</p>
+</div></blockquote>
+<p>},</p>
+<p>&lt;Next Leader&gt;,</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Perks&#8221;:{</p>
+<blockquote>
+<div>&#8220;Extra Money&#8221;:{<blockquote>
+<div>&#8220;Tier&#8221;:3,<p>&#8220;Description&#8221;:&#8221;Provides an extra 5% towards purchasing units.&#8221;,</p>
+</div></blockquote>
+<p>},</p>
+<p>&lt;Next Perk&gt;,</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Maps&#8221;:{</p>
+<blockquote>
+<div>&#8220;Grassland&#8221;:0,G 0,G 0,G 0,G 0,G 0,G 0,G 0,Gn0,G 0,G 0,G 0,G 0,G 0,G 0,G 0,G...<p>&lt;Next Map&gt;,</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Stats&#8221;:{</p>
+<blockquote>
+<div>&#8220;HP&#8221;:{<blockquote>
+<div>&#8220;Description&#8221;:&#8221;Number of health points.&#8221;,</div></blockquote>
+<p>},</p>
+<p>&lt;Next Stat&gt;,</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Terrain&#8221;:{</p>
+<blockquote>
+<div>&#8220;G&#8221;:{<blockquote>
+<div>&#8220;DisplayName&#8221;:&#8221;Grass&#8221;,<p>&#8220;Description&#8221;:&#8221;Basic terrain with no obstructions.&#8221;,</p>
+</div></blockquote>
+<p>},</p>
+<p>&lt;Next Terrain&gt;,</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+<p>Notes:</p>
+<ul class="simple">
+<li>For map, each token has a,b where a=Can unit start there, b=Terrain shortname, n=Next row</li>
+<li>The Keys in terrain are their &#8216;shortname&#8217; which must match up with the map&#8217;s &#8216;b&#8217; value</li>
+</ul>
+<p>If Unsuccessful:</p>
+<blockquote>
+<div>{&#8220;Successful&#8221;:False,<blockquote>
+<div>&#8220;Error&#8221;:&#8221;&lt;Error Message&#8221;}</div></blockquote>
+</div></blockquote>
+<p>Notes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The error message provided should be of an acceptable form such that
+errors can be directly displayed for the user.</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-Static.statichelper">
 <span id="static-statichelper-module"></span><h2>Static.statichelper module<a class="headerlink" href="#module-Static.statichelper" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-routeunithelper"></span><dl class="function">
+<dt id="Static.statichelper.getAbilityData">
+<code class="descclassname">Static.statichelper.</code><code class="descname">getAbilityData</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getAbilityData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the ability information for the specified version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version</strong> (<a class="reference internal" href="#Static.models.Version" title="Static.models.Version"><em>Version</em></a>) &#8211; The version of ability data requested</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a dictionary of the following form:<p>{</p>
+<blockquote>
+<div>&#8220;Steal&#8221;:&#8221;Steals stuff from that other guy.. tricky&#8221;,<p>&#8220;Extra Range&#8221;:&#8221;Provides nearby ranged units an additional attack range&#8221;</p>
+</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="function">
 <dt id="Static.statichelper.getActionData">
-<code class="descclassname">Static.statichelper.</code><code class="descname">getActionData</code><span class="sig-paren">(</span><em>ver_id</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getActionData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">Static.statichelper.</code><code class="descname">getActionData</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getActionData" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Gets the action information for the specified version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">type version:</th><td class="field-body"><p class="first">Version</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param version:</th><td class="field-body"><p class="first">The version of action data requested</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">rtype:</th><td class="field-body"><p class="first">Dictionary</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">return:</th><td class="field-body"><p class="first">Returns a dictionary of the following form:</p>
+<p>{</p>
+<blockquote class="last">
+<div><p>&#8220;Attack&#8221;:&#8221;Attacks a unit.&#8221;,</p>
+<p>&#8220;Heal&#8221;:&#8221;Heals a unit.&#8221;,</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>&#8220;Wait&#8221;:&#8221;Does nothing.&#8221;</p>
+<blockquote>
+<div>}</div></blockquote>
+</dd></dl>
 
 <dl class="function">
 <dt id="Static.statichelper.getClassData">
-<code class="descclassname">Static.statichelper.</code><code class="descname">getClassData</code><span class="sig-paren">(</span><em>ver_id</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getClassData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="Static.statichelper.getHeroAbilData">
-<code class="descclassname">Static.statichelper.</code><code class="descname">getHeroAbilData</code><span class="sig-paren">(</span><em>ver_id</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getHeroAbilData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">Static.statichelper.</code><code class="descname">getClassData</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getClassData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the class information for the specified version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version</strong> (<a class="reference internal" href="#Static.models.Version" title="Static.models.Version"><em>Version</em></a>) &#8211; The version of class data requested</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a dictionary of the following form:<p>{</p>
+<blockquote>
+<div>&#8220;Archer&#8221;:    {<blockquote>
+<div>&#8220;Description&#8221;:&#8221;Ranged unit with low armor.  Good at defeating Fliers.&#8221;,<p>&#8220;Stats&#8221;: {</p>
+<blockquote>
+<div>&#8220;HP&#8221;:10.0, &#8220;Move&#8221;: 6.0, &#8220;Agility&#8221;: 8.5, &#8220;Intelligence&#8221;: 4.0, &#8220;Strength&#8221;: 7.0, &#8220;Luck&#8221;: 7.0,</div></blockquote>
+<p>},</p>
+<p>&#8220;Terrain&#8221;: {</p>
+<blockquote>
+<div>&#8220;G&#8221;: 1.0, &#8220;F&#8221;: 2.0, &#8220;W&#8221;:99.0, &#8220;M&#8221;: 4.0, &#8220;R&#8221;: 1.0,</div></blockquote>
+<p>},</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Mage&#8221;: {</p>
+<blockquote>
+<div>...</div></blockquote>
+<p>},</p>
+</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="Static.statichelper.getLeaderData">
-<code class="descclassname">Static.statichelper.</code><code class="descname">getLeaderData</code><span class="sig-paren">(</span><em>ver_id</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getLeaderData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">Static.statichelper.</code><code class="descname">getLeaderData</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getLeaderData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the leader information for the specified version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version</strong> (<a class="reference internal" href="#Static.models.Version" title="Static.models.Version"><em>Version</em></a>) &#8211; The version of leader data requested</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a dictionary of the following form:<p>{</p>
+<blockquote>
+<div>&#8220;Assassin&#8221;:{<blockquote>
+<div>&#8220;Abilities&#8221;:[&#8220;Steal&#8221;,&#8221;Agility Aura&#8221;],<p>&#8220;Descripton&#8221;:&#8221;He kills things real good.&#8221;.</p>
+</div></blockquote>
+<p>}</p>
+<p>&#8220;General&#8221;:{</p>
+<blockquote>
+<div>&#8220;Abilities&#8221;:[&#8220;Defense Aura&#8221;],<p>&#8220;Description&#8221;:&#8221;He&#8217;s good at not taking damage&#8221;,</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="Static.statichelper.getMapData">
-<code class="descclassname">Static.statichelper.</code><code class="descname">getMapData</code><span class="sig-paren">(</span><em>ver_id</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getMapData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">Static.statichelper.</code><code class="descname">getMapData</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getMapData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the map information for the specified version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version</strong> (<a class="reference internal" href="#Static.models.Version" title="Static.models.Version"><em>Version</em></a>) &#8211; The version of map data requested</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a dictionary of the following form:<p>{</p>
+<blockquote>
+<div>&#8220;Map 1 Name&#8221;: &#8220;0,1 1,1 1,1 0,1n0,2 0,2 0,1 0,1n0,2 0,2 0,1 0,1n0,1 1,1 1,1 0,1&#8221;,<p>&#8220;All Grass&#8221;:  &#8220;0,1 1,1 0,1 0,1n0,1 1,1 0,1 0,1n0,1 1,1 0,1 0,1n0,1 1,1 0,1 0,1&#8221;,</p>
+</div></blockquote>
+<p>}</p>
+<p>Note: For the map data, there are n-delimited lines, for each line,
+there are space-delimited tokens, for each token, there are comma-delimited fields,
+the first being whether or not a unit can be initially placed there
+the second being the shortname of the terrain type.
+These shornamess will match the key data sent in the terrain object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="Static.statichelper.getPerkData">
-<code class="descclassname">Static.statichelper.</code><code class="descname">getPerkData</code><span class="sig-paren">(</span><em>ver_id</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getPerkData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">Static.statichelper.</code><code class="descname">getPerkData</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getPerkData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the perk information for the specified version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version</strong> (<a class="reference internal" href="#Static.models.Version" title="Static.models.Version"><em>Version</em></a>) &#8211; The version of perk data requested</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a dictionary of the following form:<p>{</p>
+<blockquote>
+<div>&#8220;Extra money&#8221;:{<blockquote>
+<div>&#8220;Description&#8221;:&#8221;More $$$$$!&#8221;,<p>&#8220;Tier&#8221;:1,</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Strong Arrows&#8221;:{</p>
+<blockquote>
+<div>&#8220;Description&#8221;:&#8221;You shoot stuff, it dies faster!&#8221;,<p>&#8220;Tier&#8221;:2,</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Forest Fighter&#8221;:{</p>
+<blockquote>
+<div>&#8220;Description&#8221;:&#8221;You can now raise a wood elf army!&#8221;,<p>&#8220;Tier&#8221;:3,</p>
+</div></blockquote>
+<p>},</p>
+</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="Static.statichelper.getStatData">
-<code class="descclassname">Static.statichelper.</code><code class="descname">getStatData</code><span class="sig-paren">(</span><em>ver_id</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getStatData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">Static.statichelper.</code><code class="descname">getStatData</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getStatData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the stat information for the specified version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version</strong> (<a class="reference internal" href="#Static.models.Version" title="Static.models.Version"><em>Version</em></a>) &#8211; The version of stat data requested</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a dictionary of the following form:<p>{</p>
+<blockquote>
+<div>&#8220;HP&#8221;:{<blockquote>
+<div>&#8220;Description&#8221;:&#8221;Health points, duh&#8221;</div></blockquote>
+<p>},</p>
+<p>&#8220;Move&#8221;:{</p>
+<blockquote>
+<div>&#8220;Description&#8221;:&#8221;How far you can move.&#8221;,</div></blockquote>
+<p>},</p>
+</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="Static.statichelper.getTerrainData">
-<code class="descclassname">Static.statichelper.</code><code class="descname">getTerrainData</code><span class="sig-paren">(</span><em>ver_id</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getTerrainData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">Static.statichelper.</code><code class="descname">getTerrainData</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getTerrainData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the terrain information for the specified version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version</strong> (<a class="reference internal" href="#Static.models.Version" title="Static.models.Version"><em>Version</em></a>) &#8211; The version of terrain data requested</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a dictionary of the following form:<p>{</p>
+<blockquote>
+<div>&#8220;G&#8221;:{ // The shortname in the table<blockquote>
+<div>&#8220;Description&#8221;:&#8221;Grasssssy.&#8221;<p>&#8220;DisplayName&#8221;:&#8221;Grass&#8221;</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;F&#8221;:{</p>
+<blockquote>
+<div>&#8220;Description&#8221;:&#8221;Trees! Trees everywhere!&#8221;,<p>&#8220;DisplayName&#8221;:&#8221;Forest&#8221;</p>
+</div></blockquote>
+<p>},</p>
+</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="Static.statichelper.getVersionData">
 <code class="descclassname">Static.statichelper.</code><code class="descname">getVersionData</code><span class="sig-paren">(</span><em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.statichelper.getVersionData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gets the terrain information for the specified version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version</strong> (<a class="reference internal" href="#Static.models.Version" title="Static.models.Version"><em>Version</em></a>) &#8211; The version of terrain data requested</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a dictionary of the following form:<p>{</p>
+<blockquote>
+<div>&#8220;Name&#8221;:&#8221;1.0&#8221;,<p>&#8220;Price_Max&#8221;:1000,</p>
+<p>&#8220;Unit_Count&#8221;:8,</p>
+</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-Static.tests">
@@ -1444,8 +1812,8 @@ class built by <code class="docutils literal"><span class="pre">create_forward_m
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="Static.tests.TestStatic.test3_bad_version">
-<code class="descname">test3_bad_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Static.tests.TestStatic.test3_bad_version" title="Permalink to this definition">¶</a></dt>
+<dt id="Static.tests.TestStatic.test3_incomplete_version">
+<code class="descname">test3_incomplete_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Static.tests.TestStatic.test3_incomplete_version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

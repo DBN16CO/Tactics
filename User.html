@@ -255,15 +255,125 @@ object the first time, the query is executed.</p>
 </div>
 <div class="section" id="module-User.routehelper">
 <span id="user-routehelper-module"></span><h2>User.routehelper module<a class="headerlink" href="#module-User.routehelper" title="Permalink to this headline">¶</a></h2>
+<p>This file will handle all routed methods managing static data
+All methods must follow the following standards:</p>
+<p>Inputs - they will all take in only one input: the JSON data</p>
+<p>Outputs - they will pass back a formatted JSON response object
+which will detail the success or failure of the command
+as well as any other necessary information regarding the command.</p>
 <dl class="function">
 <dt id="User.routehelper.createUser">
 <code class="descclassname">User.routehelper.</code><code class="descname">createUser</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#User.routehelper.createUser" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Create a user with the provided credentials</p>
+<p>Command: CU (Create User)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>Dictionary</em>) &#8211; <p>The necessary input information to process the command, should
+be of the following format:</p>
+<p>{</p>
+<blockquote>
+<div>&#8220;username&#8221;:&#8221;CoolUserName&#8221;,<p>&#8220;pw&#8221;:&#8221;12345&#8221;,</p>
+<p>&#8220;email&#8221;:&#8221;<a class="reference external" href="mailto:lameEmail&#37;&#52;&#48;email&#46;com">lameEmail<span>&#64;</span>email<span>&#46;</span>com</a>&#8220;</p>
+</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A JSON object noting the success of the method call:<p>If Successful:</p>
+<p>{&#8220;Success&#8221;:True, &#8220;Token&#8221;:&#8221;dklaf00hdskalfhdsfsdf&#8221;,&#8221;Username&#8221;:&#8221;CoolUserName&#8221;}</p>
+<p>If Unsuccessful:</p>
+<p>{&#8220;Successful&#8221;:False,&#8221;Error&#8221;:&#8221;Invalid Username/Password.&#8221;}</p>
+<p>Notes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The error message provided should be of an acceptable form such that
+errors can be directly displayed for the user.</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="User.routehelper.getUserInfo">
+<code class="descclassname">User.routehelper.</code><code class="descname">getUserInfo</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#User.routehelper.getUserInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called to obtain all user-related data. This will likely be called once by the front end after login.</p>
+<p>Command: GUI (Get User Info)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>Dictionary</em>) &#8211; <p>The necessary input information to process the command, should
+be of the following format:</p>
+<p>{</p>
+<p>}</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A JSON object containing all of the user&#8217;s information and preferences<p>{</p>
+<blockquote>
+<div>&#8220;Success&#8221;:True,<p>&#8220;Username&#8221;:&#8221;&lt;username&gt;&#8221;,</p>
+<p>&#8220;Email&#8221;:&#8221;&lt;Email&gt;&#8221;,</p>
+<p>&#8220;Verified&#8221;:&lt;True/False&gt;,</p>
+<p>&#8220;Level&#8221;:&lt;level&gt;,</p>
+<p>&#8220;Experience&#8221;:&lt;exp&gt;,</p>
+<p>&#8220;Coins&#8221;:&lt;num_coins&gt;,</p>
+<p>&#8220;Preferences&#8221;: {&#8220;Grid Opacity&#8221;:&lt;opacity&gt;, ...}</p>
+</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="User.routehelper.login">
 <code class="descclassname">User.routehelper.</code><code class="descname">login</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#User.routehelper.login" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Login either with username/password or token</p>
+<p>Command: LGN (Login)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>Dictionary</em>) &#8211; <p>The necessary input information to process the command, should
+be of the following format:</p>
+<p>{</p>
+<blockquote>
+<div>&#8220;username&#8221;:&#8221;CoolUserName&#8221;,<p>&#8220;pw&#8221;:&#8221;12345&#8221;</p>
+</div></blockquote>
+<p>}</p>
+<p>&#8211; OR &#8211;</p>
+<p>{</p>
+<blockquote>
+<div>&#8220;token&#8221;:&#8221;dklaf00hdskalfhdsfsdf&#8221;</div></blockquote>
+<p>}</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A JSON object noting the success of the method call:<p>If Successful:</p>
+<p>{&#8220;Success&#8221;:True, &#8220;Token&#8221;:&#8221;dklaf00hdskalfhdsfsdf&#8221;,&#8221;Username&#8221;:&#8221;CoolUserName&#8221;}</p>
+<p>If Unsuccessful:</p>
+<p>{&#8220;Successful&#8221;:False,&#8221;Error&#8221;:&#8221;Invalid Username/Password.&#8221;}</p>
+<p>Notes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The error message provided should be of an acceptable form such that
+errors can be directly displayed for the user.</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-User.tests">
@@ -275,6 +385,11 @@ object the first time, the query is executed.</p>
 <dl class="method">
 <dt id="User.tests.TestUser.setUp">
 <code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#User.tests.TestUser.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="User.tests.TestUser.test10_get_user_info_success">
+<code class="descname">test10_get_user_info_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#User.tests.TestUser.test10_get_user_info_success" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -327,25 +442,61 @@ object the first time, the query is executed.</p>
 </div>
 <div class="section" id="module-User.userhelper">
 <span id="user-userhelper-module"></span><h2>User.userhelper module<a class="headerlink" href="#module-User.userhelper" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<span class="target" id="module-userhelper"></span><dl class="function">
 <dt id="User.userhelper.createUser">
 <code class="descclassname">User.userhelper.</code><code class="descname">createUser</code><span class="sig-paren">(</span><em>username</em>, <em>password</em>, <em>email</em><span class="sig-paren">)</span><a class="headerlink" href="#User.userhelper.createUser" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Creates a user with the provided values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>username</strong> (<em>String</em>) &#8211; The username for the user</li>
+<li><strong>password</strong> (<em>String</em>) &#8211; The password to be hashed for the user</li>
+<li><strong>email</strong> (<em>String</em>) &#8211; The email address the user has provided</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="#module-User" title="User">User</a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A user object representing the new user</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="User.userhelper.encrypt">
 <code class="descclassname">User.userhelper.</code><code class="descname">encrypt</code><span class="sig-paren">(</span><em>password</em><span class="sig-paren">)</span><a class="headerlink" href="#User.userhelper.encrypt" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Encrypt the inputted passord</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="User.userhelper.generateLoginToken">
 <code class="descclassname">User.userhelper.</code><code class="descname">generateLoginToken</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#User.userhelper.generateLoginToken" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generates and saves a login token for a particular user.
+This function should validate the token hasn&#8217;t been taken before assigning it to a user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user</strong> (<a class="reference internal" href="#module-User" title="User"><em>User</em></a>) &#8211; The user whose login token is to be updated</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">String</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The token set to that user</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="User.userhelper.verifyPassword">
 <code class="descclassname">User.userhelper.</code><code class="descname">verifyPassword</code><span class="sig-paren">(</span><em>password</em>, <em>dbHash</em><span class="sig-paren">)</span><a class="headerlink" href="#User.userhelper.verifyPassword" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Verify that a hashed password matches its database-stored hash value</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-User.views">

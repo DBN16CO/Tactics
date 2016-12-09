@@ -250,7 +250,7 @@ object the first time, the query is executed.</p>
 
 <dl class="class">
 <dt id="Game.models.Game_User">
-<em class="property">class </em><code class="descclassname">Game.models.</code><code class="descname">Game_User</code><span class="sig-paren">(</span><em>id</em>, <em>game</em>, <em>user</em>, <em>team</em>, <em>leader</em>, <em>perk_1</em>, <em>perk_2</em>, <em>perk_3</em>, <em>victorious</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Game_User" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">Game.models.</code><code class="descname">Game_User</code><span class="sig-paren">(</span><em>id</em>, <em>game</em>, <em>user</em>, <em>team</em>, <em>leader_abil</em>, <em>perk_1</em>, <em>perk_2</em>, <em>perk_3</em>, <em>victorious</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Game_User" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
 <dl class="exception">
 <dt id="Game.models.Game_User.DoesNotExist">
@@ -292,8 +292,8 @@ object the first time, the query is executed.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="Game.models.Game_User.leader">
-<code class="descclassname">Game_User.</code><code class="descname">leader</code><a class="headerlink" href="#Game.models.Game_User.leader" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.models.Game_User.leader_abil">
+<code class="descclassname">Game_User.</code><code class="descname">leader_abil</code><a class="headerlink" href="#Game.models.Game_User.leader_abil" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor to the related object on the forward side of a many-to-one or
 one-to-one relation.</p>
 <p>In the example:</p>
@@ -305,8 +305,8 @@ one-to-one relation.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="Game.models.Game_User.leader_id">
-<code class="descclassname">Game_User.</code><code class="descname">leader_id</code><a class="headerlink" href="#Game.models.Game_User.leader_id" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.models.Game_User.leader_abil_id">
+<code class="descclassname">Game_User.</code><code class="descname">leader_abil_id</code><a class="headerlink" href="#Game.models.Game_User.leader_abil_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>A wrapper for a deferred-loading field. When the value is read from this
 object the first time, the query is executed.</p>
 </dd></dl>
@@ -622,15 +622,61 @@ object the first time, the query is executed.</p>
 </div>
 <div class="section" id="module-Game.routeunithelper">
 <span id="game-routeunithelper-module"></span><h2>Game.routeunithelper module<a class="headerlink" href="#module-Game.routeunithelper" title="Permalink to this headline">¶</a></h2>
+<p>This file will handle all routed methods managing static data
+All methods must follow the following standards:</p>
+<p>Inputs - they will all take in only one input: the JSON data</p>
+<p>Outputs - they will pass back a formatted JSON response object
+which will detail the success or failure of the command
+as well as any other necessary information regarding the command.</p>
 <dl class="function">
-<dt id="Game.routeunithelper.takeAction">
-<code class="descclassname">Game.routeunithelper.</code><code class="descname">takeAction</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.routeunithelper.takeAction" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="Game.routeunithelper.unitCreation">
-<code class="descclassname">Game.routeunithelper.</code><code class="descname">unitCreation</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.routeunithelper.unitCreation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="Game.routeunithelper.setTeam">
+<code class="descclassname">Game.routeunithelper.</code><code class="descname">setTeam</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.routeunithelper.setTeam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a user wants to set their team lineup before starting a game.
+Will store their unit selection as well as their leader, his ability, and the perk data
+Command: ST (Set team)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>Dictionary</em>) &#8211; <p>The necessary input information to process the command, should
+be of the following format:</p>
+<p>{</p>
+<blockquote>
+<div>&#8220;Leader&#8221;:&#8221;Sniper&#8221;,<p>&#8220;Ability&#8221;:&#8221;Increased Range&#8221;</p>
+<p>&#8220;Units&#8221;:[&#8220;Archer&#8221;,&#8221;Archer&#8221;,&#8221;Mage&#8221;,&#8221;Flier&#8221;,&#8221;Swordsman&#8221;,&#8221;Swordsman&#8221;,&#8221;Swordsman&#8221;,&#8221;Swordsman&#8221;],</p>
+<p>&#8220;Perks&#8221;:[&#8220;Extra Money&#8221;,&#8221;Strong Arrows&#8221;,&#8221;Mountain Fighter&#8221;]</p>
+</div></blockquote>
+<p>}</p>
+<p>Notes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>All of the values provided for each key are the X{Name} chosen for that key.</li>
+<li>If no perks are chosen an empty list should still still be sent for that key</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A JSON object noting the success of the method call:<p>If Successful:</p>
+<p>{&#8220;Success&#8221;:True}</p>
+<p>If Unsuccessful:</p>
+<blockquote>
+<div>{&#8220;Successful&#8221;:False,<blockquote>
+<div>&#8220;Error&#8221;:&#8221;You did not provide the necessary information.&#8221;}</div></blockquote>
+</div></blockquote>
+<p>Notes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The error message provided should be of an acceptable form such that
+errors can be directly displayed for the user.</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-Game.tests">
@@ -644,20 +690,54 @@ object the first time, the query is executed.</p>
 <code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.setUp" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="Game.tests.TestUnit.test1_set_team_bad_json_input">
+<code class="descname">test1_set_team_bad_json_input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test1_set_team_bad_json_input" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test2_set_team_price_max_exceeded">
+<code class="descname">test2_set_team_price_max_exceeded</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test2_set_team_price_max_exceeded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test3_set_team_valid_input">
+<code class="descname">test3_set_team_valid_input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test3_set_team_valid_input" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
 <div class="section" id="module-Game.unithelper">
 <span id="game-unithelper-module"></span><h2>Game.unithelper module<a class="headerlink" href="#module-Game.unithelper" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="Game.unithelper.createUnit">
-<code class="descclassname">Game.unithelper.</code><code class="descname">createUnit</code><span class="sig-paren">(</span><em>ownr</em>, <em>clss</em>, <em>vrsn</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.createUnit" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="Game.unithelper.takeAction">
-<code class="descclassname">Game.unithelper.</code><code class="descname">takeAction</code><span class="sig-paren">(</span><em>unitId</em>, <em>action</em>, <em>newX</em>, <em>newY</em>, <em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.takeAction" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="target" id="module-unithelper"></span><dl class="function">
+<dt id="Game.unithelper.setTeam">
+<code class="descclassname">Game.unithelper.</code><code class="descname">setTeam</code><span class="sig-paren">(</span><em>leader_ability</em>, <em>perks</em>, <em>units</em>, <em>username</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.setTeam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates an inputted team a user has provided and then updates
+the database for that user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>leader_ability</strong> (<a class="reference internal" href="Static.html#Static.models.Leader_Ability" title="Static.models.Leader_Ability"><em>Leader_Ability</em></a>) &#8211; The user&#8217;s specified leader chosen and that leader&#8217;s ability</li>
+<li><strong>perks</strong> (<em>List&lt;Perk&gt;</em>) &#8211; The user&#8217;s specified perks chosen</li>
+<li><strong>units</strong> (<em>List&lt;Unit&gt;</em>) &#8211; The user&#8217;s specified units chosen</li>
+<li><strong>units</strong> &#8211; The user&#8217;s username</li>
+<li><strong>version</strong> (<a class="reference internal" href="Static.html#Static.models.Version" title="Static.models.Version"><em>Version</em></a>) &#8211; The object for the most current version</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">String</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An empty string unless the information provided was invalid,                    in which case, an error message will be provided, including when:
+- The user has gone over the price limit</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="Game.unithelper.validateMove">

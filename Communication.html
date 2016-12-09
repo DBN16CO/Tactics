@@ -75,72 +75,200 @@
 </div>
 <div class="section" id="module-Communication.routehelper">
 <span id="communication-routehelper-module"></span><h2>Communication.routehelper module<a class="headerlink" href="#module-Communication.routehelper" title="Permalink to this headline">¶</a></h2>
+<p>This file will handle all routed methods managing static data
+All methods must follow the following standards:</p>
+<p>Inputs - they will all take in only one input: the JSON data</p>
+<p>Outputs - they will pass back a formatted JSON response object
+which will detail the success or failure of the command
+as well as any other necessary information regarding the command.</p>
+<dl class="function">
+<dt id="Communication.routehelper.formJsonResult">
+<code class="descclassname">Communication.routehelper.</code><code class="descname">formJsonResult</code><span class="sig-paren">(</span><em>error_msg</em>, <em>data=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.routehelper.formJsonResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the basic response for any method that must return a JSON response.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>error_msg</strong> (<em>String</em>) &#8211; The error message to be printed if the function did not execute sucessfuly.</li>
+<li><strong>data</strong> (<em>Dictionary</em>) &#8211; The inputted JSON command data that resulted in an error.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">Dictionary</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>The response which can be sent back to the front-end user.</p>
+<p>Note: If the result is a success, additional values may need to be added
+to the response dictionary.</p>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="function">
 <dt id="Communication.routehelper.pingAuthentication">
 <code class="descclassname">Communication.routehelper.</code><code class="descname">pingAuthentication</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.routehelper.pingAuthentication" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>A ping that ensures the user has been authenticated</p>
+<p>Command: PA (Ping Authentication)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>Dictionary</em>) &#8211; The inputted JSON command which should include the &#8216;session_username&#8217; provided  in <code class="xref py py-func docutils literal"><span class="pre">processRequest()</span></code>,
+if not, then the session is invalid.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The response which can be sent back to the front end</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-Communication.router">
 <span id="communication-router-module"></span><h2>Communication.router module<a class="headerlink" href="#module-Communication.router" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<span class="target" id="module-router"></span><dl class="function">
 <dt id="Communication.router.processRequest">
 <code class="descclassname">Communication.router.</code><code class="descname">processRequest</code><span class="sig-paren">(</span><em>message</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.router.processRequest" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Communicates with the front end by sending and receiving JSON through a channel session</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>message</strong> (<em>Channel Object</em>) &#8211; <p>The message being received from the front end</p>
+<p>The following commands have been implemented:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="8%" />
+<col width="18%" />
+<col width="11%" />
+<col width="24%" />
+<col width="39%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Abrev</th>
+<th class="head">Command Name</th>
+<th class="head">App</th>
+<th class="head">Method Name</th>
+<th class="head">Successful Test</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>CU</td>
+<td>Create User</td>
+<td>User</td>
+<td>createUser</td>
+<td>create_user_success</td>
+</tr>
+<tr class="row-odd"><td>IL</td>
+<td>Iniitial Load</td>
+<td>Static</td>
+<td>getAllStaticData</td>
+<td>initial_load_v1_0</td>
+</tr>
+<tr class="row-even"><td>LGN</td>
+<td>Login</td>
+<td>User</td>
+<td>login</td>
+<td>login_success_token</td>
+</tr>
+<tr class="row-odd"><td>PA</td>
+<td>Ping Auth</td>
+<td>Comm</td>
+<td>pingAuthentication</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>ST</td>
+<td>Set Team</td>
+<td>Game</td>
+<td>setTeam</td>
+<td>set_team_valid_input</td>
+</tr>
+</tbody>
+</table>
+<p>Notes about table above:</p>
+<ul class="simple">
+<li>To find the documentation on the command, go to ../&lt;App&gt;/routehelper.&lt;Method Name&gt;</li>
+<li>For an example input and output JSON, go to ../&lt;App&gt;/tests.testN_&lt;Successful Test&gt;</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A response to the incoming request from the front end</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-Communication.testhelper">
 <span id="communication-testhelper-module"></span><h2>Communication.testhelper module<a class="headerlink" href="#module-Communication.testhelper" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<span class="target" id="module-testhelper"></span><dl class="class">
 <dt id="Communication.testhelper.TestHelper">
 <em class="property">class </em><code class="descclassname">Communication.testhelper.</code><code class="descname">TestHelper</code><a class="headerlink" href="#Communication.testhelper.TestHelper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">channels.tests.base.ChannelTestCase</span></code></p>
+<p>Used to set up any unit tests</p>
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.createTestUser">
 <code class="descname">createTestUser</code><span class="sig-paren">(</span><em>credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createTestUser" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Creates a user for commands that require a user for the test</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.createUserAndLogin">
 <code class="descname">createUserAndLogin</code><span class="sig-paren">(</span><em>credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createUserAndLogin" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Creates a user for testing and logs them in</p>
+</dd></dl>
 
-<dl class="method">
+<dl class="staticmethod">
 <dt id="Communication.testhelper.TestHelper.initStaticData">
-<code class="descname">initStaticData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.initStaticData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<em class="property">static </em><code class="descname">initStaticData</code><span class="sig-paren">(</span><em>version_name</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.initStaticData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes all data in the Static app that may be needed for testing</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.login">
 <code class="descname">login</code><span class="sig-paren">(</span><em>credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.login" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Logs in a user with the provided credentials</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.receive">
 <code class="descname">receive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.receive" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Receives the router response to a command</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.send">
 <code class="descname">send</code><span class="sig-paren">(</span><em>payload</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.send" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Sends the provided payload input to the router</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.setupConfig">
 <code class="descname">setupConfig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.setupConfig" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Sets up necessary configuration for each unit test</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="Communication.testhelper.endTestLog">
 <code class="descclassname">Communication.testhelper.</code><code class="descname">endTestLog</code><span class="sig-paren">(</span><em>testName</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.endTestLog" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Provides all footer messages to the log for any test</p>
+<p>Note: Will not run if any test fails at some point</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="Communication.testhelper.startTestLog">
 <code class="descclassname">Communication.testhelper.</code><code class="descname">startTestLog</code><span class="sig-paren">(</span><em>testName</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.startTestLog" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Provides all header messages to the log for any test</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-Communication.tests">
@@ -152,12 +280,14 @@
 <dl class="method">
 <dt id="Communication.tests.TestCommunication.setUp">
 <code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.tests.TestCommunication.setUp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Sets up all Communication tests</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="Communication.tests.TestCommunication.test_ping_server">
 <code class="descname">test_ping_server</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.tests.TestCommunication.test_ping_server" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Tests that the ping-pong logic works</p>
+</dd></dl>
 
 </dd></dl>
 
