@@ -8,17 +8,17 @@ class TestUser(TestCase):
 		self.channel = TestHelper()
 
 	def test1_create_user_success(self):
-		logging.debug("==== Starting create user success test ====")
+		startTestLog("test1_create_user_success")
 
 		result = self.channel.createTestUser({"username":"successUsr1","password":"12345","email":"success@a.com"})
 		self.assertTrue(result["Success"])
 		self.assertTrue(result["Token"] != None)
 		self.assertTrue(Users.objects.get(username="successUsr1").token != None)
 
-		logging.debug("==== Exiting create user success test ====")
+		endTestLog("test1_create_user_success")
 
 	def test2_duplicate_username(self):
-		logging.debug("==== Starting duplicate user test ====")
+		startTestLog("test2_duplicate_username")
 
 		result = self.channel.createTestUser({"username":"testDupUser1","password":"12345","email":"dupUser@a.com"})
 		self.assertTrue(result["Success"])
@@ -27,10 +27,10 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "That username already exists.")
 
-		logging.debug("==== Exiting duplicate user test ====")
+		endTestLog("test2_duplicate_username")
 
 	def test3_duplicate_email(self):
-		logging.debug("==== Starting duplicate email test ====")
+		startTestLog("test3_duplicate_email")
 
 		result = self.channel.createTestUser({"username":"dupEmailUsr1","password":"12345","email":"dupEmail@a.com"})
 		self.assertTrue(result["Success"])
@@ -39,10 +39,10 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "That email is already in use.")
 
-		logging.debug("==== Exiting duplicate email test ====")
+		endTestLog("test3_duplicate_email")
 
 	def test4_login_success_username_password(self):
-		logging.debug("==== Starting login success username/password test ====")
+		startTestLog("test4_login_success_username_password")
 
 		result = self.channel.createTestUser({"username":"testLoginSuccess","password":"12345","email":"loginSuccess@a.com"})
 		self.assertTrue(result["Success"])
@@ -57,10 +57,10 @@ class TestUser(TestCase):
 
 		self.assertTrue("PONG_AUTH" in result)
 
-		logging.debug("==== Exiting login success username/password test ====")
+		endTestLog("test4_login_success_username_password")
 
 	def test5_login_failure_username_password(self):
-		logging.debug("==== Starting login failure username/password test ====")
+		startTestLog("test5_login_failure_username_password")
 
 		result = self.channel.createTestUser({"username":"testLoginFailure","password":"12345","email":"loginFailure@a.com"})
 		self.assertTrue(result["Success"])
@@ -69,10 +69,10 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "Invalid Username/Password.")
 
-		logging.debug("==== Exiting login failure username/password test ====")
+		endTestLog("test5_login_failure_username_password")
 
 	def test6_login_success_token(self):
-		logging.debug("==== Starting login success token test ====")
+		startTestLog("test6_login_success_token")
 
 		result = self.channel.createTestUser({"username": "testLoginSToken", "password": "12345", "email": "loginSuccessToken@a.com"})
 		self.assertTrue(result["Success"])
@@ -86,10 +86,10 @@ class TestUser(TestCase):
 
 		self.assertTrue("PONG_AUTH" in result)
 
-		logging.debug("==== Exiting login success token test ====")
+		endTestLog("test6_login_success_token")
 
 	def test7_login_failure_token(self):
-		logging.debug("==== Starting login failure token test ====")
+		startTestLog("test7_login_failure_token")
 
 		result = self.channel.createTestUser({"username": "testLoginFToken", "password": "12345", "email": "loginSuccessToken@a.com"})
 		self.assertTrue(result["Success"])
@@ -98,10 +98,10 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEqual(result["Error"], "Invalid Username/Password.")
 
-		logging.debug("==== Exiting login failure token test ====")
+		endTestLog("test7_login_failure_token")
 
 	def test8_logout_success(self):
-		logging.debug("==== Starting logout success test ====")
+		startTestLog("test8_logout_success")
 
 		self.assertTrue(self.channel.createUserAndLogin({"username": "testLogoutS", "password": "12345", "email": "logoutSuccess@a.com"}))
 		self.assertTrue(Users.objects.get(username="testLogoutS").token != None)
@@ -120,18 +120,40 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEqual(result["Error"], "User is not authenticated, please login.")
 
-		logging.debug("==== Exiting logout success test ====")
+		endTestLog("test8_logout_success")
 
 	def test9_logout_failure(self):
-		logging.debug("==== Starting logout failure test ====")
+		startTestLog("test9_logout_failure")
 
 		self.channel.send('{"Command": "LGO"}')
 		result = json.loads(self.channel.receive())
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "User is not authenticated, please login.")
 
-		logging.debug("==== Exiting logout failure test ====")
+		endTestLog("test9_logout_failure")
 
+	def test10_get_user_info_success(self):
+		startTestLog("test10_get_user_info_success")
+
+		self.assertTrue(self.channel.createUserAndLogin({"username": "testGUI", "password": "12345", "email": "testGUI@a.com"}))
+
+		user = Users.objects.get(username="testGUI")
+
+		self.assertTrue(user.token != None)
+
+		self.channel.send('{"Command": "GUI"}')
+		result = json.loads(self.channel.receive())
+
+		self.assertTrue(result["Success"])
+		self.assertEquals(result["Username"], user.username)
+		self.assertEquals(result["Email"], user.email)
+		self.assertEquals(result["Verified"], user.verified)
+		self.assertEquals(result["Level"], user.level)
+		self.assertEquals(result["Experience"], user.experience)
+		self.assertEquals(result["Coins"], user.coins)
+		self.assertEquals(result["Preferences"]["Grid Opacity"], user.pref_grid)
+
+		endTestLog("test10_get_user_info_success")
 
 
 # TODO

@@ -114,6 +114,7 @@ def processRequest(message):
 			  "LGN":User.routehelper.login,	
 			  "PA":Communication.routehelper.pingAuthentication,
 			  "ST":Game.routeunithelper.setTeam,
+			  "GUI":User.routehelper.getUserInfo,
 	#		  "TA":Game.routeunithelper.takeAction,
 	#		  "UC":Game.routeunithelper.unitCreation,
 	}
