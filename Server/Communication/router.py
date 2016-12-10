@@ -114,6 +114,7 @@ def processRequest(message):
 
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
+			  #"FM":
 			  "GUI":User.routehelper.getUserInfo,
 			  "IL":Static.routehelper.getAllStaticData,
 			  "LGN":User.routehelper.login,	
