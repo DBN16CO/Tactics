@@ -22,6 +22,12 @@ def verifyPassword(password, dbHash):
 	"""
 	return bcrypt.verify(password, dbHash)
 
+def refreshToken(user):
+	"""
+	Refresh the login token
+	"""
+	return True
+
 def generateLoginToken(user):
 	"""
 	Generates and saves a login token for a particular user.
