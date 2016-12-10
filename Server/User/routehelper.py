@@ -58,8 +58,14 @@ def login(data):
 		user = Users.objects.filter(token=token).first()
 
 		if user:
+			isExpired = User.userhelper.isTokenExpired(user)
+			if isExpired:
+				return {"Success": False, "Error": "Login token has expired, please login again using your username/password."}
+
+			User.userhelper.refreshToken(user)
+
 			return {"Success": True, "Token": token, "Username": user.username}
-		
+
 	return {"Success": False, "Error": "Invalid Username/Password."}
 
 def createUser(data):
