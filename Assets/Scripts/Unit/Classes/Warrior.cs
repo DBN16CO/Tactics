@@ -6,5 +6,6 @@ public class Warrior : Unit {
 		base.Awake();
 		GetStat("MoveRange").BaseValue = 3f;
 		GetStat("AttackRange").BaseValue = 1;
+		name = "Swordsman";
 	}
 }
