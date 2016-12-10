@@ -33,7 +33,7 @@ def processRequest(message):
 					+=======+===============+=========+====================+================================+
 					| CU    | Create User   | User    | createUser         | create_user_success            |
 					+-------+---------------+---------+--------------------+--------------------------------+
-					| GUI   | Get User Info | User    | getUserInfo        | test10_get_user_info_success   |
+					| GUI   | Get User Info | User    | getUserInfo        | get_user_info_success          |
 					+-------+---------------+---------+--------------------+--------------------------------+
 					| IL    | Iniitial Load | Static  | getAllStaticData   | initial_load_v1_0              |
 					+-------+---------------+---------+--------------------+--------------------------------+
