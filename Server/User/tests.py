@@ -173,7 +173,7 @@ class TestUser(TestCase):
 
 		result = self.channel.login({"token": result["Token"]})
 		self.assertFalse(result["Success"])
-		self.assertEquals(result["Error"], "Login token has expired, please login again using a username/password.")
+		self.assertEquals(result["Error"], "Login token has expired, please login again using your username/password.")
 
 		endTestLog("test11_login_token_expire")
 

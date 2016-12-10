@@ -60,7 +60,7 @@ def login(data):
 		if user:
 			isExpired = User.userhelper.isTokenExpired(user)
 			if isExpired:
-				return {"Success": False, "Error": "Login token has expired, please login again using a username/password."}
+				return {"Success": False, "Error": "Login token has expired, please login again using your username/password."}
 
 			User.userhelper.refreshToken(user)
 
