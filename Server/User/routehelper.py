@@ -58,11 +58,13 @@ def login(data):
 		user = Users.objects.filter(token=token).first()
 
 		if user:
+			isExpired = User.userhelper.isTokenExpired(user)
+			if isExpired:
+				return {"Success": False, "Error": "Login token has expired, please login again using a username/password."}
+
+			User.userhelper.refreshToken(user)
+
 			return {"Success": True, "Token": token, "Username": user.username}
-		
-	success = User.userhelper.refreshToken(username)
-	if not success:
-		logging.warning("Internal Error: Failed to refresh token")
 
 	return {"Success": False, "Error": "Invalid Username/Password."}
 
@@ -116,7 +118,6 @@ def createUser(data):
 
 	# Verify that the user was added
 	usr2 = Users.objects.filter(username=username).first()
-	logging.info("User: " + str(usr2))
 	if usr1 == usr2:
 		response = {"Success": True, "Token": User.userhelper.generateLoginToken(usr2), "Username": usr2.username}
 	else:

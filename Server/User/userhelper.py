@@ -9,6 +9,9 @@ from User.models import Users
 from passlib.hash import bcrypt
 import logging
 import uuid
+import datetime
+from django.utils import timezone
+from Server.config import LOGIN_TOKEN_EXPIRATION
 
 def encrypt(password):
 	"""
@@ -26,7 +29,18 @@ def refreshToken(user):
 	"""
 	Refresh the login token
 	"""
-	return True
+
+	# Trigger an update to the last_login attribute of the user
+	user.save()
+
+def isTokenExpired(user):
+	now = timezone.now()
+	diff = now - user.last_login
+
+	if int(diff.days) >= LOGIN_TOKEN_EXPIRATION:
+		return True
+
+	return False
 
 def generateLoginToken(user):
 	"""
