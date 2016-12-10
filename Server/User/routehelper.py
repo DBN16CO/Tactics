@@ -124,3 +124,48 @@ def createUser(data):
 
 	# Return the success message
 	return response
+
+def getUserInfo(data):
+	"""
+	Called to obtain all user-related data. This will likely be called once by the front end after login.
+
+	Command: GUI (Get User Info)
+
+	:type data: Dictionary
+	:param data: The necessary input information to process the command, should
+	             be of the following format:\n
+	             {\n
+	             }\n
+
+	:rtype: Dictionary
+	:return: A JSON object containing all of the user's information and preferences
+			 
+			 {\n
+			  "Success":True,\n
+			  "Username":"<username>",\n
+			  "Email":"<Email>",\n
+			  "Verified":<True/False>,\n
+			  "Level":<level>,\n
+			  "Experience":<exp>,\n
+			  "Coins":<num_coins>,\n
+			  "Preferences": {"Grid Opacity":<opacity>, ...}\n
+			 }\n
+	"""
+	username = data["session_username"]
+	user = Users.objects.filter(username=username).first()
+
+	response = {}
+
+	if not user:
+		return {"Success": False, "Error": "Unable to retrieve the user information from database"}
+
+	response["Success"] = True
+	response["Username"] = user.username
+	response["Email"] = user.email
+	response["Verified"] = user.verified
+	response["Level"] = user.level
+	response["Experience"] = user.experience
+	response["Coins"] = user.coins
+	response["Preferences"] = {"Grid Opacity": user.pref_grid}
+
+	return response
