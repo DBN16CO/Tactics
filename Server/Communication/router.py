@@ -33,6 +33,8 @@ def processRequest(message):
 					+=======+===============+=========+====================+================================+
 					| CU    | Create User   | User    | createUser         | create_user_success            |
 					+-------+---------------+---------+--------------------+--------------------------------+
+					| GUI   | Get User Info | User    | getUserInfo        | get_user_info_success          |
+					+-------+---------------+---------+--------------------+--------------------------------+
 					| IL    | Iniitial Load | Static  | getAllStaticData   | initial_load_v1_0              |
 					+-------+---------------+---------+--------------------+--------------------------------+
 					| LGN   | Login         | User    | login              | login_success_token            |
@@ -110,6 +112,7 @@ def processRequest(message):
 
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
+			  "GUI":User.routehelper.getUserInfo,
 			  "IL":Static.routehelper.getAllStaticData,
 			  "LGN":User.routehelper.login,	
 			  "PA":Communication.routehelper.pingAuthentication,
