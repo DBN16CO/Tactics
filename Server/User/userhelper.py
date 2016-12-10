@@ -9,7 +9,6 @@ from User.models import Users
 from passlib.hash import bcrypt
 import logging
 import uuid
-import datetime
 from django.utils import timezone
 from Server.config import LOGIN_TOKEN_EXPIRATION
 
