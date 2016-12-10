@@ -9,12 +9,12 @@ public class Token : MonoBehaviour {
 	private bool _canAttack;		// Can the selected unit attack this token
 	private bool _canMove;			// Can the selected unit move to this token
 
-	private TokenTerrain _terrain;	// The token's current terrain
+	private TerrainData _terrain;	// The token's current terrain
 	private Unit 	_unit;			// The unit currently on the token
 
 
 #region Setters and Getters
-	public TokenTerrain CurrentTerrain {
+	public TerrainData CurrentTerrain {
 		get{return _terrain;}
 		set{_terrain = value;}
 	}
@@ -98,15 +98,10 @@ public class Token : MonoBehaviour {
 	}
 
 	// Sets the token's terrain based on string input
-	public void SetTerrain(string terrain) {
-		switch(terrain) {
-			case "Grass":
-				CurrentTerrain = new Grass(gameObject);
-				break;
-			case "Forest":
-				CurrentTerrain = new Forest(gameObject);
-				break;
-		}
+	public void SetTerrain(string shortName) {
+		CurrentTerrain = GameData.Terrains(shortName);
+		gameObject.name = CurrentTerrain.name;
+		gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(CurrentTerrain.spritePath);
 	}
 
 }
