@@ -2,6 +2,8 @@ from django.test import TestCase
 from Communication.testhelper import *
 import json
 from User.models import Users
+import datetime
+import logging
 
 class TestUser(TestCase):
 	def setUp(self):
@@ -154,6 +156,26 @@ class TestUser(TestCase):
 		self.assertEquals(result["Preferences"]["Grid Opacity"], user.pref_grid)
 
 		endTestLog("test10_get_user_info_success")
+
+	def test11_login_token_expire(self):
+		startTestLog("test11_login_token_expire")
+
+		result = self.channel.createTestUser({"username":"tokExp","password":"12345","email":"tokExp@a.com"})
+		self.assertTrue(result["Success"])
+		self.assertTrue(result["Token"] != None)
+
+		user = Users.objects.filter(username="tokExp")
+
+		self.assertTrue(user.first().token != None)
+
+		update_login = user.first().last_login - datetime.timedelta(days=15)
+		user.update(last_login=update_login)
+
+		result = self.channel.login({"token": result["Token"]})
+		self.assertFalse(result["Success"])
+		self.assertEquals(result["Error"], "Login token has expired, please login again using your username/password.")
+
+		endTestLog("test11_login_token_expire")
 
 
 # TODO

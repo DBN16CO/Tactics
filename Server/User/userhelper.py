@@ -9,6 +9,8 @@ from User.models import Users
 from passlib.hash import bcrypt
 import logging
 import uuid
+from django.utils import timezone
+from Server.config import LOGIN_TOKEN_EXPIRATION
 
 def encrypt(password):
 	"""
@@ -21,6 +23,35 @@ def verifyPassword(password, dbHash):
 	Verify that a hashed password matches its database-stored hash value
 	"""
 	return bcrypt.verify(password, dbHash)
+
+def refreshToken(user):
+	"""
+	Refresh the login token by executing Django's model save()
+
+	:type user: User
+	:param user: The user to have their token refreshed
+	"""
+
+	# Trigger an update to the last_login attribute of the user
+	user.save()
+
+def isTokenExpired(user):
+	"""
+	Check if a user's login token has expired.
+
+	:type user: User
+	:param user: The user to check for if their token has expired
+
+	:rtype: Boolean
+	:returns: True (token has expired) / False (token hasn't expired)
+	"""
+	now = timezone.now()
+	diff = now - user.last_login
+
+	if int(diff.days) >= LOGIN_TOKEN_EXPIRATION:
+		return True
+
+	return False
 
 def generateLoginToken(user):
 	"""
@@ -73,7 +104,7 @@ def createUser(username, password, email):
 
 	#TODO Create validation for user values
 	
-	#TODO encrypt the password
+	# Encrypt the password
 	encryptPass = encrypt(password)
 	logging.debug(encryptPass)
 
