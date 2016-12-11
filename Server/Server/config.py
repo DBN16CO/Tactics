@@ -1,5 +1,11 @@
 import logging
 
+# Log Level
+DEFAULT_LOG_LEVEL = logging.DEBUG
+
+# Number of days a login token is valid
+LOGIN_TOKEN_EXPIRATION = 14
+
 def startup():
 	"""
 	Handles any necessary setup for the server including:\n
@@ -7,5 +13,4 @@ def startup():
 	- Setting the logging format for messages\n
 	"""
 	# Set the logging level default
-	DEFAULT_LOG_LEVEL = logging.DEBUG
-	logging.basicConfig(filename="trace.log", format='[%(asctime)s %(filename)10.10s:%(lineno)3.3s] %(levelname)5.5s %(message)s', datefmt='%m/%d/%y %I:%M:%S %p', level=logging.DEBUG)
+	logging.basicConfig(filename="trace.log", format='[%(asctime)s %(filename)10.10s:%(lineno)3.3s] %(levelname)5.5s %(message)s', datefmt='%m/%d/%y %I:%M:%S %p', level=DEFAULT_LOG_LEVEL)
