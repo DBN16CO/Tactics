@@ -1,6 +1,7 @@
 from django.test import TestCase
-from Game.models import Game_User, Unit
+from Game.models import Game_User, Game_Queue, Unit
 from Static.models import Version
+from User.models import Users
 from Communication.testhelper import *
 import json
 
@@ -154,6 +155,55 @@ class TestUnit(TestCase):
 			self.assertEqual(Unit.objects.filter(owner=user).count(), 8)
 
 		endTestLog("test3_set_team_valid_input")
+
+	def test4_find_match_before_set_team(self):
+		startTestLog("test4_find_match_before_set_team")
+		# Create user and login
+		username = "set_team_user"
+		self.assertTrue(self.channel.createUserAndLogin(
+			{"username":username,"password":"abc12345","email":"setTeam@email.com"}))
+
+		# Call find match
+		self.channel.send('{"Command":"FM"}')
+		result = json.loads(self.channel.receive())
+		self.assertEqual(result["Success"], False)
+
+		# Ensure the user was not added to the game queue
+		user = Users.objects.filter(username=username).first()
+		game_queue_obj = Game_Queue.objects.filter(user=user).first()
+		self.assertEqual(game_queue_obj, None)
+
+		endTestLog("test4_find_match_before_set_team")
+
+	def test5_find_match_success(self):
+		startTestLog("test4_find_match_success")
+		# Create user and login
+		username = "set_team_user"
+		self.assertTrue(self.channel.createUserAndLogin(
+			{"username":username,"password":"abc12345","email":"setTeam@email.com"}))
+
+		# Setup values
+		version = Version.objects.latest('pk')
+		team = ''
+		for _ in range(version.unit_count):
+			team += '"Swordsman",'
+		team = team.strip(",")
+		perks = '"Extra Money", "Forest Fighter", "Mountain Fighter"'
+		user = Users.objects.get(username="set_team_user")
+		self.channel.send('{"Command":"ST","Units":[' + team + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[' + perks + ']}')
+		self.channel.receive()
+
+		# Call find match
+		self.channel.send('{"Command":"FM"}')
+		result = json.loads(self.channel.receive())
+		self.assertEqual(result["Success"], True)
+
+		# Ensure the user was not added to the game queue
+		user = Users.objects.filter(username=username).first()
+		game_queue_obj_count = Game_Queue.objects.filter(user=user).count()
+		self.assertEqual(game_queue_obj_count, 1)
+
+		endTestLog("test4_find_match_success")
 
 """
 INCOMPLETE - if not implemented when issue 52 is resolved, should be deleted

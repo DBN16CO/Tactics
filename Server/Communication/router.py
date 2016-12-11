@@ -114,7 +114,7 @@ def processRequest(message):
 
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
-			  #"FM":
+			  "FM":Game.routegamehelper.findMatch,
 			  "GUI":User.routehelper.getUserInfo,
 			  "IL":Static.routehelper.getAllStaticData,
 			  "LGN":User.routehelper.login,	

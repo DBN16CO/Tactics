@@ -1,5 +1,5 @@
 """
-This file will handle all routed methods managing static data
+This file will handle all routed methods managing unit data
 All methods must follow the following standards:\n
 Inputs - they will all take in only one input: the JSON data\n
 Outputs - they will pass back a formatted JSON response object
