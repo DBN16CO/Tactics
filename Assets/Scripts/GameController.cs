@@ -15,7 +15,6 @@ public class GameController : MonoBehaviour {
 	private List<ValidAction> _actions;		// Array of valid moves
 
 	// Game Settings
-	public static string GridAlpha;
 
 
 #region Setters and Getters
@@ -228,7 +227,7 @@ public class GameController : MonoBehaviour {
 	private void TestStartup() {
 		//PlayerPrefs.DeleteAll();
 		//PlayerPrefs.DeleteKey("session");
-		GridAlpha = "33";
+		//GridAlpha = "33";
 	}
 
 	private void TestServer() {
@@ -246,7 +245,8 @@ public class GameController : MonoBehaviour {
 			Server.CreateUser("testUser", "tactics", "tactics@gmail.com");
 			Server.Login("testUser", "tactics");
 		}
-		//Server.Logout();
+		// Once logged in, get user info and load static data
+		Server.GetUserInfo();
 		Server.InitialLoad();
 	}
 
