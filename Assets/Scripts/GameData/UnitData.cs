@@ -10,9 +10,7 @@ public class UnitData {
 	public UnitData(KeyValuePair<string, object> unit) {
 		Dictionary<string, object> unitData = (Dictionary<string, object>)unit.Value;
 		name = unit.Key;
-		if(unitData.ContainsKey("Description")) {
-			description = unitData["Description"].ToString();
-		}
+		description = unitData["Description"].ToString();
 	}
 
 }
