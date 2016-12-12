@@ -7,11 +7,15 @@ class Game(models.Model):
 	game_round   = models.IntegerField(default=0)
 	user_turn    = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING) 
 	map_path     = models.ForeignKey('Static.Map',    on_delete=models.DO_NOTHING)
-	created      = models.DateTimeField(auto_now=False, auto_now_add=True)
-	last_move    = models.DateTimeField(auto_now=True,  auto_now_add=False)
+	created      = models.DateTimeField(auto_now_add=True)
+	last_move    = models.DateTimeField(auto_now=True)
 	finished     = models.BooleanField(default=False)
 	version      = models.ForeignKey('Static.Version',on_delete=models.DO_NOTHING)
 	
+class Game_Queue(models.Model):
+	user         = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
+	created      = models.DateTimeField(auto_now_add=True)
+	updated      = models.DateTimeField(auto_now=True)
 
 class Game_User(models.Model):
 	game         = models.ForeignKey(Game,   		  on_delete=models.DO_NOTHING, null=True, default=None)

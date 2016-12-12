@@ -33,6 +33,8 @@ def processRequest(message):
 					+=======+===============+=========+====================+================================+
 					| CU    | Create User   | User    | createUser         | create_user_success            |
 					+-------+---------------+---------+--------------------+--------------------------------+
+					| FM    | Find Match    | Game    | findGame           | find_game_success              |
+					+-------+---------------+---------+--------------------+--------------------------------+
 					| GUI   | Get User Info | User    | getUserInfo        | get_user_info_success          |
 					+-------+---------------+---------+--------------------+--------------------------------+
 					| IL    | Iniitial Load | Static  | getAllStaticData   | initial_load_v1_0              |
@@ -112,6 +114,7 @@ def processRequest(message):
 
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
+			  "FM":Game.routegamehelper.findMatch,
 			  "GUI":User.routehelper.getUserInfo,
 			  "IL":Static.routehelper.getAllStaticData,
 			  "LGN":User.routehelper.login,	
