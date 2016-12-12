@@ -15,7 +15,7 @@ public class TerrainData {
 		if(terrainData.ContainsKey("Description")) {
 			description = terrainData["Description"].ToString();
 		}
-		spritePath = "Sprites/Terrain/" + name + GameController.GridAlpha;
+		spritePath = "Sprites/Terrain/" + name + GameData.Player.Preferences.gridOpacity;
 	}
 
 }

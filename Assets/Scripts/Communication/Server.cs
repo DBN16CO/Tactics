@@ -30,7 +30,7 @@ public static class Server {
 		var response = Json.ToDict(strResponse);
 		bool success = (bool)response["Success"];
 		if(success) {
-			//Debug.Log(strResponse); 				// Uncomment this if you want to see the incoming json
+			//Debug.Log(strResponse);
 			GameData.SetGameData(response);
 		}
 		return success;
@@ -100,6 +100,27 @@ public static class Server {
 			Debug.Log("error logging user in with existing token");
 			PlayerPrefs.DeleteKey("session");
 			PlayerPrefs.Save();
+		}
+		return success;
+	}
+
+	// Used to get user preferences
+	public static bool GetUserInfo() {
+		// Create the request
+		var request = new Dictionary<string, object>();
+		request["Command"] = "GUI";
+		Communication.SendString(Json.ToString(request));
+		// Wait for the response, then parse
+		string strResponse = null;
+		while(strResponse == null) {
+			strResponse = Communication.RecvString();
+		}
+		var response = Json.ToDict(strResponse);
+		// Error Handling
+		bool success = (bool)response["Success"];
+		if(success) {
+			//Debug.Log(strResponse);
+			GameData.SetPlayerData(response);
 		}
 		return success;
 	}

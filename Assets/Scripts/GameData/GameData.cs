@@ -5,6 +5,11 @@ using System.Collections.Generic;
 
 public static class GameData {
 
+	private static Dictionary<string, object> playerData;
+	public static PlayerData Player;
+
+	private static List<StatData> stats;
+	private static Dictionary<string, object> statData;
 	private static List<UnitData> units;
 	private static Dictionary<string, object> unitData;
 	private static List<TerrainData> terrains;
@@ -14,17 +19,26 @@ public static class GameData {
 
 	private static float[][] terrainWeight;			// float map of terrain weights for each terrain and unit class
 
-	// Called on initial server load to set all static data
+	// Sets player data
+	public static void SetPlayerData(Dictionary<string, object> responseDict) {
+		playerData = responseDict;
+		Player = new PlayerData(playerData);
+	}
+
+	// Sets static game data
 	public static void SetGameData(Dictionary<string, object> responseDict) {
 		// Initiate private vars
+		stats = new List<StatData>();
 		units = new List<UnitData>();
 		terrains = new List<TerrainData>();
 		maps = new List<MapData>();
 		// ------------------------------
+		statData = (Dictionary<string, object>)responseDict["Stats"];
 		unitData = (Dictionary<string, object>)responseDict["Classes"];
 		terrainData = (Dictionary<string, object>)responseDict["Terrain"];
 		mapData = (Dictionary<string, object>)responseDict["Maps"];
 
+		SetStatData(statData);
 		SetUnitData(unitData);
 		SetTerrainData(terrainData);
 		SetMapData(mapData);
@@ -39,6 +53,13 @@ public static class GameData {
 		foreach(KeyValuePair<string, object> terrain in terrainDict) {
 			//terrains.Add(new TerrainData((Dictionary<string, object>)terrainDict[terrain.Key]));
 			terrains.Add(new TerrainData(terrain));
+		}
+	}
+
+	// Populates stat data and creates callable list
+	private static void SetStatData(Dictionary<string, object> statDict) {
+		foreach(KeyValuePair<string, object> stat in statDict) {
+			stats.Add(new StatData(stat));
 		}
 	}
 
@@ -62,6 +83,11 @@ public static class GameData {
 	// Called to retrieve static terrain data
 	public static TerrainData Terrains(string shortNameKey) {
 		return terrains.Find(x => x.shortName == shortNameKey);
+	}
+
+	// Called to retrieve static stat data
+	public static StatData Stats(string nameKey) {
+		return stats.Find(x => x.name == nameKey);
 	}
 
 	// Called to retrieve static unit data
