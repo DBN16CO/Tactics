@@ -167,6 +167,7 @@ class TestUnit(TestCase):
 		self.channel.send('{"Command":"FM"}')
 		result = json.loads(self.channel.receive())
 		self.assertEqual(result["Success"], False)
+		self.assertEqual(result["Error"], "You must set a team before starting a match.")
 
 		# Ensure the user was not added to the game queue
 		user = Users.objects.filter(username=username).first()

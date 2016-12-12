@@ -8,7 +8,6 @@ as well as any other necessary information regarding the command.
 
 """
 import logging
-import Game.unithelper
 from Communication.routehelper import formJsonResult
 from Static.models import Version
 from Game.models import Unit, Game_Queue
@@ -44,7 +43,7 @@ def findMatch(data):
 	# Ensure that the user has set a team
 	unitCount = Unit.objects.filter(owner=user, version=version, game=None).count()
 	if unitCount != version.unit_count:
-		logging.error(username + "'s unit count is " + str(unitCount) + " when it should be " + version.unit_count + ".")
+		logging.error(str(data["session_username"]) + "'s unit count is " + str(unitCount) + " when it should be " + str(version.unit_count) + ".")
 		error = "You must set a team before starting a match."
 	else:
 		# Add the user to the game queue
