@@ -13,7 +13,8 @@ class Game(models.Model):
 	version      = models.ForeignKey('Static.Version',on_delete=models.DO_NOTHING)
 	
 class Game_Queue(models.Model):
-	user         = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
+	user         = models.OneToOneField('User.Users', on_delete=models.DO_NOTHING)
+	channel_name = models.CharField(max_length=100, unique=True)
 	created      = models.DateTimeField(auto_now_add=True)
 	updated      = models.DateTimeField(auto_now=True)
 

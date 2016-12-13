@@ -199,10 +199,11 @@ class TestUnit(TestCase):
 		result = json.loads(self.channel.receive())
 		self.assertEqual(result["Success"], True)
 
-		# Ensure the user was not added to the game queue
+		# Ensure the user was added to the game queue
 		user = Users.objects.filter(username=username).first()
 		game_queue_obj_count = Game_Queue.objects.filter(user=user).count()
 		self.assertEqual(game_queue_obj_count, 1)
+		self.assertEqual(user.game_queue.channel_name, u'Test')
 
 		endTestLog("test4_find_match_success")
 
