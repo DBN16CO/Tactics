@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This file will remove all migrations for all apps
 # and then remove the database and re-create it
@@ -10,45 +10,62 @@
 # First get the home directory
 if [ $# -eq 0 ]
   then
-    echo "Plese supply the home directory of the tactics project (including the project)."
-    echo "For example: ./resetMigrations.sh ~/Documents/Tactics"
-    return
+    echo "Using default project home: ~/Documents/Tactics"
+    home=~/Documents/Tactics
+else
+	home=$1
 fi
 
-home=$1
+# Hide output of pushd and popd
+pushd () {
+    command pushd "$@" > /dev/null
+}
+
+popd () {
+    command popd "$@" > /dev/null
+}
 
 # Ensure that location is accurate
-cd ${home} || (echo "Invalid path"; exit)
+pushd ${home} || (echo "Invalid path"; exit)
+popd
 
 # Delete all files in the Communication app
 echo "Communication:"
-cd ${home}/Server/Communication/migrations \
+pushd ${home}/Server/Communication/migrations \
 && echo "Removing the following files:" \
 && ls | grep -v '__init__.py' \
-&& ls | grep -v '__init__.py' | xargs rm &> ./null || rm null
+&& ls | grep -v '__init__.py' | xargs rm &> ./null \
+&& rm null \
+&& popd
 
 # Delete all files in the Game app
 echo "Game:"
-cd ${home}/Server/Game/migrations \
+pushd ${home}/Server/Game/migrations \
 && echo "Removing the following files:" \
 && ls | grep -v '__init__.py' \
-&& ls | grep -v '__init__.py' | xargs rm &> ./null || rm null
+&& ls | grep -v '__init__.py' | xargs rm &> ./null \
+&& rm null \
+&& popd
 
 # Delete all files in the Static app
 echo "Static:"
-cd ${home}/Server/Static/migrations \
+pushd ${home}/Server/Static/migrations \
 && echo "Removing the following files:" \
 && ls | grep -v '__init__.py' \
-&& ls | grep -v '__init__.py' | xargs rm &> ./null || rm null
+&& ls | grep -v '__init__.py' | xargs rm &> ./null \
+&& rm null \
+&& popd
 
 # Delete all files in the User app
 echo "User:"
-cd ${home}/Server/User/migrations \
+pushd ${home}/Server/User/migrations \
 && echo "Removing the following files:" \
 && ls | grep -v '__init__.py' \
-&& ls | grep -v '__init__.py' | xargs rm &> ./null || rm null
+&& ls | grep -v '__init__.py' | xargs rm &> ./null \
+&& rm null \
+popd
 
-cd ${home}
+popd
 
 # Drop and add the database
 echo "DROP DATABASE tactics;" | sudo -u postgres psql 

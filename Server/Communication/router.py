@@ -10,6 +10,7 @@ import logging
 from User.models import Users
 from Static.models import Version
 import Game.routeunithelper
+import Game.routegamehelper
 import Game.unithelper
 import User.routehelper
 import User.userhelper
@@ -111,6 +112,12 @@ def processRequest(message):
 		'text': json.dumps(response)
 		})
 		return
+
+	# If the command is one of the following, it will also need the channel name for processing
+	commands_needing_channel_name = ["FM",]
+	if cmd in commands_needing_channel_name:
+		data['channel_name'] = message.reply_channel.name
+		logging.debug("Adding channel name to JSON: " + data['channel_name'])
 
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
