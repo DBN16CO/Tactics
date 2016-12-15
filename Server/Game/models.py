@@ -20,7 +20,7 @@ class Game_Queue(models.Model):
 
 class Game_User(models.Model):
 	game         = models.ForeignKey(Game,   		  on_delete=models.DO_NOTHING, null=True, default=None)
-	name         = models.CharField(max_length=25)
+	name         = models.CharField(max_length=25, null=True, default=None)
 	user         = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
 	team         = models.IntegerField(default=0)
 	leader_abil  = models.ForeignKey('Static.Leader_Ability', on_delete=models.DO_NOTHING)
