@@ -34,8 +34,7 @@ echo "Communication:"
 pushd ${home}/Server/Communication/migrations \
 && echo "Removing the following files:" \
 && ls | grep -v '__init__.py' \
-&& ls | grep -v '__init__.py' | xargs rm &> ./null \
-&& rm null \
+&& ls | grep -v '__init__.py' | xargs rm &> /dev/null \
 && popd
 
 # Delete all files in the Game app
@@ -43,8 +42,7 @@ echo "Game:"
 pushd ${home}/Server/Game/migrations \
 && echo "Removing the following files:" \
 && ls | grep -v '__init__.py' \
-&& ls | grep -v '__init__.py' | xargs rm &> ./null \
-&& rm null \
+&& ls | grep -v '__init__.py' | xargs rm &> /dev/null \
 && popd
 
 # Delete all files in the Static app
@@ -52,8 +50,7 @@ echo "Static:"
 pushd ${home}/Server/Static/migrations \
 && echo "Removing the following files:" \
 && ls | grep -v '__init__.py' \
-&& ls | grep -v '__init__.py' | xargs rm &> ./null \
-&& rm null \
+&& ls | grep -v '__init__.py' | xargs rm &> /dev/null \
 && popd
 
 # Delete all files in the User app
@@ -61,8 +58,7 @@ echo "User:"
 pushd ${home}/Server/User/migrations \
 && echo "Removing the following files:" \
 && ls | grep -v '__init__.py' \
-&& ls | grep -v '__init__.py' | xargs rm &> ./null \
-&& rm null \
+&& ls | grep -v '__init__.py' | xargs rm &> /dev/null \
 popd
 
 popd

@@ -20,6 +20,7 @@ class Game_Queue(models.Model):
 
 class Game_User(models.Model):
 	game         = models.ForeignKey(Game,   		  on_delete=models.DO_NOTHING, null=True, default=None)
+	name         = models.CharField(max_length=25)
 	user         = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
 	team         = models.IntegerField(default=0)
 	leader_abil  = models.ForeignKey('Static.Leader_Ability', on_delete=models.DO_NOTHING)
@@ -29,7 +30,7 @@ class Game_User(models.Model):
 	victorious   = models.BooleanField(default=False)
 
 	class Meta:
-		unique_together = ('game', 'user')
+		unique_together = ('name', 'user')
 
 class Unit(models.Model):
 	unit_class   = models.ForeignKey('Static.Class',  on_delete=models.DO_NOTHING)
