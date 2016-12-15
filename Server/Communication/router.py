@@ -44,6 +44,8 @@ def processRequest(message):
 					+-------+---------------+---------+--------------------+--------------------------------+
 					| PA    | Ping Auth     | Comm    | pingAuthentication |                                |
 					+-------+---------------+---------+--------------------+--------------------------------+
+					| PU    | Place Units   | Game    | placeUnits         |                                |
+					+-------+---------------+---------+--------------------+--------------------------------+
 					| ST    | Set Team      | Game    | setTeam            | set_team_valid_input           |
 					+-------+---------------+---------+--------------------+--------------------------------+
 
@@ -109,7 +111,7 @@ def processRequest(message):
 
 		
 		message.reply_channel.send({
-		'text': json.dumps(response)
+			'text': json.dumps(response)
 		})
 		return
 
@@ -126,6 +128,7 @@ def processRequest(message):
 			  "IL":Static.routehelper.getAllStaticData,
 			  "LGN":User.routehelper.login,	
 			  "PA":Communication.routehelper.pingAuthentication,
+			  "PU":Game.routegamehelper.placeUnits,
 			  "ST":Game.routeunithelper.setTeam,
 	#		  "TA":Game.routeunithelper.takeAction,
 	#		  "UC":Game.routeunithelper.unitCreation,
