@@ -32,7 +32,7 @@ def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, 
 
     # If there isn't at least 2 players in the queue then exit
     if len(queue) < 2:
-        logger.info("Not enough people in the queue to match...Exiting")
+        logger.debug("Not enough people in the queue to match...Exiting")
         return
 
     # Take the first player of the queue
