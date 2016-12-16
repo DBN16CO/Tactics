@@ -25,11 +25,12 @@ def findMatch(data):
 	             }\n
 	             Notes:\n
 	             	- Assumes the user has already set their team information (See Set Team in routeunithelper)
+					- Requires the channel name be inserted to the above JSON
 
 	:rtype: 	 Dictionary
 	:return: 	 A JSON object noting the success of the method call:\n
 				 If Successful:\n
-				 {"Success":True,\n
+				 {"Success":True\n
 				 }\n
 				 If Unsuccessful:\n
 				 	{"Successful":False,\n
@@ -51,3 +52,27 @@ def findMatch(data):
 		game_queue.save()
 
 	return formJsonResult(error)
+
+def placeUnits(data):
+	"""
+	Called when the game is ready to start and the user is deciding where to place their units. 
+	Command: PU (Place Units)
+
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+	             be of the following format:\n
+	             {\n
+	             }\n
+	             Notes:\n
+	             	- Assumes the user has already set their team information (See Set Team in routeunithelper)
+
+	:rtype: 	 Dictionary
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {"Success":True\n
+				 }\n
+				 If Unsuccessful:\n
+				 	{"Successful":False,\n
+				 	 "Error":"You did not provide the necessary information."}\n
+	"""
+	return False
