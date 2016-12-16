@@ -17,7 +17,6 @@ logger.setLevel(logging.DEBUG)
 @celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=5), mock_queue=None, mock_version=None, mock_game_users=None)
 def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, mock_game_users=None):
 
-    #logger = processMatchmakingQueue.get_logger(logfile='./matchmaking.log')
     logger.info("Processing matchmaking queue")
 
     # Get the matchmaking queue
