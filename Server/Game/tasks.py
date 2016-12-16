@@ -7,14 +7,20 @@ import random
 from Game.models import Game, Game_Queue, Game_User
 from Static.models import Version
 
-@celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=5))
-def processMatchmakingQueue():
+@celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=5), mock_queue=None, mock_version=None, mock_game_users=None)
+def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, mock_game_users=None):
 
     # Get the matchmaking queue
-    queue = Game_Queue.objects.filter()
+    if not mock_queue:
+        queue = Game_Queue.objects.filter()
+    else:
+        queue = mock_queue
 
     # Get the latest version to use for creating games
-    version = Version.objects.filter(name=version).first()
+    if not mock_version:
+        version = Version.objects.latest('pk')
+    else:
+        version = mock_version
 
     # If there isn't at least 2 players in the queue then exit
     if len(queue) < 2:
@@ -36,17 +42,30 @@ def processMatchmakingQueue():
     elif player_turn_index == 2:
         player_turn = second_player.user
 
+    if not mock_maps:
+        maps = Map.objects
+    else:
+        maps = mock_maps
+
+    index = random.randint(0, maps.count() - 1)
+    game_map = maps.filter()[index]
+
     # Create the game
-    game = Game(user_turn=player_turn, version=version)
+    game = Game(user_turn=player_turn, version=version, map_path=game_map)
     game.save()
 
+    if not mock_game_users:
+        game_users = Game_User.objects
+    else:
+        game_users = mock_game_users
+
     # Link the game to the first player's game entry
-    game_user1 = Game_User.objects.filter(user=first_player.user, game=None).first()
+    game_user1 = game_users.filter(user=first_player.user, game=None).first()
     game_user1.game = game
     game_user1.save()
 
     # Link the game to the second player's game entry
-    game_user2 = Game_User.objects.filter(user=second_player.user, game=None).first()
+    game_user2 = game_users.filter(user=second_player.user, game=None).first()
     game_user2.game = game
     game_user2.save()
 

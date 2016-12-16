@@ -8,7 +8,8 @@ from channels import Channel
 from channels.tests import ChannelTestCase
 from router import *
 from Server.config import *
-from Game.models import Unit
+from Game.models import Unit, Game
+from Static.models import Map
 import Static.create_data
 
 class TestHelper(ChannelTestCase):

@@ -1,8 +1,9 @@
 from django.test import TestCase
-from Game.models import Game_User, Game_Queue, Unit
+from Game.models import Game_User, Game_Queue, Unit, Game
 from Static.models import Version
 from User.models import Users
 from Communication.testhelper import *
+from Game.tasks import processMatchmakingQueue
 import json
 
 class TestUnit(TestCase):
@@ -206,6 +207,24 @@ class TestUnit(TestCase):
 		self.assertEqual(user.game_queue.channel_name, u'Test')
 
 		endTestLog("test4_find_match_success")
+
+	def test6_matchmaking_queue_success(self):
+		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "first_user", "password": "12345", "email": "fplayer@a.com"}, 1))
+		self.assertTrue(Game_Queue.objects.count() == 1)
+
+		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "second_user", "password": "12345", "email": "splayer@a.com"}, 2))
+		self.assertTrue(Game_Queue.objects.count() == 2)
+
+		queue = Game_Queue.objects.filter()
+		version = Version.objects.latest('pk')
+		game_users = Game_User.objects
+		maps = Map.objects
+
+		processMatchmakingQueue(queue, version, maps, game_users)
+
+		self.assertTrue(Game.objects.count() == 1)
+		self.assertTrue(Game_Queue.objects.count() == 0)
+
 
 """
 INCOMPLETE - if not implemented when issue 52 is resolved, should be deleted
