@@ -16,7 +16,7 @@ logger.setLevel(logging.DEBUG)
 @celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=5), mock_queue=None, mock_version=None, mock_game_users=None)
 def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, mock_game_users=None):
 
-    logger.info("Processing matchmaking queue")
+    logger.debug("Processing matchmaking queue")
 
     # Get the matchmaking queue
     if not mock_queue:
@@ -91,7 +91,7 @@ def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, 
     else:
         game_users = mock_game_users
 
-    logger.info("Updating game_user entries")
+    logger.debug("Updating game_user entries")
 
     # Link the game to the first player's game entry
     game_user1 = game_users.filter(user=first_player.user, game=None).first()
@@ -105,7 +105,7 @@ def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, 
     game_user2.name = "vs. " + str(first_player.user.username) + " #" + str(count + 1)
     game_user2.save()
 
-    logging.info("Updating each player's unit entries")
+    logging.debug("Updating each player's unit entries")
 
     # Update each player's units
     for unit in Unit.objects.filter(owner=first_player.user, game=None):
@@ -116,7 +116,7 @@ def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, 
         unit.game = game
         unit.save()
 
-    logger.info("Deleting players from the queue")
+    logger.debug("Deleting players from the queue")
 
     # Delete the first player from the queue
     first_player.delete()
