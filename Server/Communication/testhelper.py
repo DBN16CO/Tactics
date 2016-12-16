@@ -40,6 +40,7 @@ class TestHelper(ChannelTestCase):
 			chn = self.channel2
 
 		chn.send({u'bytes': payload, u'reply_channel': chn.name})
+		logging.error("Chn.name="+chn.name)
 		message = self.get_next_message(chn.name, require=True)
 		processRequest(message)
 
@@ -105,7 +106,7 @@ class TestHelper(ChannelTestCase):
 			logging.error("Creating the test user resulted in failure:\n\t" + result["Error"])
 			return False
 
-		result = self.login(request)
+		result = self.login(request, channel_num)
 		if result["Success"] == False:
 			logging.error("Logging in test user resulted in failure:\n\t" + result["Error"])
 	
