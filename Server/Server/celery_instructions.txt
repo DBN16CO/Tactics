@@ -1,0 +1,8 @@
+1. pip install the requirements
+2. drop database
+3. create database
+4. migrate
+5. Open a terminal cd into the the first Server directory
+6. Execute "celery -A Server beat -l warning -S django -f ./scheduler.log"
+7. Open another terminal cd into the the first Server directory
+8. Execute "celery -A Server worker -l info -f ./matchmaking.log"
