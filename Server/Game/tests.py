@@ -220,7 +220,11 @@ class TestUnit(TestCase):
 		game_users = Game_User.objects
 		maps = Map.objects
 
+		self.assertTrue(len(Game_User.objects.filter(game=None)) == 2)
+
 		processMatchmakingQueue(queue, version, maps, game_users)
+
+		self.assertTrue(len(Game_User.objects.filter(game=None)) == 0)
 
 		self.assertTrue(Game.objects.count() == 1)
 		self.assertTrue(Game_Queue.objects.count() == 0)

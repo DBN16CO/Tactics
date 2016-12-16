@@ -7,8 +7,18 @@ import random
 from Game.models import Game, Game_Queue, Game_User
 from Static.models import Version
 
+import logging
+from celery.utils.log import get_task_logger
+logger = get_task_logger(__name__)
+fh = logging.FileHandler('./matchmaking.log', mode='a')
+logger.addHandler(fh)
+logger.setLevel(logging.DEBUG)
+
 @celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=5), mock_queue=None, mock_version=None, mock_game_users=None)
 def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, mock_game_users=None):
+
+    #logger = processMatchmakingQueue.get_logger(logfile='./matchmaking.log')
+    logger.info("PROCESSING MATCHMAKING QUEUE")
 
     # Get the matchmaking queue
     if not mock_queue:
@@ -47,6 +57,7 @@ def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, 
     else:
         maps = mock_maps
 
+    # Randomly choose a map for the game
     index = random.randint(0, maps.count() - 1)
     game_map = maps.filter()[index]
 
