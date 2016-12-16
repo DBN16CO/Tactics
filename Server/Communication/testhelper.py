@@ -8,7 +8,8 @@ from channels import Channel
 from channels.tests import ChannelTestCase
 from router import *
 from Server.config import *
-from Game.models import Unit
+from Game.models import Unit, Game
+from Static.models import Map
 import Static.create_data
 
 class TestHelper(ChannelTestCase):
@@ -20,6 +21,7 @@ class TestHelper(ChannelTestCase):
 		Sets up the test config and initializes the Database
 		"""
 		self.channel = Channel(u'Test')
+		self.channel2 = Channel(u'Test2')
 		self.setupConfig()
 		self.initStaticData("1.0")
 
@@ -29,32 +31,45 @@ class TestHelper(ChannelTestCase):
 		"""
 		startup()
 
-	def send(self, payload):
+	def send(self, payload, channel_num=1):
 		"""
 		Sends the provided payload input to the router
 		"""
-		self.channel.send({u'bytes': payload, u'reply_channel': u'Test'})
-		message = self.get_next_message(u'Test', require=True)
+		if channel_num == 1:
+			chn = self.channel
+		elif channel_num == 2:
+			chn = self.channel2
+
+		chn.send({u'bytes': payload, u'reply_channel': chn.name})
+		logging.error("Chn.name="+chn.name)
+		message = self.get_next_message(chn.name, require=True)
 		processRequest(message)
 
-	def receive(self):
+	def receive(self, channel_num=1):
 		"""
 		Receives the router response to a command
 		"""
-		result = self.get_next_message(u'Test', require=True)
+		if channel_num == 1:
+			chn = self.channel
+		elif channel_num == 2:
+			chn = self.channel2
+
+		result = self.get_next_message(chn.name, require=True)
 		return result.content['text']
 
-	def createTestUser(self, credentials):
+	def createTestUser(self, credentials, channel_num=1):
 		"""
 		Creates a user for commands that require a user for the test
 		"""
 		request = {"Command": "CU", "username": credentials["username"], "pw": credentials["password"], "email": credentials["email"]}
-		self.send(json.dumps(request))
-		result = json.loads(self.receive())
+		logging.debug(json.dumps(request))
+		self.send(json.dumps(request), channel_num)
+		result = json.loads(self.receive(channel_num))
+		logging.debug(json.dumps(result))
 
 		return result
 
-	def login(self, credentials):
+	def login(self, credentials, channel_num=1):
 		"""
 		Logs in a user with the provided credentials
 		"""
@@ -65,12 +80,12 @@ class TestHelper(ChannelTestCase):
 		elif "token" in credentials:
 			request["token"] = credentials["token"]
 
-		self.send(json.dumps(request))
-		result = json.loads(self.receive())
+		self.send(json.dumps(request), channel_num)
+		result = json.loads(self.receive(channel_num))
 
 		return result
 
-	def createUserAndLogin(self, credentials):
+	def createUserAndLogin(self, credentials, channel_num=1):
 		"""
 		Creates a user for testing and logs them in
 		"""
@@ -87,15 +102,37 @@ class TestHelper(ChannelTestCase):
 				+ "\n\tEmail:   " + credentials["email"])
 			return False
 
-		result = self.createTestUser(request)
+		result = self.createTestUser(request, channel_num)
 		if result["Success"] == False:
 			logging.error("Creating the test user resulted in failure:\n\t" + result["Error"])
 			return False
 
-		result = self.login(request)
+		result = self.login(request, channel_num)
 		if result["Success"] == False:
 			logging.error("Logging in test user resulted in failure:\n\t" + result["Error"])
 	
+		return result["Success"]
+
+	def createUserAndJoinQueue(self, credentials, channel_num=1):
+		self.createUserAndLogin(credentials, channel_num)
+
+		username = credentials["username"]
+
+		# Setup values and set team
+		version = Version.objects.latest('pk')
+		team = ''
+		for _ in range(version.unit_count):
+			team += '"Swordsman",'
+		team = team.strip(",")
+		perks = '"Extra Money", "Forest Fighter", "Mountain Fighter"'
+		user = Users.objects.get(username=username)
+		self.send('{"Command":"ST","Units":[' + team + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[' + perks + ']}', channel_num)
+		self.receive(channel_num)
+
+		# Find a match
+		self.send('{"Command":"FM"}', channel_num)
+		result = json.loads(self.receive(channel_num))
+
 		return result["Success"]
 
 	@staticmethod
