@@ -1,8 +1,9 @@
 from django.test import TestCase
-from Game.models import Game_User, Game_Queue, Unit
+from Game.models import Game_User, Game_Queue, Unit, Game
 from Static.models import Version
 from User.models import Users
 from Communication.testhelper import *
+from Game.tasks import processMatchmakingQueue
 import json
 
 class TestUnit(TestCase):
@@ -206,6 +207,44 @@ class TestUnit(TestCase):
 		self.assertEqual(user.game_queue.channel_name, u'Test')
 
 		endTestLog("test4_find_match_success")
+
+	def test6_matchmaking_queue_success(self):
+		startTestLog("test6_matchmaking_queue_success")
+
+		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "first_user", "password": "12345", "email": "fplayer@a.com"}, 1))
+		self.assertTrue(Game_Queue.objects.count() == 1)
+
+		user1 = Users.objects.filter(username="first_user").first()
+
+		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "second_user", "password": "12345", "email": "splayer@a.com"}, 2))
+		self.assertTrue(Game_Queue.objects.count() == 2)
+
+		user2 = Users.objects.filter(username="second_user").first()
+
+		queue = Game_Queue.objects.filter()
+		version = Version.objects.latest('pk')
+		game_users = Game_User.objects
+		maps = Map.objects
+
+		self.assertEquals(len(Unit.objects.filter(owner=user1, game=None)), version.unit_count)
+		self.assertEquals(len(Unit.objects.filter(owner=user2, game=None)), version.unit_count)
+
+		self.assertTrue(len(Game_User.objects.filter(game=None)) == 2)
+
+		processMatchmakingQueue(queue, version, maps, game_users)
+
+		self.assertTrue(len(Game_User.objects.filter(game=None)) == 0)
+		self.assertEquals(Game_User.objects.filter(user=user1).first().name, "vs. second_user #1")
+		self.assertEquals(Game_User.objects.filter(user=user2).first().name, "vs. first_user #1")
+
+		self.assertEquals(len(Unit.objects.filter(owner=user1, game=None)), 0)
+		self.assertEquals(len(Unit.objects.filter(owner=user2, game=None)), 0)
+
+		self.assertTrue(Game.objects.count() == 1)
+		self.assertTrue(Game_Queue.objects.count() == 0)
+
+		endTestLog("test6_matchmaking_queue_success")
+
 
 """
 INCOMPLETE - if not implemented when issue 52 is resolved, should be deleted
