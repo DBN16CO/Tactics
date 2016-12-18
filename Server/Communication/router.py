@@ -29,25 +29,27 @@ def processRequest(message):
 
 					The following commands have been implemented:
 
-					+-------+---------------+---------+--------------------+--------------------------------+
-					| Abrev | Command Name  | App     | Method Name        | Successful Test                |
-					+=======+===============+=========+====================+================================+
-					| CU    | Create User   | User    | createUser         | create_user_success            |
-					+-------+---------------+---------+--------------------+--------------------------------+
-					| FM    | Find Match    | Game    | findGame           | find_game_success              |
-					+-------+---------------+---------+--------------------+--------------------------------+
-					| GUI   | Get User Info | User    | getUserInfo        | get_user_info_success          |
-					+-------+---------------+---------+--------------------+--------------------------------+
-					| IL    | Iniitial Load | Static  | getAllStaticData   | initial_load_v1_0              |
-					+-------+---------------+---------+--------------------+--------------------------------+
-					| LGN   | Login         | User    | login              | login_success_token            |
-					+-------+---------------+---------+--------------------+--------------------------------+
-					| PA    | Ping Auth     | Comm    | pingAuthentication |                                |
-					+-------+---------------+---------+--------------------+--------------------------------+
-					| PU    | Place Units   | Game    | placeUnits         |                                |
-					+-------+---------------+---------+--------------------+--------------------------------+
-					| ST    | Set Team      | Game    | setTeam            | set_team_valid_input           |
-					+-------+---------------+---------+--------------------+--------------------------------+
+					+-------+------------------+---------+--------------------+--------------------------------+
+					| Abrev | Command Name     | App     | Method Name        | Successful Test                |
+					+=======+==================+=========+====================+================================+
+					| CU    | Create User      | User    | createUser         | create_user_success            |
+					+-------+------------------+---------+--------------------+--------------------------------+
+					| FM    | Find Match       | Game    | findGame           | find_game_success              |
+					+-------+------------------+---------+--------------------+--------------------------------+
+					| GUI   | Get User Info    | User    | getUserInfo        | get_user_info_success          |
+					+-------+------------------+---------+--------------------+--------------------------------+
+					| IL    | Iniitial Load    | Static  | getAllStaticData   | initial_load_v1_0              |
+					+-------+------------------+---------+--------------------+--------------------------------+
+					| LGN   | Login            | User    | login              | login_success_token            |
+					+-------+------------------+---------+--------------------+--------------------------------+
+					| PA    | Ping Auth        | Comm    | pingAuthentication |                                |
+					+-------+------------------+---------+--------------------+--------------------------------+
+					| PU    | Place Units      | Game    | placeUnits         |                                |
+					+-------+------------------+---------+--------------------+--------------------------------+
+					| QGU   | Query Games User | Game    | queryGamesUser     |                                |
+					+-------+------------------+---------+--------------------+--------------------------------+
+					| ST    | Set Team         | Game    | setTeam            | set_team_valid_input           |
+					+-------+------------------+---------+--------------------+--------------------------------+
 
 					Notes about table above:\n
 					- To find the documentation on the command, go to ../<App>/routehelper.<Method Name>\n
@@ -129,6 +131,7 @@ def processRequest(message):
 			  "LGN":User.routehelper.login,	
 			  "PA":Communication.routehelper.pingAuthentication,
 			  "PU":Game.routegamehelper.placeUnits,
+			  "QGU":Game.routegamehelper.queryGamesUser,
 			  "ST":Game.routeunithelper.setTeam,
 	#		  "TA":Game.routeunithelper.takeAction,
 	#		  "UC":Game.routeunithelper.unitCreation,
