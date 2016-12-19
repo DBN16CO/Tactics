@@ -129,43 +129,67 @@ public static class GameData {
 #region // Retrieve Static Data
 
 	// Called to retrieve static terrain data
-	public static TerrainData Terrains(string shortNameKey) {
+	public static TerrainData GetTerrain(string shortNameKey) {
 		return terrains.Find(x => x.shortName == shortNameKey);
+	}
+	public static List<TerrainData> GetTerrains {
+		get{return terrains;}
 	}
 
 	// Called to retrieve static stat data
-	public static StatData Stats(string nameKey) {
+	public static StatData GetStat(string nameKey) {
 		return stats.Find(x => x.name == nameKey);
+	}
+	public static List<StatData> GetStats {
+		get{return stats;}
 	}
 
 	// Called to retrieve static ability data
-	public static AbilityData Abilities(string nameKey) {
+	public static AbilityData GetAbility(string nameKey) {
 		return abilities.Find(x => x.name == nameKey);
+	}
+	public static List<AbilityData> GetAbilities {
+		get{return abilities;}
 	}
 
 	// Called to retrieve static action data
-	public static ActionData Actions(string nameKey) {
+	public static ActionData GetAction(string nameKey) {
 		return actions.Find(x => x.name == nameKey);
+	}
+	public static List<ActionData> GetActions {
+		get{return actions;}
 	}
 
 	// Called to retrieve static perk data
-	public static PerkData Perks(string nameKey) {
+	public static PerkData GetPerk(string nameKey) {
 		return perks.Find(x => x.name == nameKey);
+	}
+	public static List<PerkData> GetPerks {
+		get{return perks;}
 	}
 
 	// Called to retrieve static unit data
-	public static UnitData Units(string nameKey) {
+	public static UnitData GetUnit(string nameKey) {
 		return units.Find(x => x.name == nameKey);
+	}
+	public static List<UnitData> GetUnits {
+		get{return units;}
 	}
 
 	// Called to retrieve static leader data
-	public static LeaderData Leaders(string nameKey) {
+	public static LeaderData GetLeader(string nameKey) {
 		return leaders.Find(x => x.name == nameKey);
+	}
+	public static List<LeaderData> GetLeaders {
+		get{return leaders;}
 	}
 
 	// Called to retrieve static map data
-	public static MapData Maps(string nameKey) {
+	public static MapData GetMap(string nameKey) {
 		return maps.Find(x => x.name == nameKey);
+	}
+	public static List<MapData> GetMaps {
+		get{return maps;}
 	}
 
 	// Called to easily get the terrain weight for a given terrain type and unit class
