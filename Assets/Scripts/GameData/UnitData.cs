@@ -20,7 +20,7 @@ public class UnitData {
 		}
 	}
 
-	public StatData Stats(string nameKey) {
+	public StatData GetStat(string nameKey) {
 		return stats.Find(x => x.name == nameKey);
 	}
 
