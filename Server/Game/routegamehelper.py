@@ -10,7 +10,7 @@ as well as any other necessary information regarding the command.
 import logging
 from Communication.routehelper import formJsonResult
 from Static.models import Version
-from Game.models import Unit, Game_Queue
+from Game.models import Unit, Game_Queue, Game_User
 from User.models import Users
 
 def findMatch(data):
@@ -91,14 +91,15 @@ def queryGamesUser(data):
 			game_response["Your_Team"] = game_user.team
 			game_response["Enemy_Team"] = opp_game_user.team
 
-			your_units = Unit.objects.filter(game=game).exclude(user=opp_user)
-			enemy_units = Unit.objects.filter(game=game).exclude(user=user)
+			your_units = Unit.objects.filter(game=game).exclude(owner=opp_user)
+			enemy_units = Unit.objects.filter(game=game).exclude(owner=user)
 
 			game_response["Your_Units"] = []
 			game_response["Enemy_Units"] = []
 
 			for your_unit in your_units:
 				unit = {}
+				unit["ID"] = your_unit.id
 				unit["Name"] = your_unit.unit_class.name
 				unit["HP_Rem"] = your_unit.hp_remaining
 				unit["Prev_HP"] = your_unit.prev_hp
@@ -106,12 +107,21 @@ def queryGamesUser(data):
 				unit["Y"] = your_unit.y_pos
 				unit["Prev_X"] = your_unit.prev_x
 				unit["Prev_Y"] = your_unit.prev_y
-				unit["Prev_Target"] = {}
-				unit["Prev_Action"] = {}
+				
+				prev_target = your_unit.prev_target
+				prev_action = your_unit.prev_action
+				if prev_target:
+					unit["Prev_Target"] = prev_target.id
+					unit["Prev_Action"] = prev_action.name
+				else:
+					unit["Prev_Target"] = None
+					unit["Prev_Action"] = None
+
 				game_response["Your_Units"].append(unit)
 
 			for enemy_unit in enemy_units:
 				unit = {}
+				unit["ID"] = enemy_unit.id
 				unit["Name"] = enemy_unit.unit_class.name
 				unit["HP_Rem"] = enemy_unit.hp_remaining
 				unit["Prev_HP"] = enemy_unit.prev_hp
@@ -119,8 +129,16 @@ def queryGamesUser(data):
 				unit["Y"] = enemy_unit.y_pos
 				unit["Prev_X"] = enemy_unit.prev_x
 				unit["Prev_Y"] = enemy_unit.prev_y
-				unit["Prev_Target"] = {}
-				unit["Prev_Action"] = {}
+
+				prev_target = enemy_unit.prev_target
+				prev_action = enemy_unit.prev_action
+				if prev_target:
+					unit["Prev_Target"] = prev_target.id
+					unit["Prev_Action"] = prev_action.name
+				else:
+					unit["Prev_Target"] = None
+					unit["Prev_Action"] = None
+
 				game_response["Enemy_Units"].append(unit)
 
 			your_leader_ability = game_user.leader_abil

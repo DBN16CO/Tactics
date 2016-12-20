@@ -245,6 +245,25 @@ class TestUnit(TestCase):
 
 		endTestLog("test6_matchmaking_queue_success")
 
+	def test7_query_games_user_success(self):
+		startTestLog("test7_query_games_user_success")
+
+		self.assertTrue(self.channel.createUsersAndMatch({"username": "first_user", "password": "12345", "email": "fplayer@a.com"}, {"username": "second_user", "password": "12345", "email": "splayer@a.com"}))
+
+		self.channel.send('{"Command":"QGU"}')
+		result = json.loads(self.channel.receive())
+
+		user1 = Users.objects.filter(username="first_user").first()
+		user2 = Users.objects.filter(username="second_user").first()
+
+		self.assertTrue(result["Success"])
+		self.assertTrue(len(result["Games"]) == 1)
+		self.assertEquals(result["Games"][0]["Name"], Game_User.objects.filter(user=user1).first().name)
+		self.assertEquals(result["Games"][0]["Round"], Game.objects.filter().first().game_round)
+
+		endTestLog("test7_query_games_user_success")
+
+
 
 """
 INCOMPLETE - if not implemented when issue 52 is resolved, should be deleted

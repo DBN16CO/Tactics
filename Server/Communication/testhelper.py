@@ -8,9 +8,10 @@ from channels import Channel
 from channels.tests import ChannelTestCase
 from router import *
 from Server.config import *
-from Game.models import Unit, Game
+from Game.models import Unit, Game, Game_User, Game_Queue
 from Static.models import Map
 import Static.create_data
+from Game.tasks import processMatchmakingQueue
 
 class TestHelper(ChannelTestCase):
 	"""
@@ -134,6 +135,19 @@ class TestHelper(ChannelTestCase):
 		result = json.loads(self.receive(channel_num))
 
 		return result["Success"]
+
+	def createUsersAndMatch(self, credentials1, credentials2):
+		self.createUserAndJoinQueue(credentials1, 1)
+		self.createUserAndJoinQueue(credentials2, 2)
+
+		queue = Game_Queue.objects.filter()
+		version = Version.objects.latest('pk')
+		game_users = Game_User.objects
+		maps = Map.objects
+
+		processMatchmakingQueue(queue, version, maps, game_users)
+
+		return Game_User.objects.filter(user=Users.objects.filter(username=credentials1["username"])).first().game != None
 
 	@staticmethod
 	def initStaticData(version_name):
