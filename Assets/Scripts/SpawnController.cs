@@ -17,7 +17,7 @@ public class SpawnController : MonoBehaviour {
 
 	// Call this to instantiate a new game grid
 	public Token[][] CreateMap(string mapKey) {
-		MapData map = GameData.Maps(mapKey);
+		MapData map = GameData.GetMap(mapKey);
 		// Initialize Tokens jagged array
 		Token[][] tokens = new Token[map.width][];
 		for(int x = 0; x < tokens.Length; x++) {
