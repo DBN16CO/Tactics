@@ -430,3 +430,22 @@ class TestUnit(TestCase):
 			self.assertNotEqual(unit.hp_remaining, 0)
 
 		endTestLog("test10_place_units_success")
+
+	def test11_query_games_user_success(self):
+		startTestLog("test11_query_games_user_success")
+
+		self.assertTrue(self.channel.createUsersAndMatch({"username": "first_user", "password": "12345", "email": "fplayer@a.com"}, 
+			self.helper_golden_path_set_team_units(), {"username": "second_user", "password": "12345", "email": "splayer@a.com"},
+			self.helper_golden_path_set_team_units()))
+		self.channel.send('{"Command":"QGU"}')
+		result = json.loads(self.channel.receive())
+
+		user1 = Users.objects.filter(username="first_user").first()
+		user2 = Users.objects.filter(username="second_user").first()
+
+		self.assertTrue(result["Success"])
+		self.assertTrue(len(result["Games"]) == 1)
+		self.assertEquals(result["Games"][0]["Name"], Game_User.objects.filter(user=user1).first().name)
+		self.assertEquals(result["Games"][0]["Round"], Game.objects.filter().first().game_round)
+
+		endTestLog("test11_query_games_user_success")
