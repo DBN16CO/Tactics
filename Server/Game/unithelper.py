@@ -104,6 +104,7 @@ def placeUnits(game_user, units, user, version):
 		unit.y_pos = placed_units[0]["Y"]
 		unit.hp_remaining = class_max_hp[unit.unit_class.name]
 
+		# To keep the 0th unit to match with the current unit iteration in set_untis
 		del placed_units[0]
 
 	# Save all of the updated units

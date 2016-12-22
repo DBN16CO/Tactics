@@ -63,7 +63,7 @@ def placeUnits(data):
 	:param data: The necessary input information to process the command, should
 				 be of the following format:\n
 				{\n
-					"Game":"opponent01",\n
+					"Game":"vs. opponent #1",\n
 					"Units":[\n
 						{"Name":"Archer", "X":1,"Y":1},\n
 						{"Name":"Archer", "X":2,"Y":3},\n
@@ -72,7 +72,7 @@ def placeUnits(data):
 					]\n
 				}\n
 				Notes:\n
-					- The units listed must match those from set team
+					- The units listed must match those from set team, but the order does not matter
 
 	:rtype: 	 Dictionary
 	:return: 	 A JSON object noting the success of the method call:\n
@@ -86,9 +86,6 @@ def placeUnits(data):
 	user = Users.objects.get(username=data["session_username"])
 	version = Version.objects.latest('pk')
 	error = ''
-	# Test that can even be calling PU right now
-	#--> Test that all units passed in match with set team
-	#--> Test each unit's location is valid for map
 
 	# Ensure that the game key exists
 	if not "Game" in data:

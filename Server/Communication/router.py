@@ -122,7 +122,7 @@ def processRequest(message):
 		data['channel_name'] = message.reply_channel.name
 		logging.debug("Adding channel name to JSON: " + data['channel_name'])
 
-	# If the com mand is one of the following, it will also need to ensure that the map version is initialized
+	# If the command is one of the following, it will also need to ensure that the map version is initialized
 	commands_needing_map_data = ["PU"]
 	if cmd in commands_needing_map_data:
 		version_name = Version.objects.latest('pk').name

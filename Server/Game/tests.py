@@ -10,9 +10,9 @@ class TestUnit(TestCase):
 	def setUp(self):
 		self.channel = TestHelper()
 
-	def helper_green_set_team_units(self):
+	def helper_golden_path_set_team_units(self):
 		"""
-		Helper class which creates a list of units to test with.
+		Helper function which creates a list of units to test with.
 
 		The list will consist of one of each unit in the database, alphabetically.
 		It will stop once the number needed for the specific version is reached.
@@ -35,8 +35,17 @@ class TestUnit(TestCase):
 
 		return json.dumps(units)
 
-	def helper_green_place_unit_units(self):
-		unit_names = json.loads(self.helper_green_set_team_units())
+	def helper_golden_path_place_unit_units(self):
+		"""
+		Helper function which creates a list of units as well as their placement location to test with.
+
+		The list will consist of one of each unit in the database, alphabetically.
+		It will stop once the number needed for the specific version is reached.
+		If there are less than the max number of units, it will then repeat the first unit
+
+		For the placement location, they will start at (0,0) and increment the X value
+		"""
+		unit_names = json.loads(self.helper_golden_path_set_team_units())
 		units_dict_list = []
 		count = 0
 		for name in unit_names:
@@ -61,7 +70,7 @@ class TestUnit(TestCase):
 			too_many_units += '"Archer",'
 		too_many_units =too_many_units.strip(",")
 		valid_unit_list = ''
-		valid_unit_list = self.helper_green_set_team_units()
+		valid_unit_list = self.helper_golden_path_set_team_units()
 		invalid_unit_name_list = ''
 		invalid_unit_name_str  = ''
 		for _ in range(version.unit_count):
@@ -246,12 +255,12 @@ class TestUnit(TestCase):
 	def test06_matchmaking_queue_success(self):
 		startTestLog("test06_matchmaking_queue_success")
 
-		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "first_user", "password": "12345", "email": "fplayer@a.com"}, self.helper_green_set_team_units(), 1))
+		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "first_user", "password": "12345", "email": "fplayer@a.com"}, self.helper_golden_path_set_team_units(), 1))
 		self.assertTrue(Game_Queue.objects.count() == 1)
 
 		user1 = Users.objects.filter(username="first_user").first()
 
-		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "second_user", "password": "12345", "email": "splayer@a.com"}, self.helper_green_set_team_units(), 2))
+		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "second_user", "password": "12345", "email": "splayer@a.com"}, self.helper_golden_path_set_team_units(), 2))
 		self.assertTrue(Game_Queue.objects.count() == 2)
 
 		user2 = Users.objects.filter(username="second_user").first()
@@ -282,16 +291,16 @@ class TestUnit(TestCase):
 
 	def test07_place_units_bad_json(self):
 		startTestLog("test07_place_units_bad_json")
-		valid_unit_list = self.helper_green_set_team_units()
+		valid_unit_list = self.helper_golden_path_set_team_units()
 
 		# Create user and login
 		username = "place_team_u1"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_green_set_team_units()))
+			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
 
 		username2 = "place_unit_u2"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_green_set_team_units(), 2))
+			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
 		queue = Game_Queue.objects.filter()
 		version = Version.objects.latest('pk')
@@ -321,16 +330,16 @@ class TestUnit(TestCase):
 
 	def test08_place_units_bad_game_name(self):
 		startTestLog("test08_place_units_bad_game_name")
-		valid_unit_list = self.helper_green_set_team_units()
+		valid_unit_list = self.helper_golden_path_set_team_units()
 
 		# Create user and login
 		username = "place_team_u1"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_green_set_team_units()))
+			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
 
 		username2 = "place_unit_u2"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_green_set_team_units(), 2))
+			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
 		# Place units command
 		self.channel.send('{"Command":"PU","Game":"bad_game_name","Units":' + valid_unit_list + '}', 1)
@@ -339,7 +348,7 @@ class TestUnit(TestCase):
 		self.assertEqual(result["Success"], False)
 		self.assertEqual(result["Error"], "Invalid game name (bad_game_name) for user " + username + ".")
 
-		endTestLog("test8_place_units_bad_game_name")
+		endTestLog("test08_place_units_bad_game_name")
 
 	def test09_place_units_bad_team_list(self):
 		startTestLog("test09_place_units_bad_team_list")
@@ -356,11 +365,11 @@ class TestUnit(TestCase):
 		# Create user and login
 		username = "place_team_u1"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_green_set_team_units()))
+			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
 
 		username2 = "place_unit_u2"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_green_set_team_units(), 2))
+			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
 		queue = Game_Queue.objects.filter()
 		version = Version.objects.latest('pk')
@@ -375,7 +384,7 @@ class TestUnit(TestCase):
 		self.assertEqual(result["Error"], "Can only place units selected for this game.")
 
 		# Missing X or Y
-		self.channel.send('{"Command":"PU","Game":"vs. ' + username2 + ' #1","Units":' + self.helper_green_place_unit_units().replace("X", "Z") + '}', 1)
+		self.channel.send('{"Command":"PU","Game":"vs. ' + username2 + ' #1","Units":' + self.helper_golden_path_place_unit_units().replace("X", "Z") + '}', 1)
 		result = json.loads(self.channel.receive())
 		self.assertEqual(result["Success"], False)
 		self.assertEqual(result["Error"], "Internal Error: Missing X or Y.")
@@ -390,17 +399,17 @@ class TestUnit(TestCase):
 
 	def test10_place_units_success(self):
 		startTestLog("test10_place_units_success")
-		valid_unit_list = self.helper_green_place_unit_units()
+		valid_unit_list = self.helper_golden_path_place_unit_units()
 
 		# Create user and login
 		username = "place_team_u1"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_green_set_team_units()))
+			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
 		user1 = Users.objects.filter(username=username).first()
 
 		username2 = "place_unit_u2"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_green_set_team_units(), 2))
+			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
 		queue = Game_Queue.objects.filter()
 		version = Version.objects.latest('pk')

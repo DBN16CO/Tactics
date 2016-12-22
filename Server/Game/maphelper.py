@@ -2,6 +2,7 @@
 This file handles any processing related to map data.
 """
 from Static.models import Map, Version
+import logging
 
 maps = {}
 
@@ -68,6 +69,7 @@ def loadMaps(version_name=''):
 
 					# Ensure the correct number of objects is found
 					if len(split_token) < 2:
+						logging.error("A problem occurred while parsing the map (" + map_name + ") at: X=" + str(x) + " Y=" + str(y) + " for version " + version_name + ".")
 						continue
 
 					# The components of the token
@@ -75,4 +77,4 @@ def loadMaps(version_name=''):
 					tile_type = split_token[1]
 
 					# Add the token to the dictionary
-					maps[version_name][map_name][x][y].update({"Placement":placement, "Terrain":tile_type})
+					maps[version_name][map_name][x][y] = {"Placement":placement, "Terrain":tile_type}
