@@ -73,97 +73,118 @@ def queryGamesUser(data):
 	in_game_queue = Game_Queue.objects.filter(user=user).first() != None
 	response = {"Success": True, "Games": [], "In_Game_Queue": in_game_queue}
 
-	my_game_users = Game_User.objects.filter(user=user)
-	for game_user in my_game_users:
-		game = game_user.game
+	try:
 
-		if not game:
-			continue
-		else:
-			opp_game_user = Game_User.objects.filter(game=game).exclude(user=user).first()
-			opp_user = opp_game_user.user
+		my_game_users = Game_User.objects.filter(user=user)
+		for game_user in my_game_users:
+			game = game_user.game
 
-			game_response = {}
-			game_response["Name"] = game_user.name
-			game_response["Round"] = game.game_round
-			game_response["Your_Turn"] = game.user_turn == user
-			game_response["Map"] = game.map_path.name
-			game_response["Finished"] = game.finished
-			game_response["Your_Team"] = game_user.team
-			game_response["Enemy_Team"] = opp_game_user.team
+			if not game:
 
-			your_units = Unit.objects.filter(game=game).exclude(owner=opp_user)
-			enemy_units = Unit.objects.filter(game=game).exclude(owner=user)
+				# User has set a team but hasn't serched for a game, skipping
+				continue
+			else:
 
-			game_response["Your_Units"] = []
-			game_response["Enemy_Units"] = []
+				# Get the opponent user's game_user entry
+				opp_game_user = Game_User.objects.filter(game=game).exclude(user=user).first()
+				opp_user = opp_game_user.user
 
-			for your_unit in your_units:
-				unit = {}
-				unit["ID"] = your_unit.id
-				unit["Name"] = your_unit.unit_class.name
-				unit["HP_Rem"] = your_unit.hp_remaining
-				unit["Prev_HP"] = your_unit.prev_hp
-				unit["X"] = your_unit.x_pos
-				unit["Y"] = your_unit.y_pos
-				unit["Prev_X"] = your_unit.prev_x
-				unit["Prev_Y"] = your_unit.prev_y
+
+				# Start constructing the game object
+				game_response = {}
+				game_response["Name"] = game_user.name
+				game_response["Round"] = game.game_round
+				game_response["Your_Turn"] = game.user_turn == user
+				game_response["Map"] = game.map_path.name
+				game_response["Finished"] = game.finished
+				game_response["Your_Team"] = game_user.team
+				game_response["Enemy_Team"] = opp_game_user.team
+
+				# Obtain unit information for both players of this game
+				your_units = Unit.objects.filter(game=game).exclude(owner=opp_user)
+				enemy_units = Unit.objects.filter(game=game).exclude(owner=user)
+
+				game_response["Your_Units"] = []
+				game_response["Enemy_Units"] = []
+
+				# Store information about each of the player's units
+				for your_unit in your_units:
+					unit = {}
+					unit["ID"] = your_unit.id
+					unit["Name"] = your_unit.unit_class.name
+					unit["HP_Rem"] = your_unit.hp_remaining
+					unit["Prev_HP"] = your_unit.prev_hp
+					unit["X"] = your_unit.x_pos
+					unit["Y"] = your_unit.y_pos
+					unit["Prev_X"] = your_unit.prev_x
+					unit["Prev_Y"] = your_unit.prev_y
+					
+					prev_target = your_unit.prev_target
+					prev_action = your_unit.prev_action
+					if prev_target:
+						unit["Prev_Target"] = prev_target.id
+						unit["Prev_Action"] = prev_action.name
+					else:
+						unit["Prev_Target"] = None
+						unit["Prev_Action"] = None
+
+					game_response["Your_Units"].append(unit)
+
+				# Store information about each of the enemy's units
+				for enemy_unit in enemy_units:
+					unit = {}
+					unit["ID"] = enemy_unit.id
+					unit["Name"] = enemy_unit.unit_class.name
+					unit["HP_Rem"] = enemy_unit.hp_remaining
+					unit["Prev_HP"] = enemy_unit.prev_hp
+					unit["X"] = enemy_unit.x_pos
+					unit["Y"] = enemy_unit.y_pos
+					unit["Prev_X"] = enemy_unit.prev_x
+					unit["Prev_Y"] = enemy_unit.prev_y
+
+					prev_target = enemy_unit.prev_target
+					prev_action = enemy_unit.prev_action
+					if prev_target:
+						unit["Prev_Target"] = prev_target.id
+						unit["Prev_Action"] = prev_action.name
+					else:
+						unit["Prev_Target"] = None
+						unit["Prev_Action"] = None
+
+					game_response["Enemy_Units"].append(unit)
+
+				# Store information about your leader
+				your_leader_ability = game_user.leader_abil
+				your_leader = your_leader_ability.leader
+
+				# Store information about the enemy's leader
+				enemy_leader_ability = opp_game_user.leader_abil
+				enemy_leader = enemy_leader_ability.leader
+
+				game_response["Your_Leader"] = {"Name": your_leader.name, "Ability": your_leader_ability.ability.name}
+				game_response["Enemy_Leader"] = {"Name": enemy_leader.name, "Ability": enemy_leader_ability.ability.name}
+
+				# Store information about your perks
+				game_response["Your_Perks"] = [
+					{"Name": game_user.perk_1.name, "Tier": game_user.perk_1.tier},
+					{"Name": game_user.perk_2.name, "Tier": game_user.perk_2.tier},
+					{"Name": game_user.perk_3.name, "Tier": game_user.perk_3.tier}
+				]
+
+				# Store information about the enemy's perks
+				game_response["Enemy_Perks"] = [
+					{"Name": opp_game_user.perk_1.name, "Tier": opp_game_user.perk_1.tier},
+					{"Name": opp_game_user.perk_2.name, "Tier": opp_game_user.perk_2.tier},
+					{"Name": opp_game_user.perk_3.name, "Tier": opp_game_user.perk_3.tier}
+				]
+
+				# Add the game object to the list of the user's games
+				response["Games"].append(game_response)
 				
-				prev_target = your_unit.prev_target
-				prev_action = your_unit.prev_action
-				if prev_target:
-					unit["Prev_Target"] = prev_target.id
-					unit["Prev_Action"] = prev_action.name
-				else:
-					unit["Prev_Target"] = None
-					unit["Prev_Action"] = None
-
-				game_response["Your_Units"].append(unit)
-
-			for enemy_unit in enemy_units:
-				unit = {}
-				unit["ID"] = enemy_unit.id
-				unit["Name"] = enemy_unit.unit_class.name
-				unit["HP_Rem"] = enemy_unit.hp_remaining
-				unit["Prev_HP"] = enemy_unit.prev_hp
-				unit["X"] = enemy_unit.x_pos
-				unit["Y"] = enemy_unit.y_pos
-				unit["Prev_X"] = enemy_unit.prev_x
-				unit["Prev_Y"] = enemy_unit.prev_y
-
-				prev_target = enemy_unit.prev_target
-				prev_action = enemy_unit.prev_action
-				if prev_target:
-					unit["Prev_Target"] = prev_target.id
-					unit["Prev_Action"] = prev_action.name
-				else:
-					unit["Prev_Target"] = None
-					unit["Prev_Action"] = None
-
-				game_response["Enemy_Units"].append(unit)
-
-			your_leader_ability = game_user.leader_abil
-			your_leader = your_leader_ability.leader
-
-			enemy_leader_ability = opp_game_user.leader_abil
-			enemy_leader = enemy_leader_ability.leader
-
-			game_response["Your_Leader"] = {"Name": your_leader.name, "Ability": your_leader_ability.ability.name}
-			game_response["Enemy_Leader"] = {"Name": enemy_leader.name, "Ability": enemy_leader_ability.ability.name}
-
-			game_response["Your_Perks"] = [
-				{"Name": game_user.perk_1.name, "Tier": game_user.perk_1.tier},
-				{"Name": game_user.perk_2.name, "Tier": game_user.perk_2.tier},
-				{"Name": game_user.perk_3.name, "Tier": game_user.perk_3.tier}
-			]
-
-			game_response["Enemy_Perks"] = [
-				{"Name": opp_game_user.perk_1.name, "Tier": opp_game_user.perk_1.tier},
-				{"Name": opp_game_user.perk_2.name, "Tier": opp_game_user.perk_2.tier},
-				{"Name": opp_game_user.perk_3.name, "Tier": opp_game_user.perk_3.tier}
-			]
-
-			response["Games"].append(game_response)
+	except Exception, e:
+		logging.error("Exception in query games for user:")
+		logging.exception(e)
+		return formJsonResult("Internal Server Error")
 
 	return response
 
