@@ -119,7 +119,7 @@ def ver_1_0_static_data():
 	# Version Data
 	data["Version"] = {
 		"Name":"1.0",
-		"Price_Max":1000,
+		"Price_Max":2000,
 		"Unit_Count":8,
 	}
 

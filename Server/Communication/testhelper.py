@@ -9,6 +9,7 @@ from channels.tests import ChannelTestCase
 from router import *
 from Server.config import *
 from Game.models import Unit, Game, Game_User, Game_Queue
+from Game.maphelper import *
 from Static.models import Map
 import Static.create_data
 from Game.tasks import processMatchmakingQueue
@@ -25,6 +26,8 @@ class TestHelper(ChannelTestCase):
 		self.channel2 = Channel(u'Test2')
 		self.setupConfig()
 		self.initStaticData("1.0")
+		# Load all of the map data for the most-recent version
+		loadMaps()
 
 	def setupConfig(self):
 		"""
@@ -114,20 +117,16 @@ class TestHelper(ChannelTestCase):
 	
 		return result["Success"]
 
-	def createUserAndJoinQueue(self, credentials, channel_num=1):
+	def createUserAndJoinQueue(self, credentials, team, channel_num=1):
 		self.createUserAndLogin(credentials, channel_num)
 
 		username = credentials["username"]
 
 		# Setup values and set team
 		version = Version.objects.latest('pk')
-		team = ''
-		for _ in range(version.unit_count):
-			team += '"Swordsman",'
-		team = team.strip(",")
 		perks = '"Extra Money", "Forest Fighter", "Mountain Fighter"'
 		user = Users.objects.get(username=username)
-		self.send('{"Command":"ST","Units":[' + team + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[' + perks + ']}', channel_num)
+		self.send('{"Command":"ST","Units":' + team + ',"Leader":"Sniper","Ability":"Extra Range","Perks":[' + perks + ']}', channel_num)
 		self.receive(channel_num)
 
 		# Find a match
@@ -136,9 +135,9 @@ class TestHelper(ChannelTestCase):
 
 		return result["Success"]
 
-	def createUsersAndMatch(self, credentials1, credentials2):
-		self.createUserAndJoinQueue(credentials1, 1)
-		self.createUserAndJoinQueue(credentials2, 2)
+	def createUsersAndMatch(self, credentials1, team1, credentials2, team2):
+		self.createUserAndJoinQueue(credentials1, team1, 1)
+		self.createUserAndJoinQueue(credentials2, team2, 2)
 
 		queue = Game_Queue.objects.filter()
 		version = Version.objects.latest('pk')

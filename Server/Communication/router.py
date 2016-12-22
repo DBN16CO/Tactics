@@ -12,6 +12,7 @@ from Static.models import Version
 import Game.routeunithelper
 import Game.routegamehelper
 import Game.unithelper
+import Game.maphelper
 import User.routehelper
 import User.userhelper
 import Static.routehelper
@@ -44,7 +45,7 @@ def processRequest(message):
 					+-------+------------------+---------+--------------------+--------------------------------+
 					| PA    | Ping Auth        | Comm    | pingAuthentication |                                |
 					+-------+------------------+---------+--------------------+--------------------------------+
-					| PU    | Place Units      | Game    | placeUnits         |                                |
+					| PU    | Place Units      | Game    | placeUnits         | place_units_success            |
 					+-------+------------------+---------+--------------------+--------------------------------+
 					| QGU   | Query Games User | Game    | queryGamesUser     |                                |
 					+-------+------------------+---------+--------------------+--------------------------------+
@@ -122,6 +123,14 @@ def processRequest(message):
 	if cmd in commands_needing_channel_name:
 		data['channel_name'] = message.reply_channel.name
 		logging.debug("Adding channel name to JSON: " + data['channel_name'])
+
+	# If the command is one of the following, it will also need to ensure that the map version is initialized
+	commands_needing_map_data = ["PU"]
+	if cmd in commands_needing_map_data:
+		version_name = Version.objects.latest('pk').name
+		if not version_name in Game.maphelper.maps:
+			Game.maphelper.loadMaps(version_name)
+
 
 	# Start processing the request
 	commands={"CU":User.routehelper.createUser,
