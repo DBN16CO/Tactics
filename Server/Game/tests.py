@@ -348,6 +348,10 @@ class TestUnit(TestCase):
 		for i in range(0, version.unit_count):
 			invalid_unit_list += '{"Name":"Archer","X":' + str(i) + ',"Y":0},'
 		invalid_unit_list = invalid_unit_list.strip(",") + "]"
+		invalid_placement_list = '['
+		for i in range(0, version.unit_count):
+			invalid_placement_list += '{"Name":"Archer","X":' + str(i) + ',"Y":8},'
+		invalid_placement_list = invalid_placement_list.strip(",") + "]"
 
 		# Create user and login
 		username = "place_team_u1"
@@ -375,6 +379,12 @@ class TestUnit(TestCase):
 		result = json.loads(self.channel.receive())
 		self.assertEqual(result["Success"], False)
 		self.assertEqual(result["Error"], "Internal Error: Missing X or Y.")
+
+		# Invalid placement location
+		self.channel.send('{"Command":"PU","Game":"vs. ' + username2 + ' #1","Units":' + invalid_placement_list + '}', 1)
+		result = json.loads(self.channel.receive())
+		self.assertEqual(result["Success"], False)
+		self.assertEqual(result["Error"], "Location X:0 Y:8 is not a valid placement location for a unit.")
 
 		endTestLog("test09_place_units_bad_team_list")
 
