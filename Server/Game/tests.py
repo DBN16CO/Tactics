@@ -437,7 +437,6 @@ class TestUnit(TestCase):
 		self.assertTrue(self.channel.createUsersAndMatch({"username": "first_user", "password": "12345", "email": "fplayer@a.com"}, 
 			self.helper_golden_path_set_team_units(), {"username": "second_user", "password": "12345", "email": "splayer@a.com"},
 			self.helper_golden_path_set_team_units()))
-
 		self.channel.send('{"Command":"QGU"}')
 		result = json.loads(self.channel.receive())
 

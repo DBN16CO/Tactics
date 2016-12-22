@@ -67,6 +67,71 @@ def queryGamesUser(data):
 
 	:rtype: 	 Dictionary
 	:return:	 A JSON object noting the success of the method call and the game information for the user\n
+				 Example output JSON:
+				{\n
+					"Success": "True/False",\n
+					"Games": [\n
+					       {\n
+					          "Name": "vs. (username) #1",\n
+					          "Round": 1,\n
+					          "Your_Turn": "True/False",\n
+					          "Map": "(Map Name)",\n
+					          "Finished": "True/False",\n
+					          "Your_Team": "(Team # - Used if more than 1v1)",\n
+					          "Enemy_Team": "(Team # - Used if more than 1v1)",\n
+					          "Your_Units": [\n
+					                {\n
+					                   "ID": 1,\n
+					                   "Name": "(Class)",\n
+					                   "HP_Rem": 99,\n
+					                   "Prev_HP": 109,\n
+					                   "X": 7,\n
+					                   "Y": 8,\n
+					                   "Prev_X": 9,\n
+					                   "Prev_Y": 10,\n
+					                   "Prev_Target": 2,\n
+					                   "Prev_Action": "(Action Name)"\n
+					                }\n
+					          ],\n
+					          "Your_Leader": {\n
+					               "Name": "(Leader Name)",\n
+					               "Ability": "(Ability)"\n
+					          },\n
+					          "Your_Perks": [\n
+					               {\n
+					                   "Name": "(Perk 1)",\n
+					                   "Tier": "(Tier)"\n
+					               }\n
+					          ],\n
+					          "Enemy_Units": [\n
+					               {\n
+					                   "ID": 2,\n
+					                   "Name": "(Class)",\n
+					                   "HP_Rem": 99,\n
+					                   "Prev_HP": 109,\n
+					                   "X": 7,\n
+					                   "Y": 8,\n
+					                   "Prev_X": 9,\n
+					                   "Prev_Y": 10,\n
+					                   "Prev_Target": 1,\n
+					                   "Prev_Action": "(Action Name)"\n
+					               }\n
+					          ],\n
+					          "Enemy_Leader": {\n
+					               "Name": "(Leader Name)",\n
+					               "Ability": "(Ability)"\n
+					          },\n
+					          "Enemy_Perks": [\n
+					               {\n
+					                   "Name": "(Perk 1)",\n
+					                   "Tier": "(Tier)"\n
+					               }\n
+					          ]\n
+					       }\n
+					],\n
+					"In_Game_Queue": "True/False"\n
+				}\n
+
 	"""
 	username = data['session_username']
 	user = Users.objects.filter(username=username).first()
@@ -88,7 +153,6 @@ def queryGamesUser(data):
 				# Get the opponent user's game_user entry
 				opp_game_user = Game_User.objects.filter(game=game).exclude(user=user).first()
 				opp_user = opp_game_user.user
-
 
 				# Start constructing the game object
 				game_response = {}
@@ -180,14 +244,13 @@ def queryGamesUser(data):
 
 				# Add the game object to the list of the user's games
 				response["Games"].append(game_response)
-				
+
 	except Exception, e:
 		logging.error("Exception in query games for user:")
 		logging.exception(e)
 		return formJsonResult("Internal Server Error")
 
 	return response
-
 
 def placeUnits(data):
 	"""
