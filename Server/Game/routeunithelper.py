@@ -12,36 +12,6 @@ import Game.unithelper
 from Communication.routehelper import formJsonResult
 from Static.models import Ability, Class, Leader, Leader_Ability, Perk, Version
 
-"""
-def unitCreation(data):
-	# INCOMPLETE - if not implemented when issue 52 is resolved, should be deleted
-
-	# Parse the necessary JSON values and validate
-	username  = data["session_username"]
-	unitClass = data["class"]
-	version   = data["v"]
-
-	# Try to add the unit to the database
-	error = None
-	try:
-		unit1 = Game.unithelper.createUnit(username, unitClass, version)
-	except Exception, e:
-		logging.error("Problem creating unit: " + str(e))
-		error = str(e)
-		response = {"Success": False,
-					"Error": error}
-		return response
-
-	# Verify the unit was added
-	if unit1.id > 0:
-		response = {"Success": True,
-					"uid": unit1.id}
-	else:
-		response = {"Success": False}
-
-	return response
-"""
-
 def setTeam(data):
 	"""
 	Called when a user wants to set their team lineup before starting a game.
