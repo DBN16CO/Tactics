@@ -9,29 +9,10 @@
 """
 import logging
 from Game.models import Game, Game_User, Unit
-from Static.models import Action, Class, Stat, Version
+from Static.models import Action, Class, Stat, Unit_Stat, Version
 from User.models import Users
+import Game.maphelper
 import validation
-
-"""
-INCOMPLETE - if not implemented when issue 52 is resolved, should be deleted
-# Creates a unit of the given type for the given player
-def createUnit(ownr, clss, vrsn):
-	# Get necessary values to create unit
-	user_id = Users.objects.get(username=ownr).id
-	ver_id  = Version.objects.get(name=vrsn).id
-	clss_id = Class.objects.get(name=clss, version_id=ver_id).id
-	hp_rem  = Stat.objects.get(unit=clss_id, name='HP', version_id=ver_id).value
-	logging.debug("Ver id: " + str(ver_id) + " clss_id: " 
-		+ str(clss_id) + " hp_rem: " + str(hp_rem) + " ownr_id: " + str(ownr))
-
-	# Create and save the unit
-	retUnit = Unit(unit_class_id=clss_id, hp_remaining=hp_rem, owner_id=user_id)
-	retUnit.save()
-
-	# Return the unit
-	return retUnit
-"""
 
 """
 INCOMPLETE - if not implemented when issue 34 is resolved, should be deleted
@@ -68,6 +49,67 @@ def takeAction(unitId, action, newX, newY, target):
 
 	return unit
 """
+def placeUnits(game_user, units, user, version):
+	"""
+	Validates that the units provided can be placed at their desired location.
+	Then it adds them to the database.
+
+	:type game_user: Game_User object
+	:param game_user: The mapping for the game for which this user is placing units.
+
+	:type units: List<Dictionary>
+	:param units: A list of all the units and the X and Y coordinates on which to place them.
+
+	:type user: User object
+	:param user: The user placing units
+
+	:type version: Version object
+	:param version: Holds any necessary version information needed for processing.
+
+	:rtype: String
+	:return: An error message if any part of the process were to fail.
+	"""
+	set_units = Unit.objects.filter(owner=user, game=game_user.game).order_by("unit_class__name")
+
+	# Ensure that the list of units matches the number from the set team
+	if len(units) != len(set_units):
+		return "Must place (" + len(set_units) + ") units, not (" + len(units) + ")."
+
+	# Loop over every object in the query set and update (without saving yet) the X, Y, and health
+	placed_units = sorted(units, key=lambda k: k['Name'])
+	class_max_hp = {}
+
+	map_name = game_user.game.map_path.name
+	version_map_data = Game.maphelper.maps[version.name][map_name]
+	for unit in set_units:
+		# Further checks that inputs are valid
+		if placed_units[0]["Name"] != unit.unit_class.name:
+			return "Can only place units selected for this game."
+
+		if not "X" in placed_units[0] or not "Y" in placed_units[0]:
+			return "Internal Error: Missing X or Y."
+
+		# Check that the specific location in the map is valid for placement
+		if version_map_data[placed_units[0]["X"]][placed_units[0]["Y"]]["Placement"] != "1":
+			return "Location X:" + str(placed_units[0]["X"]) + " Y:" + str(placed_units[0]["Y"]) + " is not a valid placement location for a unit."
+
+		# Momentarily store class HP maxes, in case the unit is selected more than once
+		if not unit.unit_class.name in class_max_hp:
+			class_obj = Class.objects.filter(name=unit.unit_class.name, version=version).first()
+			unit_hp_max = Stat.objects.filter(name="HP", version=version).first()
+			class_max_hp[unit.unit_class.name] = Unit_Stat.objects.filter(unit=class_obj, stat=unit_hp_max, version=version).first().value
+
+		# Update the DB with the unit placement
+		unit.x_pos = placed_units[0]["X"]
+		unit.y_pos = placed_units[0]["Y"]
+		unit.hp_remaining = class_max_hp[unit.unit_class.name]
+
+		del placed_units[0]
+
+	# Save all of the updated units
+	for unit in set_units:
+		unit.save()
+
 
 def setTeam(leader_ability, perks, units, username, version):
 	"""

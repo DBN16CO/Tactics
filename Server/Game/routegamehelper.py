@@ -10,7 +10,8 @@ as well as any other necessary information regarding the command.
 import logging
 from Communication.routehelper import formJsonResult
 from Static.models import Version
-from Game.models import Unit, Game_Queue
+from Game.models import Unit, Game_Queue, Game_User
+import Game.unithelper
 from User.models import Users
 
 def findMatch(data):
@@ -24,7 +25,7 @@ def findMatch(data):
 	             {\n
 	             }\n
 	             Notes:\n
-	             	- Assumes the user has already set their team information (See Set Team in routeunithelper)
+	             	- Assumes the user has already set their team information (See Set Team in routeunithelper)\n
 					- Requires the channel name be inserted to the above JSON
 
 	:rtype: 	 Dictionary
@@ -60,11 +61,18 @@ def placeUnits(data):
 
 	:type  data: Dictionary
 	:param data: The necessary input information to process the command, should
-	             be of the following format:\n
-	             {\n
-	             }\n
-	             Notes:\n
-	             	- Assumes the user has already set their team information (See Set Team in routeunithelper)
+				 be of the following format:\n
+				{\n
+					"Game":"opponent01",\n
+					"Units":[\n
+						{"Name":"Archer", "X":1,"Y":1},\n
+						{"Name":"Archer", "X":2,"Y":3},\n
+						{"Name":"Flier",  "X":1,"Y":2},\n
+						...\n
+					]\n
+				}\n
+				Notes:\n
+					- The units listed must match those from set team
 
 	:rtype: 	 Dictionary
 	:return: 	 A JSON object noting the success of the method call:\n
@@ -75,4 +83,33 @@ def placeUnits(data):
 				 	{"Successful":False,\n
 				 	 "Error":"You did not provide the necessary information."}\n
 	"""
-	return False
+	user = Users.objects.get(username=data["session_username"])
+	version = Version.objects.latest('pk')
+	error = ''
+	# Test that can even be calling PU right now
+	#--> Test that all units passed in match with set team
+	#--> Test each unit's location is valid for map
+
+	# Ensure that the game key exists
+	if not "Game" in data:
+		error = "Internal Error: Game key missing."
+		return formJsonResult(error, data)
+	elif not "Units" in data:
+		error = "Internal Error: Unit key missing."
+		return formJsonResult(error, data)
+
+	game_name = data["Game"]
+	unit_list = data["Units"]
+
+	if len(unit_list) != version.unit_count:
+		error = "Not enough units selected: (" + str(version.unit_count) + ") required, (" + str(len(unit_list)) + ") chosen."
+		return formJsonResult(error, data)
+
+	# Ensure that the game name provided is valid
+	game_user_obj = Game_User.objects.filter(user=user, name=game_name).first()
+	if game_user_obj == None:
+		error = "Invalid game name (" + game_name + ") for user " + user.username + "."
+	else:
+		error = Game.unithelper.placeUnits(game_user_obj, unit_list, user, version)
+
+	return formJsonResult(error, data)
