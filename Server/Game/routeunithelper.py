@@ -151,6 +151,17 @@ def setTeam(data):
 
 """
 def takeAction(data):
+	"
+	Flow of needed information:
+	unit_id
+	--- above needed for wait
+	new x, new y
+	-- above for move/wait
+	target
+	-- above needed for heal
+	nearby units (can be determined from existing DB values)
+	--- above needed for attack
+	"
 	# INCOMPLETE - if not implemented when issue 34 is resolved, should be deleted
 
 	username = data["session_username"]
