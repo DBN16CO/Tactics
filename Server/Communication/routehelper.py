@@ -41,7 +41,7 @@ def formJsonResult(error_msg, data=None):
 			 Note: If the result is a success, additional values may need to be added
 			 to the response dictionary.
 	"""
-	if len(error_msg) == 0:
+	if error_msg == None or len(error_msg) == 0:
 		response = {"Success":True}
 	else:
 		log_msg = error_msg
