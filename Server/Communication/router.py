@@ -47,7 +47,7 @@ def processRequest(message):
 					+-------+------------------+---------+--------------------+--------------------------------+
 					| PU    | Place Units      | Game    | placeUnits         | place_units_success            |
 					+-------+------------------+---------+--------------------+--------------------------------+
-					| QGU   | Query Games User | Game    | queryGamesUser     |                                |
+					| QGU   | Query Games User | Game    | queryGamesUser     | test11_query_games_user_success|
 					+-------+------------------+---------+--------------------+--------------------------------+
 					| ST    | Set Team         | Game    | setTeam            | set_team_valid_input           |
 					+-------+------------------+---------+--------------------+--------------------------------+
