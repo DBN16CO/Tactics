@@ -1,0 +1,473 @@
+[2016-12-16 12:48:35,044: INFO/MainProcess] Connected to redis://localhost:6379//
+[2016-12-16 12:48:35,053: INFO/MainProcess] mingle: searching for neighbors
+[2016-12-16 12:48:36,074: INFO/MainProcess] mingle: all alone
+[2016-12-16 12:48:36,083: WARNING/MainProcess] /usr/local/lib/python2.7/site-packages/celery/fixups/django.py:202: UserWarning: Using settings.DEBUG leads to a memory leak, never use this setting in production environments!
+  warnings.warn('Using settings.DEBUG leads to a memory leak, never '
+[2016-12-16 12:48:36,083: INFO/MainProcess] celery@Drews-MBP.nc.rr.com ready.
+[2016-12-16 12:48:36,142: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[55df7e1b-e7c1-48e9-9e0c-134b4fc736cd]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:36,145: WARNING/PoolWorker-4] Game.tasks.processMatchmakingQueue[55df7e1b-e7c1-48e9-9e0c-134b4fc736cd]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:36,163: INFO/PoolWorker-4] Task Game.tasks.processMatchmakingQueue[55df7e1b-e7c1-48e9-9e0c-134b4fc736cd] succeeded in 0.019061387s: None
+[2016-12-16 12:48:36,607: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[c2645712-661d-4a05-95f8-d6dbb2778f13]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:36,609: WARNING/PoolWorker-5] Game.tasks.processMatchmakingQueue[c2645712-661d-4a05-95f8-d6dbb2778f13]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:36,627: INFO/PoolWorker-5] Task Game.tasks.processMatchmakingQueue[c2645712-661d-4a05-95f8-d6dbb2778f13] succeeded in 0.0183354619985s: None
+[2016-12-16 12:48:41,607: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[ed67dae4-6f38-4be3-8ae3-ab69252a555c]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:41,610: WARNING/PoolWorker-3] Game.tasks.processMatchmakingQueue[ed67dae4-6f38-4be3-8ae3-ab69252a555c]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:41,627: INFO/PoolWorker-3] Task Game.tasks.processMatchmakingQueue[ed67dae4-6f38-4be3-8ae3-ab69252a555c] succeeded in 0.0177234080002s: None
+[2016-12-16 12:48:46,607: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[92f112e7-abbd-4d80-befe-14bb3b348fe4]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:46,609: WARNING/PoolWorker-2] Game.tasks.processMatchmakingQueue[92f112e7-abbd-4d80-befe-14bb3b348fe4]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:46,627: INFO/PoolWorker-2] Task Game.tasks.processMatchmakingQueue[92f112e7-abbd-4d80-befe-14bb3b348fe4] succeeded in 0.018509579997s: None
+[2016-12-16 12:48:51,607: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[4e238633-836e-4e32-90e2-0f5e0e248dd0]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:51,609: WARNING/PoolWorker-4] Game.tasks.processMatchmakingQueue[4e238633-836e-4e32-90e2-0f5e0e248dd0]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:51,616: INFO/PoolWorker-4] Task Game.tasks.processMatchmakingQueue[4e238633-836e-4e32-90e2-0f5e0e248dd0] succeeded in 0.00781153500066s: None
+[2016-12-16 12:48:56,607: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[1de31859-264f-49dc-aad6-bf053725f8aa]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:56,608: WARNING/PoolWorker-5] Game.tasks.processMatchmakingQueue[1de31859-264f-49dc-aad6-bf053725f8aa]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:48:56,616: INFO/PoolWorker-5] Task Game.tasks.processMatchmakingQueue[1de31859-264f-49dc-aad6-bf053725f8aa] succeeded in 0.00732966400028s: None
+[2016-12-16 12:49:01,607: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[ffc09f5f-42f9-454e-8b89-9407cd3811ba]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:01,608: WARNING/PoolWorker-3] Game.tasks.processMatchmakingQueue[ffc09f5f-42f9-454e-8b89-9407cd3811ba]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:01,616: INFO/PoolWorker-3] Task Game.tasks.processMatchmakingQueue[ffc09f5f-42f9-454e-8b89-9407cd3811ba] succeeded in 0.00734655500128s: None
+[2016-12-16 12:49:32,018: INFO/MainProcess] Connected to redis://localhost:6379//
+[2016-12-16 12:49:32,029: INFO/MainProcess] mingle: searching for neighbors
+[2016-12-16 12:49:33,049: INFO/MainProcess] mingle: all alone
+[2016-12-16 12:49:33,062: WARNING/MainProcess] /usr/local/lib/python2.7/site-packages/celery/fixups/django.py:202: UserWarning: Using settings.DEBUG leads to a memory leak, never use this setting in production environments!
+  warnings.warn('Using settings.DEBUG leads to a memory leak, never '
+[2016-12-16 12:49:33,062: INFO/MainProcess] celery@Drews-MBP.nc.rr.com ready.
+[2016-12-16 12:49:33,128: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[6747cae6-f686-4a57-aac5-98aa6b3272c8]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:33,131: INFO/PoolWorker-4] Game.tasks.processMatchmakingQueue[6747cae6-f686-4a57-aac5-98aa6b3272c8]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:33,152: INFO/PoolWorker-4] Task Game.tasks.processMatchmakingQueue[6747cae6-f686-4a57-aac5-98aa6b3272c8] succeeded in 0.0218613769975s: None
+[2016-12-16 12:49:33,626: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[0dd1ef63-fe70-4b20-8b57-3342257ac325]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:33,629: INFO/PoolWorker-5] Game.tasks.processMatchmakingQueue[0dd1ef63-fe70-4b20-8b57-3342257ac325]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:33,648: INFO/PoolWorker-5] Task Game.tasks.processMatchmakingQueue[0dd1ef63-fe70-4b20-8b57-3342257ac325] succeeded in 0.0201996100004s: None
+[2016-12-16 12:49:38,626: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[7607fdb2-04b9-4ba1-8a03-0df269562be7]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:38,629: INFO/PoolWorker-3] Game.tasks.processMatchmakingQueue[7607fdb2-04b9-4ba1-8a03-0df269562be7]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:38,646: INFO/PoolWorker-3] Task Game.tasks.processMatchmakingQueue[7607fdb2-04b9-4ba1-8a03-0df269562be7] succeeded in 0.0180987399981s: None
+[2016-12-16 12:49:43,628: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[9cd3cceb-992a-44fc-89a7-bf40fc10f0da]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:43,630: INFO/PoolWorker-2] Game.tasks.processMatchmakingQueue[9cd3cceb-992a-44fc-89a7-bf40fc10f0da]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:43,647: INFO/PoolWorker-2] Task Game.tasks.processMatchmakingQueue[9cd3cceb-992a-44fc-89a7-bf40fc10f0da] succeeded in 0.0174761740018s: None
+[2016-12-16 12:49:48,627: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[eb6f395c-e53e-4dfa-a250-dfb851c64094]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:48,628: INFO/PoolWorker-4] Game.tasks.processMatchmakingQueue[eb6f395c-e53e-4dfa-a250-dfb851c64094]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:48,636: INFO/PoolWorker-4] Task Game.tasks.processMatchmakingQueue[eb6f395c-e53e-4dfa-a250-dfb851c64094] succeeded in 0.00764051100123s: None
+[2016-12-16 12:49:53,627: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[26a2d151-3aaf-45c6-adde-cd2f807278dd]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:53,628: INFO/PoolWorker-5] Game.tasks.processMatchmakingQueue[26a2d151-3aaf-45c6-adde-cd2f807278dd]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:53,635: INFO/PoolWorker-5] Task Game.tasks.processMatchmakingQueue[26a2d151-3aaf-45c6-adde-cd2f807278dd] succeeded in 0.00737639900035s: None
+[2016-12-16 12:49:58,627: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[f5661094-d13b-4dd6-8932-16823b5a9710]  
+PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:58,628: INFO/PoolWorker-3] Game.tasks.processMatchmakingQueue[f5661094-d13b-4dd6-8932-16823b5a9710]: PROCESSING MATCHMAKING QUEUE
+[2016-12-16 12:49:58,636: INFO/PoolWorker-3] Task Game.tasks.processMatchmakingQueue[f5661094-d13b-4dd6-8932-16823b5a9710] succeeded in 0.00753601500037s: None
+PROCESSING MATCHMAKING QUEUE
+PROCESSING MATCHMAKING QUEUE
+PROCESSING MATCHMAKING QUEUE
+COUNT: 1
+PROCESSING MATCHMAKING QUEUE
+COUNT: 0
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+[2016-12-16 14:46:37,144: INFO/MainProcess] Connected to redis://localhost:6379//
+[2016-12-16 14:46:37,151: INFO/MainProcess] mingle: searching for neighbors
+[2016-12-16 14:46:38,171: INFO/MainProcess] mingle: all alone
+[2016-12-16 14:46:38,183: WARNING/MainProcess] /usr/local/lib/python2.7/site-packages/celery/fixups/django.py:202: UserWarning: Using settings.DEBUG leads to a memory leak, never use this setting in production environments!
+  warnings.warn('Using settings.DEBUG leads to a memory leak, never '
+[2016-12-16 14:46:38,183: INFO/MainProcess] celery@Drews-MBP.nc.rr.com ready.
+[2016-12-16 14:46:38,361: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[d6875f0b-5208-4e89-b1aa-aa35ab6e9f4d]  
+[2016-12-16 14:46:38,363: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[631b1701-089e-4347-beda-fc7c58233d47]  
+[2016-12-16 14:46:38,365: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[5c23f2ed-e078-46ad-a1ad-ae2b53bba62b]  
+Processing matchmaking queue
+[2016-12-16 14:46:38,365: DEBUG/PoolWorker-1] Game.tasks.processMatchmakingQueue[d6875f0b-5208-4e89-b1aa-aa35ab6e9f4d]: Processing matchmaking queue
+Processing matchmaking queue
+[2016-12-16 14:46:38,366: DEBUG/PoolWorker-5] Game.tasks.processMatchmakingQueue[631b1701-089e-4347-beda-fc7c58233d47]: Processing matchmaking queue
+Processing matchmaking queue
+[2016-12-16 14:46:38,367: DEBUG/PoolWorker-8] Game.tasks.processMatchmakingQueue[5c23f2ed-e078-46ad-a1ad-ae2b53bba62b]: Processing matchmaking queue
+Not enough people in the queue to match...Exiting
+Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:38,384: DEBUG/PoolWorker-5] Game.tasks.processMatchmakingQueue[631b1701-089e-4347-beda-fc7c58233d47]: Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:38,384: DEBUG/PoolWorker-1] Game.tasks.processMatchmakingQueue[d6875f0b-5208-4e89-b1aa-aa35ab6e9f4d]: Not enough people in the queue to match...Exiting
+Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:38,384: DEBUG/PoolWorker-8] Game.tasks.processMatchmakingQueue[5c23f2ed-e078-46ad-a1ad-ae2b53bba62b]: Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:38,384: INFO/PoolWorker-5] Task Game.tasks.processMatchmakingQueue[631b1701-089e-4347-beda-fc7c58233d47] succeeded in 0.0193415310059s: None
+[2016-12-16 14:46:38,384: INFO/PoolWorker-1] Task Game.tasks.processMatchmakingQueue[d6875f0b-5208-4e89-b1aa-aa35ab6e9f4d] succeeded in 0.0199977489974s: None
+[2016-12-16 14:46:38,385: INFO/PoolWorker-8] Task Game.tasks.processMatchmakingQueue[5c23f2ed-e078-46ad-a1ad-ae2b53bba62b] succeeded in 0.0180199430033s: None
+[2016-12-16 14:46:43,189: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[d31af109-3952-4a56-bb5f-533b968a506d]  
+Processing matchmaking queue
+[2016-12-16 14:46:43,192: DEBUG/PoolWorker-6] Game.tasks.processMatchmakingQueue[d31af109-3952-4a56-bb5f-533b968a506d]: Processing matchmaking queue
+Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:43,208: DEBUG/PoolWorker-6] Game.tasks.processMatchmakingQueue[d31af109-3952-4a56-bb5f-533b968a506d]: Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:43,209: INFO/PoolWorker-6] Task Game.tasks.processMatchmakingQueue[d31af109-3952-4a56-bb5f-533b968a506d] succeeded in 0.0176259190048s: None
+[2016-12-16 14:46:48,189: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[8f2de467-a8fa-4829-af86-f2e1ed865940]  
+Processing matchmaking queue
+[2016-12-16 14:46:48,192: DEBUG/PoolWorker-4] Game.tasks.processMatchmakingQueue[8f2de467-a8fa-4829-af86-f2e1ed865940]: Processing matchmaking queue
+Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:48,209: DEBUG/PoolWorker-4] Game.tasks.processMatchmakingQueue[8f2de467-a8fa-4829-af86-f2e1ed865940]: Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:48,210: INFO/PoolWorker-4] Task Game.tasks.processMatchmakingQueue[8f2de467-a8fa-4829-af86-f2e1ed865940] succeeded in 0.0186139310026s: None
+[2016-12-16 14:46:53,189: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[7a8e0dde-78a0-4ae5-a26d-938b5de7f15a]  
+Processing matchmaking queue
+[2016-12-16 14:46:53,190: DEBUG/PoolWorker-5] Game.tasks.processMatchmakingQueue[7a8e0dde-78a0-4ae5-a26d-938b5de7f15a]: Processing matchmaking queue
+Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:53,197: DEBUG/PoolWorker-5] Game.tasks.processMatchmakingQueue[7a8e0dde-78a0-4ae5-a26d-938b5de7f15a]: Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:53,198: INFO/PoolWorker-5] Task Game.tasks.processMatchmakingQueue[7a8e0dde-78a0-4ae5-a26d-938b5de7f15a] succeeded in 0.00749577699753s: None
+[2016-12-16 14:46:58,190: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[f623f226-6f84-4a32-b6aa-ddc6454f8e76]  
+Processing matchmaking queue
+[2016-12-16 14:46:58,190: DEBUG/PoolWorker-8] Game.tasks.processMatchmakingQueue[f623f226-6f84-4a32-b6aa-ddc6454f8e76]: Processing matchmaking queue
+Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:58,198: DEBUG/PoolWorker-8] Game.tasks.processMatchmakingQueue[f623f226-6f84-4a32-b6aa-ddc6454f8e76]: Not enough people in the queue to match...Exiting
+[2016-12-16 14:46:58,198: INFO/PoolWorker-8] Task Game.tasks.processMatchmakingQueue[f623f226-6f84-4a32-b6aa-ddc6454f8e76] succeeded in 0.0074494090004s: None
+[2016-12-16 14:47:03,190: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[a625d6e5-7fb3-4397-ab83-5bf574a1d116]  
+Processing matchmaking queue
+[2016-12-16 14:47:03,190: DEBUG/PoolWorker-6] Game.tasks.processMatchmakingQueue[a625d6e5-7fb3-4397-ab83-5bf574a1d116]: Processing matchmaking queue
+Not enough people in the queue to match...Exiting
+[2016-12-16 14:47:03,197: DEBUG/PoolWorker-6] Game.tasks.processMatchmakingQueue[a625d6e5-7fb3-4397-ab83-5bf574a1d116]: Not enough people in the queue to match...Exiting
+[2016-12-16 14:47:03,198: INFO/PoolWorker-6] Task Game.tasks.processMatchmakingQueue[a625d6e5-7fb3-4397-ab83-5bf574a1d116] succeeded in 0.00739961100044s: None
+[2016-12-16 14:47:08,190: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[475c0b8b-36c2-410c-af2c-764c1b243eca]  
+Processing matchmaking queue
+[2016-12-16 14:47:08,191: DEBUG/PoolWorker-4] Game.tasks.processMatchmakingQueue[475c0b8b-36c2-410c-af2c-764c1b243eca]: Processing matchmaking queue
+Not enough people in the queue to match...Exiting
+[2016-12-16 14:47:08,199: DEBUG/PoolWorker-4] Game.tasks.processMatchmakingQueue[475c0b8b-36c2-410c-af2c-764c1b243eca]: Not enough people in the queue to match...Exiting
+[2016-12-16 14:47:08,199: INFO/PoolWorker-4] Task Game.tasks.processMatchmakingQueue[475c0b8b-36c2-410c-af2c-764c1b243eca] succeeded in 0.00784265399852s: None
+[2016-12-16 14:47:13,190: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[5c0edce0-ed36-4629-bf5b-93fdc14626ac]  
+Processing matchmaking queue
+[2016-12-16 14:47:13,191: DEBUG/PoolWorker-5] Game.tasks.processMatchmakingQueue[5c0edce0-ed36-4629-bf5b-93fdc14626ac]: Processing matchmaking queue
+Not enough people in the queue to match...Exiting
+[2016-12-16 14:47:13,199: DEBUG/PoolWorker-5] Game.tasks.processMatchmakingQueue[5c0edce0-ed36-4629-bf5b-93fdc14626ac]: Not enough people in the queue to match...Exiting
+[2016-12-16 14:47:13,199: INFO/PoolWorker-5] Task Game.tasks.processMatchmakingQueue[5c0edce0-ed36-4629-bf5b-93fdc14626ac] succeeded in 0.00770784699853s: None
+[2016-12-16 14:47:18,191: INFO/MainProcess] Received task: Game.tasks.processMatchmakingQueue[7cf08453-71e0-483d-bfac-9d938a77133b]  
+Processing matchmaking queue
+[2016-12-16 14:47:18,192: DEBUG/PoolWorker-8] Game.tasks.processMatchmakingQueue[7cf08453-71e0-483d-bfac-9d938a77133b]: Processing matchmaking queue
+Not enough people in the queue to match...Exiting
+[2016-12-16 14:47:18,199: DEBUG/PoolWorker-8] Game.tasks.processMatchmakingQueue[7cf08453-71e0-483d-bfac-9d938a77133b]: Not enough people in the queue to match...Exiting
+[2016-12-16 14:47:18,199: INFO/PoolWorker-8] Task Game.tasks.processMatchmakingQueue[7cf08453-71e0-483d-bfac-9d938a77133b] succeeded in 0.00762278500042s: None
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_unit_u2 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_team_u1 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_unit_u2 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_team_u1 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_team_u1 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_team_u1 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_team_u1 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_team_u1 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_unit_u2 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+second_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_team_u1 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_team_u1 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: place_team_u1 vs. place_unit_u2
+Users have played each other 0 times.
+place_team_u1 will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue
+Processing matchmaking queue
+Found a match: first_user vs. second_user
+Users have played each other 0 times.
+first_user will take the first turn
+Map chosen for this game: Map object
+Created the game: Game object
+Updating game_user entries
+Deleting players from the queue

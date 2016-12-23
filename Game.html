@@ -249,8 +249,99 @@ object the first time, the query is executed.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="Game.models.Game_Queue">
+<em class="property">class </em><code class="descclassname">Game.models.</code><code class="descname">Game_Queue</code><span class="sig-paren">(</span><em>id</em>, <em>user</em>, <em>channel_name</em>, <em>created</em>, <em>updated</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Game_Queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<dl class="exception">
+<dt id="Game.models.Game_Queue.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#Game.models.Game_Queue.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="Game.models.Game_Queue.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">Game_Queue.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#Game.models.Game_Queue.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Game.models.Game_Queue.channel_name">
+<code class="descclassname">Game_Queue.</code><code class="descname">channel_name</code><a class="headerlink" href="#Game.models.Game_Queue.channel_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Game.models.Game_Queue.created">
+<code class="descclassname">Game_Queue.</code><code class="descname">created</code><a class="headerlink" href="#Game.models.Game_Queue.created" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Game.models.Game_Queue.get_next_by_created">
+<code class="descclassname">Game_Queue.</code><code class="descname">get_next_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Game_Queue.get_next_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.models.Game_Queue.get_next_by_updated">
+<code class="descclassname">Game_Queue.</code><code class="descname">get_next_by_updated</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Game_Queue.get_next_by_updated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.models.Game_Queue.get_previous_by_created">
+<code class="descclassname">Game_Queue.</code><code class="descname">get_previous_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Game_Queue.get_previous_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.models.Game_Queue.get_previous_by_updated">
+<code class="descclassname">Game_Queue.</code><code class="descname">get_previous_by_updated</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Game_Queue.get_previous_by_updated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Game.models.Game_Queue.id">
+<code class="descclassname">Game_Queue.</code><code class="descname">id</code><a class="headerlink" href="#Game.models.Game_Queue.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Game.models.Game_Queue.objects">
+<code class="descclassname">Game_Queue.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#Game.models.Game_Queue.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Game.models.Game_Queue.updated">
+<code class="descclassname">Game_Queue.</code><code class="descname">updated</code><a class="headerlink" href="#Game.models.Game_Queue.updated" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Game.models.Game_Queue.user">
+<code class="descclassname">Game_Queue.</code><code class="descname">user</code><a class="headerlink" href="#Game.models.Game_Queue.user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related object on the forward side of a many-to-one or
+one-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">child.parent</span></code> is a <code class="docutils literal"><span class="pre">ForwardManyToOneDescriptor</span></code> instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Game.models.Game_Queue.user_id">
+<code class="descclassname">Game_Queue.</code><code class="descname">user_id</code><a class="headerlink" href="#Game.models.Game_Queue.user_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="Game.models.Game_User">
-<em class="property">class </em><code class="descclassname">Game.models.</code><code class="descname">Game_User</code><span class="sig-paren">(</span><em>id</em>, <em>game</em>, <em>user</em>, <em>team</em>, <em>leader_abil</em>, <em>perk_1</em>, <em>perk_2</em>, <em>perk_3</em>, <em>victorious</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Game_User" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">Game.models.</code><code class="descname">Game_User</code><span class="sig-paren">(</span><em>id</em>, <em>game</em>, <em>name</em>, <em>user</em>, <em>team</em>, <em>leader_abil</em>, <em>perk_1</em>, <em>perk_2</em>, <em>perk_3</em>, <em>victorious</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Game_User" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
 <dl class="exception">
 <dt id="Game.models.Game_User.DoesNotExist">
@@ -307,6 +398,13 @@ one-to-one relation.</p>
 <dl class="attribute">
 <dt id="Game.models.Game_User.leader_abil_id">
 <code class="descclassname">Game_User.</code><code class="descname">leader_abil_id</code><a class="headerlink" href="#Game.models.Game_User.leader_abil_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Game.models.Game_User.name">
+<code class="descclassname">Game_User.</code><code class="descname">name</code><a class="headerlink" href="#Game.models.Game_User.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>A wrapper for a deferred-loading field. When the value is read from this
 object the first time, the query is executed.</p>
 </dd></dl>
@@ -622,7 +720,7 @@ object the first time, the query is executed.</p>
 </div>
 <div class="section" id="module-Game.routeunithelper">
 <span id="game-routeunithelper-module"></span><h2>Game.routeunithelper module<a class="headerlink" href="#module-Game.routeunithelper" title="Permalink to this headline">¶</a></h2>
-<p>This file will handle all routed methods managing static data
+<p>This file will handle all routed methods managing unit data
 All methods must follow the following standards:</p>
 <p>Inputs - they will all take in only one input: the JSON data</p>
 <p>Outputs - they will pass back a formatted JSON response object
@@ -686,23 +784,82 @@ errors can be directly displayed for the user.</li>
 <em class="property">class </em><code class="descclassname">Game.tests.</code><code class="descname">TestUnit</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.test.testcases.TestCase</span></code></p>
 <dl class="method">
+<dt id="Game.tests.TestUnit.helper_golden_path_place_unit_units">
+<code class="descname">helper_golden_path_place_unit_units</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.helper_golden_path_place_unit_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function which creates a list of units as well as their placement location to test with.</p>
+<p>The list will consist of one of each unit in the database, alphabetically.
+It will stop once the number needed for the specific version is reached.
+If there are less than the max number of units, it will then repeat the first unit</p>
+<p>For the placement location, they will start at (0,0) and increment the X value</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.helper_golden_path_set_team_units">
+<code class="descname">helper_golden_path_set_team_units</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.helper_golden_path_set_team_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function which creates a list of units to test with.</p>
+<p>The list will consist of one of each unit in the database, alphabetically.
+It will stop once the number needed for the specific version is reached.
+If there are less than the max number of units, it will then repeat the first unit</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="Game.tests.TestUnit.setUp">
 <code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.setUp" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="Game.tests.TestUnit.test1_set_team_bad_json_input">
-<code class="descname">test1_set_team_bad_json_input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test1_set_team_bad_json_input" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.tests.TestUnit.test01_set_team_bad_json_input">
+<code class="descname">test01_set_team_bad_json_input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test01_set_team_bad_json_input" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="Game.tests.TestUnit.test2_set_team_price_max_exceeded">
-<code class="descname">test2_set_team_price_max_exceeded</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test2_set_team_price_max_exceeded" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.tests.TestUnit.test02_set_team_price_max_exceeded">
+<code class="descname">test02_set_team_price_max_exceeded</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test02_set_team_price_max_exceeded" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="Game.tests.TestUnit.test3_set_team_valid_input">
-<code class="descname">test3_set_team_valid_input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test3_set_team_valid_input" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.tests.TestUnit.test03_set_team_valid_input">
+<code class="descname">test03_set_team_valid_input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test03_set_team_valid_input" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test04_find_match_before_set_team">
+<code class="descname">test04_find_match_before_set_team</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test04_find_match_before_set_team" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test05_find_match_success">
+<code class="descname">test05_find_match_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test05_find_match_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test06_matchmaking_queue_success">
+<code class="descname">test06_matchmaking_queue_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test06_matchmaking_queue_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test07_place_units_bad_json">
+<code class="descname">test07_place_units_bad_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test07_place_units_bad_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test08_place_units_bad_game_name">
+<code class="descname">test08_place_units_bad_game_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test08_place_units_bad_game_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test09_place_units_bad_team_list">
+<code class="descname">test09_place_units_bad_team_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test09_place_units_bad_team_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test10_place_units_success">
+<code class="descname">test10_place_units_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test10_place_units_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test11_query_games_user_success">
+<code class="descname">test11_query_games_user_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test11_query_games_user_success" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -711,6 +868,33 @@ errors can be directly displayed for the user.</li>
 <div class="section" id="module-Game.unithelper">
 <span id="game-unithelper-module"></span><h2>Game.unithelper module<a class="headerlink" href="#module-Game.unithelper" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-unithelper"></span><dl class="function">
+<dt id="Game.unithelper.placeUnits">
+<code class="descclassname">Game.unithelper.</code><code class="descname">placeUnits</code><span class="sig-paren">(</span><em>game_user</em>, <em>units</em>, <em>user</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.placeUnits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates that the units provided can be placed at their desired location.
+Then it adds them to the database.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>game_user</strong> (<em>Game_User object</em>) &#8211; The mapping for the game for which this user is placing units.</li>
+<li><strong>units</strong> (<em>List&lt;Dictionary&gt;</em>) &#8211; A list of all the units and the X and Y coordinates on which to place them.</li>
+<li><strong>user</strong> (<em>User object</em>) &#8211; The user placing units</li>
+<li><strong>version</strong> (<em>Version object</em>) &#8211; Holds any necessary version information needed for processing.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">String</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An error message if any part of the process were to fail.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="Game.unithelper.setTeam">
 <code class="descclassname">Game.unithelper.</code><code class="descname">setTeam</code><span class="sig-paren">(</span><em>leader_ability</em>, <em>perks</em>, <em>units</em>, <em>username</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.setTeam" title="Permalink to this definition">¶</a></dt>
 <dd><p>Validates an inputted team a user has provided and then updates

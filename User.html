@@ -125,6 +125,19 @@ object the first time, the query is executed.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="User.models.Users.game_queue">
+<code class="descclassname">Users.</code><code class="descname">game_queue</code><a class="headerlink" href="#User.models.Users.game_queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related object on the reverse side of a one-to-one
+relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Restaurant</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">place</span> <span class="o">=</span> <span class="n">OneToOneField</span><span class="p">(</span><span class="n">Place</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;restaurant&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">place.restaurant</span></code> is a <code class="docutils literal"><span class="pre">ReverseOneToOneDescriptor</span></code> instance.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="User.models.Users.game_set">
 <code class="descclassname">Users.</code><code class="descname">game_set</code><a class="headerlink" href="#User.models.Users.game_set" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor to the related objects manager on the reverse side of a
@@ -393,6 +406,11 @@ errors can be directly displayed for the user.</li>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="User.tests.TestUser.test11_login_token_expire">
+<code class="descname">test11_login_token_expire</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#User.tests.TestUser.test11_login_token_expire" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="User.tests.TestUser.test1_create_user_success">
 <code class="descname">test1_create_user_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#User.tests.TestUser.test1_create_user_success" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -487,6 +505,38 @@ This function should validate the token hasn&#8217;t been taken before assigning
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">String</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The token set to that user</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="User.userhelper.isTokenExpired">
+<code class="descclassname">User.userhelper.</code><code class="descname">isTokenExpired</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#User.userhelper.isTokenExpired" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a user&#8217;s login token has expired.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user</strong> (<a class="reference internal" href="#module-User" title="User"><em>User</em></a>) &#8211; The user to check for if their token has expired</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Boolean</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True (token has expired) / False (token hasn&#8217;t expired)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="User.userhelper.refreshToken">
+<code class="descclassname">User.userhelper.</code><code class="descname">refreshToken</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="headerlink" href="#User.userhelper.refreshToken" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refresh the login token by executing Django&#8217;s model save()</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user</strong> (<a class="reference internal" href="#module-User" title="User"><em>User</em></a>) &#8211; The user to have their token refreshed</td>
 </tr>
 </tbody>
 </table>

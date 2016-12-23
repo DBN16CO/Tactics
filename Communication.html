@@ -144,10 +144,10 @@ if not, then the session is invalid.</td>
 <table border="1" class="docutils">
 <colgroup>
 <col width="8%" />
-<col width="18%" />
-<col width="11%" />
-<col width="24%" />
-<col width="39%" />
+<col width="21%" />
+<col width="10%" />
+<col width="23%" />
+<col width="37%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Abrev</th>
@@ -163,6 +163,18 @@ if not, then the session is invalid.</td>
 <td>User</td>
 <td>createUser</td>
 <td>create_user_success</td>
+</tr>
+<tr class="row-odd"><td>FM</td>
+<td>Find Match</td>
+<td>Game</td>
+<td>findGame</td>
+<td>find_game_success</td>
+</tr>
+<tr class="row-even"><td>GUI</td>
+<td>Get User Info</td>
+<td>User</td>
+<td>getUserInfo</td>
+<td>get_user_info_success</td>
 </tr>
 <tr class="row-odd"><td>IL</td>
 <td>Iniitial Load</td>
@@ -181,6 +193,18 @@ if not, then the session is invalid.</td>
 <td>Comm</td>
 <td>pingAuthentication</td>
 <td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PU</td>
+<td>Place Units</td>
+<td>Game</td>
+<td>placeUnits</td>
+<td>place_units_success</td>
+</tr>
+<tr class="row-odd"><td>QGU</td>
+<td>Query Games User</td>
+<td>Game</td>
+<td>queryGamesUser</td>
+<td>test11_query_games_user_success</td>
 </tr>
 <tr class="row-even"><td>ST</td>
 <td>Set Team</td>
@@ -215,15 +239,25 @@ if not, then the session is invalid.</td>
 <p>Used to set up any unit tests</p>
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.createTestUser">
-<code class="descname">createTestUser</code><span class="sig-paren">(</span><em>credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createTestUser" title="Permalink to this definition">¶</a></dt>
+<code class="descname">createTestUser</code><span class="sig-paren">(</span><em>credentials</em>, <em>channel_num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createTestUser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a user for commands that require a user for the test</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="Communication.testhelper.TestHelper.createUserAndJoinQueue">
+<code class="descname">createUserAndJoinQueue</code><span class="sig-paren">(</span><em>credentials</em>, <em>team</em>, <em>channel_num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createUserAndJoinQueue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="Communication.testhelper.TestHelper.createUserAndLogin">
-<code class="descname">createUserAndLogin</code><span class="sig-paren">(</span><em>credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createUserAndLogin" title="Permalink to this definition">¶</a></dt>
+<code class="descname">createUserAndLogin</code><span class="sig-paren">(</span><em>credentials</em>, <em>channel_num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createUserAndLogin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a user for testing and logs them in</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="Communication.testhelper.TestHelper.createUsersAndMatch">
+<code class="descname">createUsersAndMatch</code><span class="sig-paren">(</span><em>credentials1</em>, <em>team1</em>, <em>credentials2</em>, <em>team2</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createUsersAndMatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="Communication.testhelper.TestHelper.initStaticData">
@@ -233,19 +267,19 @@ if not, then the session is invalid.</td>
 
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.login">
-<code class="descname">login</code><span class="sig-paren">(</span><em>credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.login" title="Permalink to this definition">¶</a></dt>
+<code class="descname">login</code><span class="sig-paren">(</span><em>credentials</em>, <em>channel_num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.login" title="Permalink to this definition">¶</a></dt>
 <dd><p>Logs in a user with the provided credentials</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.receive">
-<code class="descname">receive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.receive" title="Permalink to this definition">¶</a></dt>
+<code class="descname">receive</code><span class="sig-paren">(</span><em>channel_num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.receive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receives the router response to a command</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.send">
-<code class="descname">send</code><span class="sig-paren">(</span><em>payload</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.send" title="Permalink to this definition">¶</a></dt>
+<code class="descname">send</code><span class="sig-paren">(</span><em>payload</em>, <em>channel_num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.send" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the provided payload input to the router</p>
 </dd></dl>
 
