@@ -12,43 +12,7 @@ from Game.models import Game, Game_User, Unit
 from Static.models import Action, Class, Stat, Unit_Stat, Version
 from User.models import Users
 import Game.maphelper
-import validation
 
-"""
-INCOMPLETE - if not implemented when issue 34 is resolved, should be deleted
-def takeAction(unitId, action, newX, newY, target):
-	# Get the unit based on the ID provided
-	unit = Unit.objects.get(pk=unitId)
-	action_name = Action.objects.get(pk=action)
-
-	# Ensure the unit is in a game
-	if unit.game == None:
-		logging.error("The specified unit (ID=" + str(unit.id) + ") is not in a game, trying to take an action.")
-		return None
-
-	# Get the game object
-	game = Game.objects.get(pk=unit.game)
-
-	# Validate the move
-	if validateMove(unit, game, newX, newY) == False:
-		return False
-
-	# If the move was validated, make the move
-	unit.prev_x = unit.x_pos
-	unit.prev_y = unit.y_pos
-	unit.x_pos  = newX
-	unit.y_pos  = newY
-
-	# Next, validate the action specified
-	action_options={"Attack":validation.attack,
-					"Heal":validation.heal,
-					"Wait":validation.wait}
-
-	# Lastly, save the result
-	unit.save()
-
-	return unit
-"""
 def placeUnits(game_user, units, user, version):
 	"""
 	Validates that the units provided can be placed at their desired location.
@@ -176,6 +140,31 @@ def setTeam(leader_ability, perks, units, username, version):
 		unit.save()
 
 	return err_msg
+
+def calculateAttack(game, unit_dict, target):
+
+	# Create the response object
+	response = {}
+	response["Unit"] = unit_dict
+	response["Unit"]["ID"] = response["Unit"]["Unit"].id
+	response["Unit"].pop("Unit", None)
+	response["Target"] = {"ID":target.id}
+
+	return response
+
+def calculateHeal(game, unit_dict, target):
+
+	# Create the response object
+	response = {}
+	response["Unit"] = unit_dict
+	response["Unit"]["ID"] = response["Unit"]["Unit"].id
+	response["Unit"].pop("Unit", None)
+	response["Target"] = {"ID":target.id}
+
+	return response
+
+def updateValidAction(game, unit_dict, target_dict=None):
+	return False
 
 def validateMove(unit, game, newX, newY):
 	return False

@@ -10,7 +10,9 @@ as well as any other necessary information regarding the command.
 import logging
 import Game.unithelper
 from Communication.routehelper import formJsonResult
-from Static.models import Ability, Class, Leader, Leader_Ability, Perk, Version
+from Static.models import Ability, Action, Class, Leader, Leader_Ability, Perk, Version
+from Game.models import Game_User
+from User.models import Users
 
 def setTeam(data):
 	"""
@@ -119,77 +121,138 @@ def setTeam(data):
 					
 	return formJsonResult(error, data)
 
-"""
 def takeAction(data):
-	"
-	Flow of needed information:
-	unit_id
-	--- above needed for wait
-	new x, new y
-	-- above for move/wait
-	target
-	-- above needed for heal
-	nearby units (can be determined from existing DB values)
-	--- above needed for attack
-	"
-	# INCOMPLETE - if not implemented when issue 34 is resolved, should be deleted
+	"""
+	Called when a user wants to take an action with a specific unit, such as
+	attacking an opponent, healing an ally, or simply moving to a new location.
+	Command: TA (Take Action)
 
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+				 be of the following format:\n
+				 {\n
+					"Action":"Attack",\n
+					"Game":"vs. opponent #1",\n
+				 	"Unit":1,\n
+				 	"X":3,\n
+				 	"Y":4,\n
+				 	"Target":9\n
+				 }\n
+				 Notes:\n
+				 	- Action is the NAME of a valid action\n
+				 	- The value for Unit and Target are the unit's ID\n
+				 	- The X and Y values are the new location for the unit\n
+				 	- Depending on the action, the Target may be optional\n
+				 	- Both X AND Y are required
+
+	:rtype: 	 Dictionary
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {\n
+				 	"Success":True\n
+				 	"Unit"{\n
+						"ID":1,\n
+						"HP":10\n
+				 	},\n
+				 	"Target":{\n
+						"ID":9,\n
+						"HP":0\n
+				 	}\n
+				 }\n
+				 Notes:\n
+				 	- The "Target" object could be omitted if the action did not involve a target.\n
+				 	- The HP for the unit could be omitted if the action is "Wait" or "Heal"\n
+				 If Unsuccessful:\n
+				 	{"Successful":False,\n
+				 	 "Error":"You did not provide the necessary information."}\n
+				 Notes:\n
+				 	- The error message provided should be of an acceptable form such that
+				 	  errors can be directly displayed for the user.
+	"""
 	username = data["session_username"]
-	unit_id  = data.get("unit")
-	action   = data.get("actn")
-	newX     = data.get("x")
-	newY     = data.get("y")
-	target   = data.get("tgt")
+	user = Users.objects.filter(username=username)
 
-	error = None
-	if unit_id == None or action == None:
-		logging.error("TA: User ID was not provided." if unit_id == None else "TA: Action was not provided.")
-		logging.error(data)
-		error = "Internal error."
+	# Ensure that the game name provided is valid
+	if not "Game" in data:
+		return formatJsonResult("Internal Error: Game Key missing.", data)
+	game_name = data["Game"]
+
+	# Ensure that the game name matches with this user
+	game_usr = Game_User.objects.filter(user=user, name=game_name).first()
+	if game_usr == None:
+		return formatJsonResult("No match for game of name " + game_name + ".", data)
+
+	version = game_usr.game.version
+
+	# The valid actions for a user in this version
+	if not "Action" in data:
+		return formatJsonResult("Internal Error: Action Key missing.", data)
+	action = Action.objects.filter(version=version, name=data["Action"]).first()
+	if action == None:
+		return formatJsonResult("The selected action is not valid.", data)
+
+	# Get the new coordinates for the action
+	if not "X" in data or not "Y" in data:
+		return formatJsonResult("Internal Error: New location information incomplete.", data)
+	x = data["X"]
+	y = data["Y"]
+
+	# Get the unit taking the action
+	if not "Unit" in data:
+		return formatJsonResult("Internal Error: Unit Key missing.", data)
+	unit_id  = data["Unit"]
+	unit = Unit.objects.filter(pk=unit_id, game=game_usr.game, owner=user).first()
+	if unit == None:
+		return formatJsonResult("Internal Error: Specified unit ID not in game.", data)
+
+	# Ensure that the move is valid
+	if not Game.unithelper.validateMove(unit, game_usr.game, x, y):
+		return formJsonResult("The " + unit.name + " cannot move to that location.", data)
+
+	# Create a dictionary to describe the action for the unit
+	unit_dict = {"Unit":unit, "NewX":x, "NewY":y}
+
+	# If the unit is just moving for their action
+	if action.name == "Wait":
+		if not Game.unithelper.updateValidAction(game_usr.game, unit_dict):
+			return formatJsonResult("There was a problem executing the action.", data)
+		action_result = {}
+		action_result["Unit"] = unit_dict
+		action_result["Unit"]["ID"] = action_result["Unit"]["Unit"].id
+		action_result["Unit"].pop("Unit", None)
+
+	# If the action is one that requires a target
 	else:
-		try:
-			unit1 = Game.unithelper.takeAction(unit_id, action, newX, newY, target)
-		except Exception, e:
-			error = str(e)
+		# Determine the target
+		if not "Target" in data:
+			return formatJsonResult("Internal Error: Target Key missing.", data)
+		target_id   = data["Target"]
+		target = Unit.objects.filter(pk=target_id, game=game_usr.game).first()
+		if target == None:
+			return formJsonResult("Internal Error: Specified target ID not in game.", data)
 
+		# Process attacking and healing
+		if action.name == "Attack":
+			action_result = Game.unithelper.calculateAttack(game_usr.game, unit_dict, target)
+		elif action.name == "Heal":
+			action_result = Game.unithelper.calculateHeal(game_usr.game, unit_dict,  target)
 
-	if unit1.id > 0:
-		response = {"Success": True}
-	else:
-		response = {"Success": False,
-					"Error": error}
+		if "Error" in action_result:
+			return formJsonResult(action_result["Error"], data)
+
+		if not Game.unithelper.updateValidAction(game_usr.game, action_result["Unit"], action_result["Target"]):
+			return formJsonResult("There was a problem targeting that unit.", data)
+
+	# Prepare the response
+	response = formJsonResult("")
+
+	# The unit response
+	response_unit = action_result["Unit"]
+	response["Unit"] = response_unit
+
+	# The target unit response, if there was one
+	if "Target" in action_result:
+		target_unit = action_result["Target"]
+		response["Target"] = target_unit
 
 	return response
-"""
-
-"""
-# Moves the unit to the desired location, if valid
-def moveUnit(data):
-	# INCOMPLETE - if not implemented when issue 34 is resolved, should be deleted
-
-	# Parse the necessary JSON values and validate
-	username = data["owner"]
-	unit_id  = data["uid"]
-	newX     = data["toX"]
-	newY     = data["toY"]
-
-	# Try to add the unit to the database
-	error = None
-	try:
-		unit1 = Game.unithelper.moveUnit(username, unit_id, newX, newY)
-	except Exception, e:
-		logging.error("Problem moving unit: " + str(e))
-		error = str(e)
-		response = {"Success": False,
-					"Error": error}
-		return response
-
-	# Verify the unit was added
-	if unit1.x_pos == newX and unit1.y_pos == newY:
-		response = {"Success": True,
-					"uid": unit1.id}
-	else:
-		response = {"Success": False}
-
-	return response
-"""
