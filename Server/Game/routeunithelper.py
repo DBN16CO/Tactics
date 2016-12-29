@@ -11,7 +11,7 @@ import logging
 import Game.unithelper
 from Communication.routehelper import formJsonResult
 from Static.models import Ability, Action, Class, Leader, Leader_Ability, Perk, Version
-from Game.models import Game_User
+from Game.models import Game_User, Unit
 from User.models import Users
 
 def setTeam(data):
@@ -170,44 +170,44 @@ def takeAction(data):
 				 	  errors can be directly displayed for the user.
 	"""
 	username = data["session_username"]
-	user = Users.objects.filter(username=username)
+	user = Users.objects.filter(username=username).first()
 
 	# Ensure that the game name provided is valid
 	if not "Game" in data:
-		return formatJsonResult("Internal Error: Game Key missing.", data)
+		return formJsonResult("Internal Error: Game Key missing.", data)
 	game_name = data["Game"]
 
 	# Ensure that the game name matches with this user
 	game_usr = Game_User.objects.filter(user=user, name=game_name).first()
 	if game_usr == None:
-		return formatJsonResult("No match for game of name " + game_name + ".", data)
+		return formJsonResult("No match for game of name " + game_name + ".", data)
 
 	version = game_usr.game.version
 
 	# The valid actions for a user in this version
 	if not "Action" in data:
-		return formatJsonResult("Internal Error: Action Key missing.", data)
+		return formJsonResult("Internal Error: Action Key missing.", data)
 	action = Action.objects.filter(version=version, name=data["Action"]).first()
 	if action == None:
-		return formatJsonResult("The selected action is not valid.", data)
+		return formJsonResult("The selected action is not valid.", data)
 
 	# Get the new coordinates for the action
 	if not "X" in data or not "Y" in data:
-		return formatJsonResult("Internal Error: New location information incomplete.", data)
+		return formJsonResult("Internal Error: New location information incomplete.", data)
 	x = data["X"]
 	y = data["Y"]
 
 	# Get the unit taking the action
 	if not "Unit" in data:
-		return formatJsonResult("Internal Error: Unit Key missing.", data)
+		return formJsonResult("Internal Error: Unit Key missing.", data)
 	unit_id  = data["Unit"]
 	unit = Unit.objects.filter(pk=unit_id, game=game_usr.game, owner=user).first()
 	if unit == None:
-		return formatJsonResult("Internal Error: Specified unit ID not in game.", data)
+		return formJsonResult("Internal Error: Specified unit ID not in game.", data)
 
 	# Ensure that the move is valid
-	if not Game.unithelper.validateMove(unit, game_usr.game, x, y):
-		return formJsonResult("The " + unit.name + " cannot move to that location.", data)
+	if not Game.unithelper.validateMove(unit, game_usr.game, user, x, y):
+		return formJsonResult("The " + unit.unit_class.name + " cannot move to that location.", data)
 
 	# Create a dictionary to describe the action for the unit
 	unit_dict = {"Unit":unit, "NewX":x, "NewY":y}
@@ -215,7 +215,7 @@ def takeAction(data):
 	# If the unit is just moving for their action
 	if action.name == "Wait":
 		if not Game.unithelper.updateValidAction(game_usr.game, unit_dict):
-			return formatJsonResult("There was a problem executing the action.", data)
+			return formJsonResult("There was a problem executing the action.", data)
 		action_result = {}
 		action_result["Unit"] = unit_dict
 		action_result["Unit"]["ID"] = action_result["Unit"]["Unit"].id
@@ -225,7 +225,7 @@ def takeAction(data):
 	else:
 		# Determine the target
 		if not "Target" in data:
-			return formatJsonResult("Internal Error: Target Key missing.", data)
+			return formJsonResult("Internal Error: Target Key missing.", data)
 		target_id   = data["Target"]
 		target = Unit.objects.filter(pk=target_id, game=game_usr.game).first()
 		if target == None:

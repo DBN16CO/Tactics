@@ -4,7 +4,7 @@ from Static.models import Version, Class
 from User.models import Users
 from Communication.testhelper import *
 from Game.tasks import processMatchmakingQueue
-import json
+import copy, json
 
 class TestUnit(TestCase):
 	def setUp(self):
@@ -449,3 +449,123 @@ class TestUnit(TestCase):
 		self.assertEquals(result["Games"][0]["Round"], Game.objects.filter().first().game_round)
 
 		endTestLog("test11_query_games_user_success")
+
+	def test12_take_action_bad_json(self):
+		startTestLog("test12_take_action_bad_json")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":1, "X":1,"Y":1}
+
+		# Test a missing game key
+		missing_game_command = copy.deepcopy(valid_wait_command)
+		del missing_game_command["Game"]
+		self.channel.send(json.dumps(missing_game_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Internal Error: Game Key missing.")
+
+		# Test an invalid game key value
+		bad_game_command = copy.deepcopy(valid_wait_command)
+		bad_game_command["Game"] = "fake_game_name" 		# Just bad game name
+		self.channel.send(json.dumps(bad_game_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "No match for game of name fake_game_name.")
+		bad_game_command["Game"] = "vs. first_user #1" 		# Existing, but bad name
+		self.channel.send(json.dumps(bad_game_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "No match for game of name vs. first_user #1.")
+
+		# Test action key missing
+		missing_action_command = copy.deepcopy(valid_wait_command)
+		del missing_action_command["Action"]
+		self.channel.send(json.dumps(missing_action_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Internal Error: Action Key missing.")
+
+		# Test an invalid action key value
+		bad_action_command = copy.deepcopy(valid_wait_command)
+		bad_action_command["Action"] = "fake_action"
+		self.channel.send(json.dumps(bad_action_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "The selected action is not valid.")
+
+		# Location information missing
+		missing_x_command = copy.deepcopy(valid_wait_command)
+		del missing_x_command["X"]
+		self.channel.send(json.dumps(missing_x_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Internal Error: New location information incomplete.")
+		missing_y_command = copy.deepcopy(valid_wait_command)
+		del missing_y_command["Y"]
+		self.channel.send(json.dumps(missing_y_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Internal Error: New location information incomplete.")
+
+		# Test unit key missing
+		missing_unit_command = copy.deepcopy(valid_wait_command)
+		del missing_unit_command["Unit"]
+		self.channel.send(json.dumps(missing_unit_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Internal Error: Unit Key missing.")
+
+		# Test an invalid unit key value
+		bad_unit_command = copy.deepcopy(valid_wait_command)
+		bad_unit_command["Unit"] = 999
+		self.channel.send(json.dumps(bad_unit_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Internal Error: Specified unit ID not in game.")
+
+		# Test target key missing
+		bad_unit_command = copy.deepcopy(valid_wait_command)
+		bad_unit_command["Action"] = "Attack"
+		self.channel.send(json.dumps(bad_unit_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Internal Error: Target Key missing.")
+		logging.debug(result)
+
+		endTestLog("test12_take_action_bad_json")
+
+	def test13_take_action_invalid_move(self):
+		startTestLog("test13_take_action_invalid_move")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":1, "X":1,"Y":1}
+
+		# Moving onto ally unit
+		ally_move_command = copy.deepcopy(valid_wait_command)
+		ally_move_command["Y"] = 0
+		self.channel.send(json.dumps(ally_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "The Flier cannot move to that location.")
+
+		# Moving onto enemy unit
+		ally_move_command = copy.deepcopy(valid_wait_command)
+		ally_move_command["Y"] = 15
+		self.channel.send(json.dumps(ally_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "The Flier cannot move to that location.")
+
+		endTestLog("test13_take_action_invalid_move")

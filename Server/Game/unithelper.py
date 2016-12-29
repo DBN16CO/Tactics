@@ -166,5 +166,161 @@ def calculateHeal(game, unit_dict, target):
 def updateValidAction(game, unit_dict, target_dict=None):
 	return False
 
-def validateMove(unit, game, newX, newY):
+def validateMove(unit, game, user, newX, newY):
+	"""
+	Validates that the specified movement is a valid location for the specified unit
+	
+	:type unit: Unit object
+	:param unit: The unit being moved
+	
+	:type game: Game object
+	:param game: The game in which the unit exists
+
+	:type user: User object
+	:param user: The owner of the unit being moved
+
+	:type newX: Integer
+	:param newX: The X coordinate to which the unit is moving
+
+	:type newY: Integer
+	:param newY: The Y coordinate to which the unit is moving
+	
+	:rtype: Boolean
+	:return: True if the movement is valid, false otherwise.
+	"""
+	unit_locations = {}
+	other_units = Unit.objects.filter(game=game).exclude(pk=unit.pk)
+	for unt in other_units:
+		x = unt.x_pos
+		y = unt.y_pos
+
+		if not x in unit_locations:
+			unit_locations[x] = {}
+
+		if not y in unit_locations[x]:
+			if unt.owner.pk == user.pk:
+				unit_locations[x][y] = "Ally"
+			else:
+				unit_locations[x][y] = "Enemy"
+		else:
+			logging.error("There are two units set to the same coordinates (%d,%d) in game ID=%d.", x, y, game.pk)
+			return False
+	logging.debug(unit_locations)
+
+	# Determine how far this unit can move
+	version = game.version
+	move_range = Unit_Stat.objects.filter(unit=unit.unit_class, version=version, stat=Stat.objects.filter(version=version, name="Move").first()).first().value
+	logging.debug("Attempting to move %s from location (%d,%d) to location (%d,%d).", unit.unit_class.name, unit.x_pos, unit.y_pos, newX, newY)
+
+	# Create a queue of valid tokens, if the queue is ever empty, the movement target was invalid
+	# Requirements to add to the queue:
+	# - Not occupied by enemy
+	# - Adjacent token is valid on map
+	# - Adjacent token can be moved to (remaining movement minus cost to move to adjacent)
+	# - Token has not already been checked
+	# May exit the queue early (With success) if the following are ALL met:
+	# - Not occupied by ally
+	# - Current X,Y equals target X,Y
+	# Uses:
+	# valid_move_queue - List of tokens to check in queue, has the X, Y, and the remaining movement range
+	# checked_tokens_dict - Dictionary of checked tokens, to ensure the same token is not checked twice
+	valid_move_queue = [{"X":unit.x_pos, "Y":unit.y_pos, "Remaining":move_range}]
+	checked_tokens_dict = {unit.x_pos:{unit.y_pos:True}}
+	while len(valid_move_queue) > 0:
+		# Get next list element and prepare for processing
+		token = valid_move_queue.pop(0)
+		x = token["X"]
+		y = token["Y"]
+
+		# Ensure this token has not already been processed, and prevent this for future tokens
+		if not x in checked_tokens_dict:
+			checked_tokens_dict[x] = {}
+
+		-----------------------------------------------------
+		logging.debug("Checking location (%d,%d).", x, y)
+
+		if x in unit_locations and y in unit_locations:
+			if unit_locations[x][y] == "Enemy":
+			logging.debug("Location (%d,%d) occupied by enemy unit.", x, y)
+			continue
+		else:
+			logging.debug("Location (%d,%d) occupied by an ally. Can move through, but not to, this token.", x, y)
+
+	return False
+	return __recursiveMovementTest(unit_locations, Game.maphelper.maps[version.name][game.map_path.name], Game.maphelper.movement_dict, 
+		unit.unit_class.name, move_range, unit.x_pos, unit.y_pos, newX, newY)
+
+
+"""
+All functions below this are helper functions for this module
+"""
+def __recursiveMovementTest(other_units, map_data, move_data, class_name, move_remaining, x, y, targX, targY):
+	"""
+	Recursively looks to see if the desired location is valid for movement, checking:\n
+	1. Is the current token occupied?\n
+		- By an enemy, exit, cannot move here\n
+		- By an ally, continue, but skip step 2\n
+		- By nothing, continue\n
+	2. Is this the target location?\n
+		- Yes: Return success\n
+		- No: continue\n
+	3. Check surrounding locations, keeping in mind:\n
+		- If the location is not part of the map, exit\n
+		- Subtract the movement required to move to next token before determining\n
+	\n
+	If true is ever returned, can exit returning true, once all tokens are analyzed, return false
+	"""
+	logging.debug("Checking location (%d,%d).", x, y)
+	# Is the current location occupied?
+	# Yes:
+	if x in other_units and y in other_units[x]:
+		# By an enemy
+		if other_units[x][y] == "Enemy":
+			logging.debug("Location (%d,%d) occupied by enemy unit.", x, y)
+			return False
+		# By an ally
+		else:
+			logging.debug("Location (%d,%d) occupied by an ally. Can move through, but not here.", x, y)
+	# No:
+	else:
+		# Is this the target location?
+		# Yes
+		if x == targX and y == targY:
+			logging.debug("SUCCESS! Can move to (%d,%d).", x, y)
+			return True
+
+		# No - check the tokens on each side
+		# North
+		if x in map_data and y - 1 in map_data[x]:
+			next_ter_shortname = map_data[x][y-1]["Terrain"]
+			move_cost = move_data[next_ter_shortname][class_name]
+			rem_mvmt = move_remaining - move_cost
+			if rem_mvmt >= 0:
+				if __recursiveMovementTest(other_units, map_data, move_data, class_name, rem_mvmt, x, y-1, targX, targY):
+					return True
+		# South
+		if x in map_data and y + 1 in map_data[x]:
+			next_ter_shortname = map_data[x][y+1]["Terrain"]
+			move_cost = move_data[next_ter_shortname][class_name]
+			rem_mvmt = move_remaining - move_cost
+			if rem_mvmt >= 0:
+				if __recursiveMovementTest(other_units, map_data, move_data, class_name, rem_mvmt, x, y+1, targX, targY):
+					return True
+		# East
+		if x-1 in map_data and y in map_data[x]:
+			next_ter_shortname = map_data[x-1][y]["Terrain"]
+			move_cost = move_data[next_ter_shortname][class_name]
+			rem_mvmt = move_remaining - move_cost
+			if rem_mvmt >= 0:
+				if __recursiveMovementTest(other_units, map_data, move_data, class_name, rem_mvmt, x-1, y, targX, targY):
+					return True
+		# West
+		if x+1 in map_data and y in map_data[x]:
+			next_ter_shortname = map_data[x+1][y]["Terrain"]
+			move_cost = move_data[next_ter_shortname][class_name]
+			rem_mvmt = move_remaining - move_cost
+			if rem_mvmt >= 0:
+				if __recursiveMovementTest(other_units, map_data, move_data, class_name, rem_mvmt, x+1, y, targX, targY):
+					return True
+
 	return False

@@ -1,14 +1,16 @@
 """
 This file handles any processing related to map data.
 """
-from Static.models import Map, Version
+from Static.models import Map, Terrain_Unit_Movement, Version
 import logging
 
 maps = {}
+movement_dict = {}
 
 def loadMaps(version_name=''):
 	"""
-	Loads all of the maps into memory for the specified version
+	Loads all of the maps into memory for the specified version,
+	also calls the function to load the terrain information
 
 	:type version_name: String
 	:param version_name: The name of the version for which the maps need to be loaded.\n
@@ -22,7 +24,7 @@ def loadMaps(version_name=''):
 						<X>:{\n
 							<Y>:{\n
 								"Placement":<Can place here>,\n
-								"Terrain":<Terrain Shortname>\n
+								"Terrain":<Terrain Shortname>,\n
 							}\n
 						}\n
 					}\n
@@ -39,6 +41,7 @@ def loadMaps(version_name=''):
 	map_objects = Map.objects.filter(version=version)
 	version_name = version.name
 	maps[version_name] = {}
+	loadTerrainInfo(version)
 
 	# For each map object in the database for that version
 	for mp in map_objects:
@@ -78,3 +81,36 @@ def loadMaps(version_name=''):
 
 					# Add the token to the dictionary
 					maps[version_name][map_name][x][y] = {"Placement":placement, "Terrain":tile_type}
+
+def loadTerrainInfo(version):
+	"""
+	Loads a terrain movement information for each unit and terrain type.
+	
+	:type version: Version object
+	:param version: The version of terrain data to load
+	
+	:rtype: Dictionary
+	:return: An object of the form:\n
+			 {\n
+				"F":{\n
+					"Archer":1,\n
+					"Swordsman":2\n
+				}\n
+			 }\n
+			 Notes:\n
+			 - The "F" is the shortname for a terrain type\n
+			 - The "Archer" is the class name\n
+			 - The value is the movement taken to move INTO a token
+	"""
+	ter_unit_mov = Terrain_Unit_Movement.objects.filter(version=version)
+
+	for tum in ter_unit_mov:
+		if not tum.terrain.shortname in movement_dict:
+			movement_dict[tum.terrain.shortname] = {}
+
+		movement_dict[tum.terrain.shortname][tum.unit.name] = tum.move
+
+	logging.debug("Movement Dictionary:")
+	logging.debug(movement_dict)
+	return movement_dict
+		
