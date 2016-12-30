@@ -48,11 +48,8 @@ def processMatchmakingQueue():
 
         # Determine the number of times these 2 players have played against each other
         count = 0
-        for first_player_game_user in Game_User.objects.filter(user=first_player.user):
+        for first_player_game_user in Game_User.objects.filter(user=first_player.user).exclude(game=None):
             game_played = first_player_game_user.game
-
-            if not game_played:
-                continue
 
             is_second_player_in_game = Game_User.objects.filter(user=second_player.user, game=game_played).first()
 
