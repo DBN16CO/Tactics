@@ -9,7 +9,7 @@ class TestUser(TestCase):
 	def setUp(self):
 		self.channel = TestHelper()
 
-	def test1_create_user_success(self):
+	def test01_create_user_success(self):
 		startTestLog("test1_create_user_success")
 
 		result = self.channel.createTestUser({"username":"successUsr1","password":"12345","email":"success@a.com"})
@@ -19,7 +19,7 @@ class TestUser(TestCase):
 
 		endTestLog("test1_create_user_success")
 
-	def test2_duplicate_username(self):
+	def test02_duplicate_username(self):
 		startTestLog("test2_duplicate_username")
 
 		result = self.channel.createTestUser({"username":"testDupUser1","password":"12345","email":"dupUser@a.com"})
@@ -31,7 +31,7 @@ class TestUser(TestCase):
 
 		endTestLog("test2_duplicate_username")
 
-	def test3_duplicate_email(self):
+	def test03_duplicate_email(self):
 		startTestLog("test3_duplicate_email")
 
 		result = self.channel.createTestUser({"username":"dupEmailUsr1","password":"12345","email":"dupEmail@a.com"})
@@ -43,7 +43,7 @@ class TestUser(TestCase):
 
 		endTestLog("test3_duplicate_email")
 
-	def test4_login_success_username_password(self):
+	def test04_login_success_username_password(self):
 		startTestLog("test4_login_success_username_password")
 
 		result = self.channel.createTestUser({"username":"testLoginSuccess","password":"12345","email":"loginSuccess@a.com"})
@@ -61,7 +61,7 @@ class TestUser(TestCase):
 
 		endTestLog("test4_login_success_username_password")
 
-	def test5_login_failure_username_password(self):
+	def test05_login_failure_username_password(self):
 		startTestLog("test5_login_failure_username_password")
 
 		result = self.channel.createTestUser({"username":"testLoginFailure","password":"12345","email":"loginFailure@a.com"})
@@ -73,7 +73,7 @@ class TestUser(TestCase):
 
 		endTestLog("test5_login_failure_username_password")
 
-	def test6_login_success_token(self):
+	def test06_login_success_token(self):
 		startTestLog("test6_login_success_token")
 
 		result = self.channel.createTestUser({"username": "testLoginSToken", "password": "12345", "email": "loginSuccessToken@a.com"})
@@ -90,7 +90,7 @@ class TestUser(TestCase):
 
 		endTestLog("test6_login_success_token")
 
-	def test7_login_failure_token(self):
+	def test07_login_failure_token(self):
 		startTestLog("test7_login_failure_token")
 
 		result = self.channel.createTestUser({"username": "testLoginFToken", "password": "12345", "email": "loginSuccessToken@a.com"})
@@ -102,7 +102,7 @@ class TestUser(TestCase):
 
 		endTestLog("test7_login_failure_token")
 
-	def test8_logout_success(self):
+	def test08_logout_success(self):
 		startTestLog("test8_logout_success")
 
 		self.assertTrue(self.channel.createUserAndLogin({"username": "testLogoutS", "password": "12345", "email": "logoutSuccess@a.com"}))
@@ -124,7 +124,7 @@ class TestUser(TestCase):
 
 		endTestLog("test8_logout_success")
 
-	def test9_logout_failure(self):
+	def test09_logout_failure(self):
 		startTestLog("test9_logout_failure")
 
 		self.channel.send('{"Command": "LGO"}')

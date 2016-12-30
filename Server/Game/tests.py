@@ -265,17 +265,14 @@ class TestUnit(TestCase):
 
 		user2 = Users.objects.filter(username="second_user").first()
 
-		queue = Game_Queue.objects.filter()
 		version = Version.objects.latest('pk')
-		game_users = Game_User.objects
-		maps = Map.objects
 
 		self.assertEquals(len(Unit.objects.filter(owner=user1, game=None)), version.unit_count)
 		self.assertEquals(len(Unit.objects.filter(owner=user2, game=None)), version.unit_count)
 
 		self.assertTrue(len(Game_User.objects.filter(game=None)) == 2)
 
-		processMatchmakingQueue(queue, version, maps, game_users)
+		processMatchmakingQueue()
 
 		self.assertTrue(len(Game_User.objects.filter(game=None)) == 0)
 		self.assertEquals(Game_User.objects.filter(user=user1).first().name, "vs. second_user #1")
@@ -302,11 +299,7 @@ class TestUnit(TestCase):
 		self.assertTrue(self.channel.createUserAndJoinQueue(
 			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
-		queue = Game_Queue.objects.filter()
-		version = Version.objects.latest('pk')
-		game_users = Game_User.objects
-		maps = Map.objects
-		processMatchmakingQueue(queue, version, maps, game_users)
+		processMatchmakingQueue()
 
 		# Missing Game
 		self.channel.send('{"Command":"PU","Units":' + valid_unit_list + '}', 1)
@@ -371,11 +364,7 @@ class TestUnit(TestCase):
 		self.assertTrue(self.channel.createUserAndJoinQueue(
 			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
-		queue = Game_Queue.objects.filter()
-		version = Version.objects.latest('pk')
-		game_users = Game_User.objects
-		maps = Map.objects
-		processMatchmakingQueue(queue, version, maps, game_users)
+		processMatchmakingQueue()
 
 		# Invalid list of units
 		self.channel.send('{"Command":"PU","Game":"vs. ' + username2 + ' #1","Units":' + invalid_unit_list + '}', 1)
@@ -411,11 +400,7 @@ class TestUnit(TestCase):
 		self.assertTrue(self.channel.createUserAndJoinQueue(
 			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
-		queue = Game_Queue.objects.filter()
-		version = Version.objects.latest('pk')
-		game_users = Game_User.objects
-		maps = Map.objects
-		processMatchmakingQueue(queue, version, maps, game_users)
+		processMatchmakingQueue()
 		game = Game.objects.latest('pk')
 
 		# Place units command

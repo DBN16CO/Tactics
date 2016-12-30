@@ -4,7 +4,7 @@ import celery
 import datetime
 import random
 from Game.models import Game, Game_Queue, Game_User, Unit
-from Static.models import Version
+from Static.models import Version, Map
 
 import logging
 from celery.utils.log import get_task_logger
@@ -13,22 +13,16 @@ fh = logging.FileHandler('./matchmaking.log', mode='a')
 logger.addHandler(fh)
 logger.setLevel(logging.DEBUG)
 
-@celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=5), mock_queue=None, mock_version=None, mock_game_users=None)
-def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, mock_game_users=None):
+@celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=5))
+def processMatchmakingQueue():
 
     logger.debug("Processing matchmaking queue")
 
     # Get the matchmaking queue
-    if not mock_queue:
-        queue = Game_Queue.objects.filter()
-    else:
-        queue = mock_queue
+    queue = Game_Queue.objects.filter()
 
     # Get the latest version to use for creating games
-    if not mock_version:
-        version = Version.objects.latest('pk')
-    else:
-        version = mock_version
+    version = Version.objects.latest('pk')
 
     # If there isn't at least 2 players in the queue then exit
     if len(queue) < 2:
@@ -69,10 +63,7 @@ def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, 
         logger.info(str(second_player.user.username) + " will take the first turn")
         player_turn = second_player.user
 
-    if not mock_maps:
-        maps = Map.objects
-    else:
-        maps = mock_maps
+    maps = Map.objects
 
     # Randomly choose a map for the game
     index = random.randint(0, maps.count() - 1)
@@ -86,10 +77,7 @@ def processMatchmakingQueue(mock_queue=None, mock_version=None, mock_maps=None, 
 
     logger.info("Created the game: " + str(game))
 
-    if not mock_game_users:
-        game_users = Game_User.objects
-    else:
-        game_users = mock_game_users
+    game_users = Game_User.objects
 
     logger.debug("Updating game_user entries")
 
