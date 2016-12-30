@@ -5,9 +5,9 @@ import datetime
 import random
 from Game.models import Game, Game_Queue, Game_User, Unit
 from Static.models import Version, Map
-
 import logging
 from celery.utils.log import get_task_logger
+
 logger = get_task_logger(__name__)
 fh = logging.FileHandler('./matchmaking.log', mode='a')
 logger.addHandler(fh)
