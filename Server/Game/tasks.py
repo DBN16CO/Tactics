@@ -6,6 +6,7 @@ import random
 from Game.models import Game, Game_Queue, Game_User, Unit
 from Static.models import Version, Map
 import logging
+from Server import config
 from celery.utils.log import get_task_logger
 
 logger = get_task_logger(__name__)
@@ -13,7 +14,7 @@ fh = logging.FileHandler('./matchmaking.log', mode='a')
 logger.addHandler(fh)
 logger.setLevel(logging.DEBUG)
 
-@celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=5))
+@celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=config.GAME_QUEUE_PROCESS_INTERVAL))
 def processMatchmakingQueue():
     """
     This is the entry point for the matchmaking logic. Celery workers will periodically execute
