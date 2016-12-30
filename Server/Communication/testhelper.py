@@ -149,7 +149,7 @@ class TestHelper(ChannelTestCase):
 		return Game_User.objects.filter(user=Users.objects.filter(username=credentials1["username"])).first().game != None
 
 	def createUsersAndPlaceUnits(self, credentials1, team1, credentials2, team2):
-		self.assertTrue(self.createUsersAndMatch(credentials1, team1, credentials2, team2) != None)
+		self.assertTrue(self.createUsersAndMatch(credentials1, team1, credentials2, team2))
 		game_users = Game_User.objects.filter()
 		if game_users.first().user.username == credentials1["username"]:
 			game_user_1 = game_users.first()

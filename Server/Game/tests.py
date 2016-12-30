@@ -701,3 +701,61 @@ class TestUnit(TestCase):
 		self.assertEqual(unit.y_pos, newY)
 
 		endTestLog("test16_take_action_valid_move_through_ally_success")
+
+	def test17_take_action_before_enemy_placement(self):
+		startTestLog("test17_take_action_before_enemy_placement")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		self.channel.createUsersAndMatch(credentials1, team1, credentials2, team2)
+		# Place units command
+		valid_unit_list = self.helper_golden_path_place_unit_units()
+		self.channel.send('{"Command":"PU","Game":"vs. ' + credentials2["username"] + ' #1","Units":' + valid_unit_list + '}', 1)
+		result = json.loads(self.channel.receive())
+
+		unit = Unit.objects.filter(x_pos=0, y_pos=0).first()	# Get flier in location 0,0
+		newX = 8
+		newY = 0
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":1, "X":newX,"Y":newY}
+
+		# Call take action before the opponent has placed their units
+		self.channel.send(json.dumps(valid_wait_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Please wait until your opponent places their units before taking a turn.")
+
+		endTestLog("test17_take_action_before_enemy_placement")
+
+	def test18_take_action_before_placement(self):
+		startTestLog("test18_take_action_before_placement")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+
+		# Hack to undo placing units
+		units = Unit.objects.filter(owner=game_users.first().user, game=game_users.first().game)
+		for unit in units:
+			unit.x_pos = -1
+			unit.y_pos = -1
+			unit.save()
+
+		unit = Unit.objects.filter(x_pos=-1, y_pos=-1).first()	# Get flier in location 0,0
+		newX = 8
+		newY = 0
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY}
+
+		# Call take action before you have placed your units
+		self.channel.send(json.dumps(valid_wait_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "You must place all of your units before taking a turn.")
+
+		endTestLog("test18_take_action_before_placement")

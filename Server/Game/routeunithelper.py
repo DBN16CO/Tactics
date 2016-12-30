@@ -184,6 +184,16 @@ def takeAction(data):
 
 	version = game_usr.game.version
 
+	# Now verify both players have placed their units
+	game = game_usr.game
+	user_placed_unit_count = Unit.objects.filter(game=game, owner=user).exclude(x_pos=-1).exclude(y_pos=-1).count()
+	opponent_placed_unit_count = Unit.objects.filter(game=game).exclude(x_pos=-1).exclude(y_pos=-1).exclude(owner=user).count()
+	expected_count = version.unit_count
+	if user_placed_unit_count != expected_count:
+		return formJsonResult("You must place all of your units before taking a turn.")
+	elif opponent_placed_unit_count != expected_count:
+		return formJsonResult("Please wait until your opponent places their units before taking a turn.")
+
 	# The valid actions for a user in this version
 	if not "Action" in data:
 		return formJsonResult("Internal Error: Action Key missing.", data)
@@ -215,7 +225,7 @@ def takeAction(data):
 
 	# If the unit is just moving for their action
 	if action.name == "Wait":
-		if not Game.unithelper.updateValidAction(game_usr.game, unit_dict):
+		if not Game.unithelper.saveActionResults(game_usr.game, unit_dict):
 			return formJsonResult("There was a problem executing the action.", data)
 		action_result = {}
 		action_result["Unit"] = unit_dict
@@ -241,7 +251,7 @@ def takeAction(data):
 		if "Error" in action_result:
 			return formJsonResult(action_result["Error"], data)
 
-		if not Game.unithelper.updateValidAction(game_usr.game, action_result["Unit"], action_result["Target"]):
+		if not Game.unithelper.saveActionResults(game_usr.game, action_result["Unit"], action_result["Target"]):
 			return formJsonResult("There was a problem targeting that unit.", data)
 
 	# Prepare the response

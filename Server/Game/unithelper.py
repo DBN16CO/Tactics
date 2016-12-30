@@ -163,7 +163,7 @@ def calculateHeal(game, unit_dict, target):
 
 	return response
 
-def updateValidAction(game, unit_dict, target_dict=None):
+def saveActionResults(game, unit_dict, target_dict=None):
 	"""
 	Updates the game with the provided action
 
@@ -187,7 +187,7 @@ def updateValidAction(game, unit_dict, target_dict=None):
 	unit = unit_dict["Unit"]
 	unit.x_pos = unit_dict["NewX"]
 	unit.y_pos = unit_dict["NewY"]
-	logging.debug("SDFASDFADSFGADFSGADSFADSFA unit:%s, x:%d, y:%d",unit.unit_class.name, unit_dict["NewX"], unit_dict["NewY"])
+
 	if target_dict == None:
 		unit.save()
 		return True

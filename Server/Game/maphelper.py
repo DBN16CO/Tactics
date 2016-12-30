@@ -84,7 +84,7 @@ def loadMaps(version_name=''):
 
 def loadTerrainInfo(version):
 	"""
-	Loads a terrain movement information for each unit and terrain type.
+	Loads terrain movement information for each unit and terrain type.
 
 	:type version: Version object
 	:param version: The version of terrain data to load
