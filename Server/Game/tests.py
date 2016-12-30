@@ -460,7 +460,8 @@ class TestUnit(TestCase):
 		team2 = self.helper_golden_path_set_team_units()
 		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
 		self.assertTrue(len(game_users) == 2)
-		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":1, "X":1,"Y":1}
+		unit = Unit.objects.filter(game=game_users.first().game, x_pos=0, y_pos=0).first()	# Get flier in location 0,0
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":unit.id, "X":1,"Y":1}
 
 		# Test a missing game key
 		missing_game_command = copy.deepcopy(valid_wait_command)
@@ -530,12 +531,22 @@ class TestUnit(TestCase):
 		self.assertEqual(result["Error"], "Internal Error: Specified unit ID not in game.")
 
 		# Test target key missing
-		bad_unit_command = copy.deepcopy(valid_wait_command)
-		bad_unit_command["Action"] = "Attack"
-		self.channel.send(json.dumps(bad_unit_command))
+		missing_target_command = copy.deepcopy(valid_wait_command)
+		missing_target_command["Action"] = "Attack"
+		self.channel.send(json.dumps(missing_target_command))
 		result = json.loads(self.channel.receive())
 		self.assertTrue(result["Success"] == False)
 		self.assertEqual(result["Error"], "Internal Error: Target Key missing.")
+		logging.debug(result)
+
+		# Test target key invalid unit
+		bad_target_command = copy.deepcopy(valid_wait_command)
+		bad_target_command["Action"] = "Attack"
+		bad_target_command["Target"] = 999
+		self.channel.send(json.dumps(bad_target_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Internal Error: Specified target ID not in game.")
 		logging.debug(result)
 
 		endTestLog("test12_take_action_bad_json")
@@ -550,7 +561,8 @@ class TestUnit(TestCase):
 		team2 = self.helper_golden_path_set_team_units()
 		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
 		self.assertTrue(len(game_users) == 2)
-		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":1, "X":1,"Y":1}
+		unit = Unit.objects.filter(game=game_users.first().game, x_pos=0, y_pos=0).first()	# Get flier in location 0,0
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":unit.id, "X":1,"Y":1}
 
 		# Moving onto ally unit
 		ally_move_command = copy.deepcopy(valid_wait_command)
@@ -558,7 +570,11 @@ class TestUnit(TestCase):
 		self.channel.send(json.dumps(ally_move_command))
 		result = json.loads(self.channel.receive())
 		self.assertTrue(result["Success"] == False)
-		self.assertEqual(result["Error"], "The Flier cannot move to that location.")
+		self.assertEqual(result["Error"], "Location (1,0) occupied by an ally. Can move through, but not to, that token.")
+
+		# Move near enemy for next tests
+		unit.y_pos = 14
+		unit.save()
 
 		# Moving onto enemy unit
 		ally_move_command = copy.deepcopy(valid_wait_command)
@@ -566,6 +582,122 @@ class TestUnit(TestCase):
 		self.channel.send(json.dumps(ally_move_command))
 		result = json.loads(self.channel.receive())
 		self.assertTrue(result["Success"] == False)
-		self.assertEqual(result["Error"], "The Flier cannot move to that location.")
+		self.assertEqual(result["Error"], "Location (1,15) occupied by an enemy. Cannot move to that token.")
+
+		# Move enemy in way of target path
+		enemy_unit = Unit.objects.filter(game=game_users.first().game, x_pos=0, y_pos=15).first()
+		enemy_unit.x_pos = 3
+		enemy_unit.y_pos = 14
+		enemy_unit.save()
+
+		# Moving through enemy unit
+		move_through_enemy_command = copy.deepcopy(valid_wait_command)
+		move_through_enemy_command["X"] = 7
+		move_through_enemy_command["Y"] = 14
+		self.channel.send(json.dumps(move_through_enemy_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Target location (7,14) was out of reach for Flier at location (0,14).")
+
+		# Ensure on map with forest
+		version = Version.objects.latest('pk')
+		game = Game.objects.latest('pk')
+		map_obj = Map.objects.filter(version=version, name="Forest Pattern").first()
+		game.map_path = map_obj
+		game.save()
+
+		# Move the swordsman to a place to test forest movement
+		sword = Unit.objects.filter(game=game_users.first().game, x_pos=3, y_pos=0).first()
+		sword.x_pos = 1
+		sword.y_pos = 5
+		sword.save()
+
+		# Moving through enemy unit
+		move_through_forest_command = copy.deepcopy(valid_wait_command)
+		move_through_forest_command["Unit"] = sword.id
+		move_through_forest_command["X"] = 1
+		move_through_forest_command["Y"] = 8
+		self.channel.send(json.dumps(move_through_forest_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Target location (1,8) was out of reach for Swordsman at location (1,5).")
 
 		endTestLog("test13_take_action_invalid_move")
+
+	def test14_take_action_basic_success(self):
+		startTestLog("test14_take_action_basic_success")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x_pos=0, y_pos=0).first()	# Get flier in location 0,0
+		newX = 0
+		newY = 0
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY}
+
+		# Moving onto self
+		self_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(self_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x_pos, newX)
+		self.assertEqual(unit.y_pos, newY)
+
+		endTestLog("test14_take_action_basic_success")
+
+	def test15_take_action_valid_move_success(self):
+		startTestLog("test15_take_action_valid_move_success")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x_pos=0, y_pos=0).first()	# Get flier in location 0,0
+		newX = 0
+		newY = 1
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY}
+
+		# Moving south one spot
+		valid_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(valid_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x_pos, newX)
+		self.assertEqual(unit.y_pos, newY)
+
+		endTestLog("test15_take_action_valid_move_success")
+
+	def test16_take_action_valid_move_through_ally_success(self):
+		startTestLog("test16_take_action_valid_move_through_ally_success")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(x_pos=0, y_pos=0).first()	# Get flier in location 0,0
+		newX = 8
+		newY = 0
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY}
+
+		# Moving south one spot
+		valid_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(valid_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x_pos, newX)
+		self.assertEqual(unit.y_pos, newY)
+
+		endTestLog("test16_take_action_valid_move_through_ally_success")

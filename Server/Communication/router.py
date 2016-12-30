@@ -51,7 +51,7 @@ def processRequest(message):
 					+-------+------------------+---------+--------------------+--------------------------------+
 					| ST    | Set Team         | Game    | setTeam            | set_team_valid_input           |
 					+-------+------------------+---------+--------------------+--------------------------------+
-					| TA    | Take Action      | Game    | takeAction         |                                |
+					| TA    | Take Action      | Game    | takeAction         | take_action_valid_move_success |
 					+-------+------------------+---------+--------------------+--------------------------------+
 
 					Notes about table above:\n

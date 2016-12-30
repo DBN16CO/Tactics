@@ -164,11 +164,40 @@ def calculateHeal(game, unit_dict, target):
 	return response
 
 def updateValidAction(game, unit_dict, target_dict=None):
+	"""
+	Updates the game with the provided action
+
+	:type game: Game object
+	:param game: The game being updated
+
+	:type unit_dict: Dictionary
+	:param unit_dict: Necessary components to describe the updated unit, should contain:\n
+						- "Unit" which is the unit object\n
+						- "NewX" which is the X coordinate to which the unit is moving\n
+						- "NewY" which is the Y coordinate to which the unit is moving\n
+						- "HP" if a target was specified, which is the new HP for this unit after the action
+
+	:type target_dict: Dictionary
+	:param target_dict: Necessary components to describe the targeted unit, 
+						should have "Unit" and "HP" keys which act the same as those in the unit_dict
+
+	:rtype: Boolean
+	:return: True if the update was successful, False otherwise
+	"""
+	unit = unit_dict["Unit"]
+	unit.x_pos = unit_dict["NewX"]
+	unit.y_pos = unit_dict["NewY"]
+	logging.debug("SDFASDFADSFGADFSGADSFADSFA unit:%s, x:%d, y:%d",unit.unit_class.name, unit_dict["NewX"], unit_dict["NewY"])
+	if target_dict == None:
+		unit.save()
+		return True
+
+	# Target not yet implemented
 	return False
 
 def validateMove(unit, game, user, newX, newY):
 	"""
-	Validates that the specified movement is a valid location for the specified unit
+	Using a modified BFS algorithm, ensures that the specified movement is a valid location for the specified unit
 	
 	:type unit: Unit object
 	:param unit: The unit being moved
@@ -203,16 +232,21 @@ def validateMove(unit, game, user, newX, newY):
 			else:
 				unit_locations[x][y] = "Enemy"
 		else:
-			logging.error("There are two units set to the same coordinates (%d,%d) in game ID=%d.", x, y, game.pk)
-			return False
-	logging.debug(unit_locations)
+			error = "Internal Error: Two units located on same token ({},{}).".format(x, y)
+			return {"Error":error}
+	logging.debug("Unit Locations %s", unit_locations)
 
 	# Determine how far this unit can move
 	version = game.version
 	move_range = Unit_Stat.objects.filter(unit=unit.unit_class, version=version, stat=Stat.objects.filter(version=version, name="Move").first()).first().value
 	logging.debug("Attempting to move %s from location (%d,%d) to location (%d,%d).", unit.unit_class.name, unit.x_pos, unit.y_pos, newX, newY)
 
-	# Create a queue of valid tokens, if the queue is ever empty, the movement target was invalid
+	# Helper variables for next section of code
+	map_data = Game.maphelper.maps[version.name][game.map_path.name]
+	move_data = Game.maphelper.movement_dict
+	class_name = unit.unit_class.name
+
+	# Using BFS: Create a queue of valid tokens, if the queue is ever empty, the movement target was invalid
 	# Requirements to add to the queue:
 	# - Not occupied by enemy
 	# - Adjacent token is valid on map
@@ -231,96 +265,57 @@ def validateMove(unit, game, user, newX, newY):
 		token = valid_move_queue.pop(0)
 		x = token["X"]
 		y = token["Y"]
-
-		# Ensure this token has not already been processed, and prevent this for future tokens
-		if not x in checked_tokens_dict:
-			checked_tokens_dict[x] = {}
-
-		-----------------------------------------------------
 		logging.debug("Checking location (%d,%d).", x, y)
 
-		if x in unit_locations and y in unit_locations:
+		# Ensure this token is not already occupied, if occupied by:
+		if x in unit_locations and y in unit_locations[x]:
+			# Enemy, skip token, cannot move here or through
 			if unit_locations[x][y] == "Enemy":
-			logging.debug("Location (%d,%d) occupied by enemy unit.", x, y)
-			continue
+				# If this is the target location, can fail early, cannot move to unit location
+				if x == newX and y == newY:	
+					error = "Location ({},{}) occupied by an enemy. Cannot move to that token.".format(x, y)
+					return {"Error":error}
+
+				# Otherwise, just continue to the next token
+				logging.debug("Location (%d,%d) occupied by enemy unit, skipping.", x, y)
+				continue
+			# Ally, do not check that this is end token, cannot end here
+			else:
+				if x == newX and y == newY:	
+					error = "Location ({},{}) occupied by an ally. Can move through, but not to, that token.".format(x, y)
+					return {"Error":error}
+		# Not currently occupied
 		else:
-			logging.debug("Location (%d,%d) occupied by an ally. Can move through, but not to, this token.", x, y)
+			# Is this the target token
+			if x == newX and y == newY:
+				logging.debug("SUCCESS! Can move to (%d,%d).", x, y)
+				return {"Success":True}
 
-	return False
-	return __recursiveMovementTest(unit_locations, Game.maphelper.maps[version.name][game.map_path.name], Game.maphelper.movement_dict, 
-		unit.unit_class.name, move_range, unit.x_pos, unit.y_pos, newX, newY)
+		# Calculate if the unit can move to adjacent tokens, and if so add to queue,
+		# The four sets are for North, South, East, and West of the token, in that order
+		for dX,dY in [(0,-1),(0,1),(1,0),(-1,0)]:
+			deltX = x + dX
+			deltY = y + dY
 
+			# Ensure this token has not already been processed, and prevent this for future tokens
+			if not deltX in checked_tokens_dict:
+				checked_tokens_dict[deltX] = {}
 
-"""
-All functions below this are helper functions for this module
-"""
-def __recursiveMovementTest(other_units, map_data, move_data, class_name, move_remaining, x, y, targX, targY):
-	"""
-	Recursively looks to see if the desired location is valid for movement, checking:\n
-	1. Is the current token occupied?\n
-		- By an enemy, exit, cannot move here\n
-		- By an ally, continue, but skip step 2\n
-		- By nothing, continue\n
-	2. Is this the target location?\n
-		- Yes: Return success\n
-		- No: continue\n
-	3. Check surrounding locations, keeping in mind:\n
-		- If the location is not part of the map, exit\n
-		- Subtract the movement required to move to next token before determining\n
-	\n
-	If true is ever returned, can exit returning true, once all tokens are analyzed, return false
-	"""
-	logging.debug("Checking location (%d,%d).", x, y)
-	# Is the current location occupied?
-	# Yes:
-	if x in other_units and y in other_units[x]:
-		# By an enemy
-		if other_units[x][y] == "Enemy":
-			logging.debug("Location (%d,%d) occupied by enemy unit.", x, y)
-			return False
-		# By an ally
-		else:
-			logging.debug("Location (%d,%d) occupied by an ally. Can move through, but not here.", x, y)
-	# No:
-	else:
-		# Is this the target location?
-		# Yes
-		if x == targX and y == targY:
-			logging.debug("SUCCESS! Can move to (%d,%d).", x, y)
-			return True
+			if deltY in checked_tokens_dict[deltX]:
+				continue
 
-		# No - check the tokens on each side
-		# North
-		if x in map_data and y - 1 in map_data[x]:
-			next_ter_shortname = map_data[x][y-1]["Terrain"]
-			move_cost = move_data[next_ter_shortname][class_name]
-			rem_mvmt = move_remaining - move_cost
-			if rem_mvmt >= 0:
-				if __recursiveMovementTest(other_units, map_data, move_data, class_name, rem_mvmt, x, y-1, targX, targY):
-					return True
-		# South
-		if x in map_data and y + 1 in map_data[x]:
-			next_ter_shortname = map_data[x][y+1]["Terrain"]
-			move_cost = move_data[next_ter_shortname][class_name]
-			rem_mvmt = move_remaining - move_cost
-			if rem_mvmt >= 0:
-				if __recursiveMovementTest(other_units, map_data, move_data, class_name, rem_mvmt, x, y+1, targX, targY):
-					return True
-		# East
-		if x-1 in map_data and y in map_data[x]:
-			next_ter_shortname = map_data[x-1][y]["Terrain"]
-			move_cost = move_data[next_ter_shortname][class_name]
-			rem_mvmt = move_remaining - move_cost
-			if rem_mvmt >= 0:
-				if __recursiveMovementTest(other_units, map_data, move_data, class_name, rem_mvmt, x-1, y, targX, targY):
-					return True
-		# West
-		if x+1 in map_data and y in map_data[x]:
-			next_ter_shortname = map_data[x+1][y]["Terrain"]
-			move_cost = move_data[next_ter_shortname][class_name]
-			rem_mvmt = move_remaining - move_cost
-			if rem_mvmt >= 0:
-				if __recursiveMovementTest(other_units, map_data, move_data, class_name, rem_mvmt, x+1, y, targX, targY):
-					return True
+			checked_tokens_dict[deltX][deltY] = True
 
-	return False
+			# If this new token is on the map
+			if deltX in map_data and deltY in map_data[deltX]:
+				next_ter_shortname = map_data[deltX][deltY]["Terrain"]
+				move_cost = move_data[next_ter_shortname][class_name]
+				rem_mvmt = token["Remaining"] - move_cost
+				
+				# If the unit can move to this location
+				if rem_mvmt >= 0:
+					valid_move_queue.append({"X":deltX,"Y":deltY,"Remaining":rem_mvmt})
+
+	# If exited the while loop, target token was not found
+	error = "Target location ({},{}) was out of reach for {} at location ({},{}).".format(newX, newY, class_name, unit.x_pos, unit.y_pos)
+	return {"Error":error}

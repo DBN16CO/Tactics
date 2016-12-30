@@ -206,8 +206,9 @@ def takeAction(data):
 		return formJsonResult("Internal Error: Specified unit ID not in game.", data)
 
 	# Ensure that the move is valid
-	if not Game.unithelper.validateMove(unit, game_usr.game, user, x, y):
-		return formJsonResult("The " + unit.unit_class.name + " cannot move to that location.", data)
+	is_move_valid = Game.unithelper.validateMove(unit, game_usr.game, user, x, y)
+	if "Error" in is_move_valid:
+		return formJsonResult(is_move_valid["Error"], data)
 
 	# Create a dictionary to describe the action for the unit
 	unit_dict = {"Unit":unit, "NewX":x, "NewY":y}
