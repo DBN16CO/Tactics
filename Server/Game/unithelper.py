@@ -198,10 +198,10 @@ def updateValidAction(game, unit_dict, target_dict=None):
 def validateMove(unit, game, user, newX, newY):
 	"""
 	Using a modified BFS algorithm, ensures that the specified movement is a valid location for the specified unit
-	
+
 	:type unit: Unit object
 	:param unit: The unit being moved
-	
+
 	:type game: Game object
 	:param game: The game in which the unit exists
 
@@ -213,7 +213,7 @@ def validateMove(unit, game, user, newX, newY):
 
 	:type newY: Integer
 	:param newY: The Y coordinate to which the unit is moving
-	
+
 	:rtype: Boolean
 	:return: True if the movement is valid, false otherwise.
 	"""
@@ -272,7 +272,7 @@ def validateMove(unit, game, user, newX, newY):
 			# Enemy, skip token, cannot move here or through
 			if unit_locations[x][y] == "Enemy":
 				# If this is the target location, can fail early, cannot move to unit location
-				if x == newX and y == newY:	
+				if x == newX and y == newY:
 					error = "Location ({},{}) occupied by an enemy. Cannot move to that token.".format(x, y)
 					return {"Error":error}
 

@@ -184,7 +184,7 @@ class TestHelper(ChannelTestCase):
 		logging.debug("Printing information about the units created for this test:")
 		units = Unit.objects.filter()
 		for unit in units:
-			logging.debug("Unit: X: %d\t Y: %d\t ID: %d\t Name: %s\t Owner: %s", unit.x_pos, unit.y_pos, 
+			logging.debug("Unit: X: %d\t Y: %d\t ID: %d\t Name: %s\t Owner: %s", unit.x_pos, unit.y_pos,
 				unit.pk, unit.unit_class.name, unit.owner.username)
 
 		return game_users
