@@ -6,6 +6,9 @@ DEFAULT_LOG_LEVEL = logging.DEBUG
 # Number of days a login token is valid
 LOGIN_TOKEN_EXPIRATION = 14
 
+# How often celery workers execute the matchmaking logic (in seconds)
+GAME_QUEUE_PROCESS_INTERVAL = 5
+
 def startup():
 	"""
 	Handles any necessary setup for the server including:\n
