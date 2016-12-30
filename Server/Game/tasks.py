@@ -85,12 +85,14 @@ def processMatchmakingQueue():
     game_user1 = game_users.filter(user=first_player.user, game=None).first()
     game_user1.game = game
     game_user1.name = "vs. " + str(second_player.user.username) + " #" + str(count + 1)
+    game_user1.team = 1
     game_user1.save()
 
     # Link the game to the second player's game entry
     game_user2 = game_users.filter(user=second_player.user, game=None).first()
     game_user2.game = game
     game_user2.name = "vs. " + str(first_player.user.username) + " #" + str(count + 1)
+    game_user2.team = 2
     game_user2.save()
 
     logging.debug("Updating each player's unit entries")

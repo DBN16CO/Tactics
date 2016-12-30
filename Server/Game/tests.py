@@ -276,7 +276,9 @@ class TestUnit(TestCase):
 
 		self.assertTrue(len(Game_User.objects.filter(game=None)) == 0)
 		self.assertEquals(Game_User.objects.filter(user=user1).first().name, "vs. second_user #1")
+		self.assertEquals(Game_User.objects.filter(user=user1).first().team, 1)
 		self.assertEquals(Game_User.objects.filter(user=user2).first().name, "vs. first_user #1")
+		self.assertEquals(Game_User.objects.filter(user=user2).first().team, 2)
 
 		self.assertEquals(len(Unit.objects.filter(owner=user1, game=None)), 0)
 		self.assertEquals(len(Unit.objects.filter(owner=user2, game=None)), 0)
