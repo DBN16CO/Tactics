@@ -178,7 +178,7 @@ def updateValidAction(game, unit_dict, target_dict=None):
 						- "HP" if a target was specified, which is the new HP for this unit after the action
 
 	:type target_dict: Dictionary
-	:param target_dict: Necessary components to describe the targeted unit, 
+	:param target_dict: Necessary components to describe the targeted unit,
 						should have "Unit" and "HP" keys which act the same as those in the unit_dict
 
 	:rtype: Boolean
@@ -281,7 +281,7 @@ def validateMove(unit, game, user, newX, newY):
 				continue
 			# Ally, do not check that this is end token, cannot end here
 			else:
-				if x == newX and y == newY:	
+				if x == newX and y == newY:
 					error = "Location ({},{}) occupied by an ally. Can move through, but not to, that token.".format(x, y)
 					return {"Error":error}
 		# Not currently occupied
@@ -311,7 +311,7 @@ def validateMove(unit, game, user, newX, newY):
 				next_ter_shortname = map_data[deltX][deltY]["Terrain"]
 				move_cost = move_data[next_ter_shortname][class_name]
 				rem_mvmt = token["Remaining"] - move_cost
-				
+
 				# If the unit can move to this location
 				if rem_mvmt >= 0:
 					valid_move_queue.append({"X":deltX,"Y":deltY,"Remaining":rem_mvmt})
