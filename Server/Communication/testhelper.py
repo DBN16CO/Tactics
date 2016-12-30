@@ -148,6 +148,47 @@ class TestHelper(ChannelTestCase):
 
 		return Game_User.objects.filter(user=Users.objects.filter(username=credentials1["username"])).first().game != None
 
+	def createUsersAndPlaceUnits(self, credentials1, team1, credentials2, team2):
+		self.assertTrue(self.createUsersAndMatch(credentials1, team1, credentials2, team2))
+		game_users = Game_User.objects.filter()
+		if game_users.first().user.username == credentials1["username"]:
+			game_user_1 = game_users.first()
+			game_user_2 = game_users.last()
+		else:
+			game_user_2 = game_users.first()
+			game_user_1 = game_users.last()
+
+		# Valid Team 1 Placement - across top of map
+		placed_team_1 = []
+		counter = 0
+		for class_name in json.loads(team1):
+			placed_team_1.append({"Name":str(class_name),"X":counter,"Y":0})
+			counter += 1
+
+		# Valid Team 2 Placement - across bottom of map
+		placed_team_2 = []
+		counter = 0
+		for class_name in json.loads(team2):
+			placed_team_2.append({"Name":str(class_name),"X":counter,"Y":15})
+			counter += 1
+
+		command1 = '{"Command":"PU","Game":"'+game_user_1.name+'","Units":'+str(placed_team_1)+'}'
+		self.send(command1.replace("'", '"'),1)
+		response = json.loads(self.receive(1))
+		self.assertTrue(response["Success"])
+		command2 = '{"Command":"PU","Game":"'+game_user_2.name+'","Units":'+str(placed_team_2)+'}'
+		self.send(command2.replace("'", '"'),2)
+		response = json.loads(self.receive(2))
+		self.assertTrue(response["Success"])
+
+		logging.debug("Printing information about the units created for this test:")
+		units = Unit.objects.filter()
+		for unit in units:
+			logging.debug("Unit: X: %d\t Y: %d\t ID: %d\t Name: %s\t Owner: %s", unit.x_pos, unit.y_pos,
+				unit.pk, unit.unit_class.name, unit.owner.username)
+
+		return game_users
+
 	@staticmethod
 	def initStaticData(version_name):
 		"""

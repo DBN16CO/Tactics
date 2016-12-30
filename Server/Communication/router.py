@@ -51,6 +51,8 @@ def processRequest(message):
 					+-------+------------------+---------+--------------------+--------------------------------+
 					| ST    | Set Team         | Game    | setTeam            | set_team_valid_input           |
 					+-------+------------------+---------+--------------------+--------------------------------+
+					| TA    | Take Action      | Game    | takeAction         | take_action_valid_move_success |
+					+-------+------------------+---------+--------------------+--------------------------------+
 
 					Notes about table above:\n
 					- To find the documentation on the command, go to ../<App>/routehelper.<Method Name>\n
@@ -125,7 +127,7 @@ def processRequest(message):
 		logging.debug("Adding channel name to JSON: " + data['channel_name'])
 
 	# If the command is one of the following, it will also need to ensure that the map version is initialized
-	commands_needing_map_data = ["PU"]
+	commands_needing_map_data = ["PU","TA"]
 	if cmd in commands_needing_map_data:
 		version_name = Version.objects.latest('pk').name
 		if not version_name in Game.maphelper.maps:
@@ -142,16 +144,16 @@ def processRequest(message):
 			  "PU":Game.routegamehelper.placeUnits,
 			  "QGU":Game.routegamehelper.queryGamesUser,
 			  "ST":Game.routeunithelper.setTeam,
-	#		  "TA":Game.routeunithelper.takeAction,
-	#		  "UC":Game.routeunithelper.unitCreation,
+			  "TA":Game.routeunithelper.takeAction,
 	}
 	
 	try:
 		response = commands[cmd](data)
 	except Exception, e:
 		logging.error("Failed to execute command " + str(cmd))
+		logging.debug(data)
 		logging.exception(e)
-		response = {"Success": False, "Error": "Internal Server Error"}
+		response = {"Success": False, "Error": "Internal Server Error."}
 
 	# If the requested command was to create a new user or login to an existing user, set the channel session
 	if "Success" in response and response['Success'] and (cmd == 'LGN' or cmd == 'CU'):

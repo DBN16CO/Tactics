@@ -12,43 +12,7 @@ from Game.models import Game, Game_User, Unit
 from Static.models import Action, Class, Stat, Unit_Stat, Version
 from User.models import Users
 import Game.maphelper
-import validation
 
-"""
-INCOMPLETE - if not implemented when issue 34 is resolved, should be deleted
-def takeAction(unitId, action, newX, newY, target):
-	# Get the unit based on the ID provided
-	unit = Unit.objects.get(pk=unitId)
-	action_name = Action.objects.get(pk=action)
-
-	# Ensure the unit is in a game
-	if unit.game == None:
-		logging.error("The specified unit (ID=" + str(unit.id) + ") is not in a game, trying to take an action.")
-		return None
-
-	# Get the game object
-	game = Game.objects.get(pk=unit.game)
-
-	# Validate the move
-	if validateMove(unit, game, newX, newY) == False:
-		return False
-
-	# If the move was validated, make the move
-	unit.prev_x = unit.x_pos
-	unit.prev_y = unit.y_pos
-	unit.x_pos  = newX
-	unit.y_pos  = newY
-
-	# Next, validate the action specified
-	action_options={"Attack":validation.attack,
-					"Heal":validation.heal,
-					"Wait":validation.wait}
-
-	# Lastly, save the result
-	unit.save()
-
-	return unit
-"""
 def placeUnits(game_user, units, user, version):
 	"""
 	Validates that the units provided can be placed at their desired location.
@@ -177,5 +141,181 @@ def setTeam(leader_ability, perks, units, username, version):
 
 	return err_msg
 
-def validateMove(unit, game, newX, newY):
+def calculateAttack(game, unit_dict, target):
+
+	# Create the response object
+	response = {}
+	response["Unit"] = unit_dict
+	response["Unit"]["ID"] = response["Unit"]["Unit"].id
+	response["Unit"].pop("Unit", None)
+	response["Target"] = {"ID":target.id}
+
+	return response
+
+def calculateHeal(game, unit_dict, target):
+
+	# Create the response object
+	response = {}
+	response["Unit"] = unit_dict
+	response["Unit"]["ID"] = response["Unit"]["Unit"].id
+	response["Unit"].pop("Unit", None)
+	response["Target"] = {"ID":target.id}
+
+	return response
+
+def saveActionResults(game, unit_dict, target_dict=None):
+	"""
+	Updates the game with the provided action
+
+	:type game: Game object
+	:param game: The game being updated
+
+	:type unit_dict: Dictionary
+	:param unit_dict: Necessary components to describe the updated unit, should contain:\n
+						- "Unit" which is the unit object\n
+						- "NewX" which is the X coordinate to which the unit is moving\n
+						- "NewY" which is the Y coordinate to which the unit is moving\n
+						- "HP" if a target was specified, which is the new HP for this unit after the action
+
+	:type target_dict: Dictionary
+	:param target_dict: Necessary components to describe the targeted unit,
+						should have "Unit" and "HP" keys which act the same as those in the unit_dict
+
+	:rtype: Boolean
+	:return: True if the update was successful, False otherwise
+	"""
+	unit = unit_dict["Unit"]
+	unit.x_pos = unit_dict["NewX"]
+	unit.y_pos = unit_dict["NewY"]
+
+	if target_dict == None:
+		unit.save()
+		return True
+
+	# Target not yet implemented
 	return False
+
+def validateMove(unit, game, user, newX, newY):
+	"""
+	Using a modified BFS algorithm, ensures that the specified movement is a valid location for the specified unit
+
+	:type unit: Unit object
+	:param unit: The unit being moved
+
+	:type game: Game object
+	:param game: The game in which the unit exists
+
+	:type user: User object
+	:param user: The owner of the unit being moved
+
+	:type newX: Integer
+	:param newX: The X coordinate to which the unit is moving
+
+	:type newY: Integer
+	:param newY: The Y coordinate to which the unit is moving
+
+	:rtype: Boolean
+	:return: True if the movement is valid, false otherwise.
+	"""
+	unit_locations = {}
+	other_units = Unit.objects.filter(game=game).exclude(pk=unit.pk)
+	for unt in other_units:
+		x = unt.x_pos
+		y = unt.y_pos
+
+		if not x in unit_locations:
+			unit_locations[x] = {}
+
+		if not y in unit_locations[x]:
+			if unt.owner.pk == user.pk:
+				unit_locations[x][y] = "Ally"
+			else:
+				unit_locations[x][y] = "Enemy"
+		else:
+			error = "Internal Error: Two units located on same token ({},{}).".format(x, y)
+			return {"Error":error}
+	logging.debug("Unit Locations %s", unit_locations)
+
+	# Determine how far this unit can move
+	version = game.version
+	move_range = Unit_Stat.objects.filter(unit=unit.unit_class, version=version, stat=Stat.objects.filter(version=version, name="Move").first()).first().value
+	logging.debug("Attempting to move %s from location (%d,%d) to location (%d,%d).", unit.unit_class.name, unit.x_pos, unit.y_pos, newX, newY)
+
+	# Helper variables for next section of code
+	map_data = Game.maphelper.maps[version.name][game.map_path.name]
+	move_data = Game.maphelper.movement_dict
+	class_name = unit.unit_class.name
+
+	# Using BFS: Create a queue of valid tokens, if the queue is ever empty, the movement target was invalid
+	# Requirements to add to the queue:
+	# - Not occupied by enemy
+	# - Adjacent token is valid on map
+	# - Adjacent token can be moved to (remaining movement minus cost to move to adjacent)
+	# - Token has not already been checked
+	# May exit the queue early (With success) if the following are ALL met:
+	# - Not occupied by ally
+	# - Current X,Y equals target X,Y
+	# Uses:
+	# valid_move_queue - List of tokens to check in queue, has the X, Y, and the remaining movement range
+	# checked_tokens_dict - Dictionary of checked tokens, to ensure the same token is not checked twice
+	valid_move_queue = [{"X":unit.x_pos, "Y":unit.y_pos, "Remaining":move_range}]
+	checked_tokens_dict = {unit.x_pos:{unit.y_pos:True}}
+	while len(valid_move_queue) > 0:
+		# Get next list element and prepare for processing
+		token = valid_move_queue.pop(0)
+		x = token["X"]
+		y = token["Y"]
+		logging.debug("Checking location (%d,%d).", x, y)
+
+		# Ensure this token is not already occupied, if occupied by:
+		if x in unit_locations and y in unit_locations[x]:
+			# Enemy, skip token, cannot move here or through
+			if unit_locations[x][y] == "Enemy":
+				# If this is the target location, can fail early, cannot move to unit location
+				if x == newX and y == newY:
+					error = "Location ({},{}) occupied by an enemy. Cannot move to that token.".format(x, y)
+					return {"Error":error}
+
+				# Otherwise, just continue to the next token
+				logging.debug("Location (%d,%d) occupied by enemy unit, skipping.", x, y)
+				continue
+			# Ally, do not check that this is end token, cannot end here
+			else:
+				if x == newX and y == newY:
+					error = "Location ({},{}) occupied by an ally. Can move through, but not to, that token.".format(x, y)
+					return {"Error":error}
+		# Not currently occupied
+		else:
+			# Is this the target token
+			if x == newX and y == newY:
+				logging.debug("SUCCESS! Can move to (%d,%d).", x, y)
+				return {"Success":True}
+
+		# Calculate if the unit can move to adjacent tokens, and if so add to queue,
+		# The four sets are for North, South, East, and West of the token, in that order
+		for dX,dY in [(0,-1),(0,1),(1,0),(-1,0)]:
+			deltX = x + dX
+			deltY = y + dY
+
+			# Ensure this token has not already been processed, and prevent this for future tokens
+			if not deltX in checked_tokens_dict:
+				checked_tokens_dict[deltX] = {}
+
+			if deltY in checked_tokens_dict[deltX]:
+				continue
+
+			checked_tokens_dict[deltX][deltY] = True
+
+			# If this new token is on the map
+			if deltX in map_data and deltY in map_data[deltX]:
+				next_ter_shortname = map_data[deltX][deltY]["Terrain"]
+				move_cost = move_data[next_ter_shortname][class_name]
+				rem_mvmt = token["Remaining"] - move_cost
+
+				# If the unit can move to this location
+				if rem_mvmt >= 0:
+					valid_move_queue.append({"X":deltX,"Y":deltY,"Remaining":rem_mvmt})
+
+	# If exited the while loop, target token was not found
+	error = "Target location ({},{}) was out of reach for {} at location ({},{}).".format(newX, newY, class_name, unit.x_pos, unit.y_pos)
+	return {"Error":error}
