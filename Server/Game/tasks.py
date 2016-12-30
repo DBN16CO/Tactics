@@ -32,7 +32,7 @@ def processMatchmakingQueue():
         # Get the latest version to use for creating games
         version = Version.objects.latest('pk')
 
-        # If there isn't at least 2 players in the queue then exit
+        # If there aren't at least 2 players in the queue then exit
         if len(queue) < 2:
             logger.debug("Not enough people in the queue to match...Exiting")
             return
