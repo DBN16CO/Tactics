@@ -68,7 +68,7 @@ def processMatchmakingQueue():
             logger.info(str(second_player.user.username) + " will take the first turn")
             player_turn = second_player.user
 
-        maps = Map.objects
+        maps = Map.objects.filter()
 
         # Randomly choose a map for the game
         index = random.randint(0, maps.count() - 1)
@@ -103,11 +103,7 @@ def processMatchmakingQueue():
         logging.debug("Updating each player's unit entries")
 
         # Update each player's units
-        for unit in Unit.objects.filter(owner=first_player.user, game=None):
-            unit.game = game
-            unit.save()
-
-        for unit in Unit.objects.filter(owner=second_player.user, game=None):
+        for unit in Unit.objects.filter(owner__in=[first_player.user, second_player.user], game=None):
             unit.game = game
             unit.save()
 
