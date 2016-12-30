@@ -691,7 +691,7 @@ class TestUnit(TestCase):
 		newY = 0
 		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY}
 
-		# Moving south one spot
+		# Moving through an ally unit
 		valid_move_command = copy.deepcopy(valid_wait_command)
 		self.channel.send(json.dumps(valid_move_command))
 		result = json.loads(self.channel.receive())
