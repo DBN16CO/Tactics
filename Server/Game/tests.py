@@ -719,7 +719,7 @@ class TestUnit(TestCase):
 		unit = Unit.objects.filter(x_pos=0, y_pos=0).first()	# Get flier in location 0,0
 		newX = 8
 		newY = 0
-		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":1, "X":newX,"Y":newY}
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY}
 
 		# Call take action before the opponent has placed their units
 		self.channel.send(json.dumps(valid_wait_command))
