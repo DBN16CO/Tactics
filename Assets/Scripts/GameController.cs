@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-//using System;
-//using System.Collections;
 using System.Collections.Generic;
 
 
@@ -56,8 +54,6 @@ public class GameController : MonoBehaviour {
 		// Block for testing -------------------------------------------
 		// Set startup variables
 		TestStartup();
-		// Prereq server variables and functions
-		TestServer();
 		// For any gameplay vars and functions
 		TestGamePlay();
 		// End testing block -------------------------------------------
@@ -228,26 +224,6 @@ public class GameController : MonoBehaviour {
 		//PlayerPrefs.DeleteAll();
 		//PlayerPrefs.DeleteKey("session");
 		//GridAlpha = "33";
-	}
-
-	private void TestServer() {
-		// Start the websocket connection
-		Server.Connect();
-		// Login testUser. If doesn't exist, create user and login
-		if(PlayerPrefs.HasKey("session")) {
-			if(!Server.RetryLogin()) {
-				// You probably cleared your used from the table but kept the session token
-				PlayerPrefs.DeleteKey("session");
-				Debug.Log("deleted old session - restart game");
-			}
-		}else if(!Server.Login("testUser", "tactics")) {
-			Debug.Log("Login failed, creating user...");
-			Server.CreateUser("testUser", "tactics", "tactics@gmail.com");
-			Server.Login("testUser", "tactics");
-		}
-		// Once logged in, get user info and load static data
-		Server.GetUserInfo();
-		Server.InitialLoad();
 	}
 
 	// For testing - gameplay variables and functionality
