@@ -4,35 +4,36 @@ using UnityEngine.SceneManagement;
 
 public class StartupController : MonoBehaviour {
 
-	private string selectedButton;
-	private bool _expanding;
-	private bool _collapsing;
-	private float _t;
+	private string selectedButton;		// Is login or register selected
+	private bool _expanding;			// When register is clicked
+	private bool _collapsing;			// When login is clicked
+	private float _t;					// Arbitrary measure of time
 
+	// References to the transforms of the moving objects
 	private RectTransform _panelRT;
 	private RectTransform _emailRT;
 	private RectTransform _passwordRT;
 	private RectTransform _confirmPasswordRT;
 
+
 	// Runs on app startup - start server connection, login, load game data
 	void Start () {
+		//PlayerPrefs.DeleteKey("session"); // Uncomment this to test from login screen
 		Server.Connect();
-
-		PlayerPrefs.DeleteKey("session"); // Uncomment this to test from login screen
-
+		// If session token works, go to game, otherwise remove token and init login UI
 		if(PlayerPrefs.HasKey("session")) {
 			if(!Server.RetryLogin()) {
-				// Session token doesn't exist in database
 				PlayerPrefs.DeleteKey("session");
-				ShowLoginUI();
+				InitLoginUI();
 			}else{
 				GoToMain();
 			}
 		}else{
-			ShowLoginUI();
+			InitLoginUI();
 		}
 	}
 
+	// Runs every frame, lerps objects if _expanding or _collapsing
 	void Update() {
 		if(_t >= 1f) {
 			_expanding = false;
@@ -53,6 +54,7 @@ public class StartupController : MonoBehaviour {
 		}
 	}
 
+	// Sets vars when login or register is clicked. Public so that it can be called from the scene
 	public void ToggleLoginRegister(string buttonText) {
 		if(selectedButton == "Login" && buttonText == "Register") {
 			selectedButton = "Register";
@@ -67,7 +69,8 @@ public class StartupController : MonoBehaviour {
 		}
 	}
 
-	private void ShowLoginUI() {
+	// Inits vars for login UI
+	private void InitLoginUI() {
 		selectedButton = "Login";
 		_expanding = false;
 		_collapsing = false;
@@ -79,6 +82,7 @@ public class StartupController : MonoBehaviour {
 		_confirmPasswordRT =(RectTransform)GameObject.Find("ConfirmPassword").transform;
 	}
 
+	// Attempt to register or login. If successful, go to game. Public so can be called from scene
 	public void Login() {
 		string username = GameObject.Find("Username").GetComponent<InputField>().text;
 		string password = GameObject.Find("Password").GetComponent<InputField>().text;
@@ -100,19 +104,12 @@ public class StartupController : MonoBehaviour {
 		}
 	}
 
+	// Load game scene
 	private void GoToMain() {
 		Server.GetUserInfo();
 		if(Server.InitialLoad()) {
-			Screen.orientation = ScreenOrientation.LandscapeLeft;
+			Screen.orientation = ScreenOrientation.LandscapeLeft; // Not sure if this works
 			SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
-		}
-	}
-
-	// For dev - to quickly bypass
-	private void TestLogin() {
-		if(!Server.Login("testUser", "tactics")) {
-			Server.CreateUser("testUser", "tactics", "tactics@gmail.com");
-			Server.Login("testUser", "tactics");
 		}
 	}
 
