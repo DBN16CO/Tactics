@@ -94,6 +94,8 @@ public class StartupController : MonoBehaviour {
 				if(!Server.CreateUser(username, password, email)) {
 					return;
 				}
+			}else{
+				return;
 			}
 		}
 		if(Server.Login(username, password)) {
