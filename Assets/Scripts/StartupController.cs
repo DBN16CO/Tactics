@@ -87,20 +87,17 @@ public class StartupController : MonoBehaviour {
 		string username = GameObject.Find("Username").GetComponent<InputField>().text;
 		string password = GameObject.Find("Password").GetComponent<InputField>().text;
 
-		if(selectedButton == "Login") {
-			if(Server.Login(username, password)) {
-				GoToMain();
-			}
-		}else{
+		if(selectedButton == "Register") {
 			string email = GameObject.Find("Email").GetComponent<InputField>().text;
 			string confirmpw = GameObject.Find("ConfirmPassword").GetComponent<InputField>().text;
 			if(string.Equals(password, confirmpw)) {
-				if(Server.CreateUser(username, password, email)) {
-					if(Server.Login(username, password)) {
-						GoToMain();
-					}
+				if(!Server.CreateUser(username, password, email)) {
+					return;
 				}
 			}
+		}
+		if(Server.Login(username, password)) {
+			GoToMain();
 		}
 	}
 
