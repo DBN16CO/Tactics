@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-//using System;
-//using System.Collections;
 using System.Collections.Generic;
 
 
@@ -57,7 +55,7 @@ public class GameController : MonoBehaviour {
 		// Set startup variables
 		TestStartup();
 		// Prereq server variables and functions
-		TestServer();
+		//TestServer();
 		// For any gameplay vars and functions
 		TestGamePlay();
 		// End testing block -------------------------------------------
