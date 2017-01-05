@@ -139,12 +139,7 @@ class TestHelper(ChannelTestCase):
 		self.createUserAndJoinQueue(credentials1, team1, 1)
 		self.createUserAndJoinQueue(credentials2, team2, 2)
 
-		queue = Game_Queue.objects.filter()
-		version = Version.objects.latest('pk')
-		game_users = Game_User.objects
-		maps = Map.objects
-
-		processMatchmakingQueue(queue, version, maps, game_users)
+		processMatchmakingQueue()
 
 		return Game_User.objects.filter(user=Users.objects.filter(username=credentials1["username"])).first().game != None
 
