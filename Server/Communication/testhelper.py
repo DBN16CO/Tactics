@@ -79,7 +79,6 @@ class TestHelper(ChannelTestCase):
 
 		return password
 
-
 	def createTestUser(self, credentials, channel_num=1):
 		"""
 		Creates a user for commands that require a user for the test

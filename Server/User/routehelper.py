@@ -117,6 +117,7 @@ def createUser(data):
 		usr1 = User.userhelper.createUser(username, pw, email)
 	except Exception, e:
 		logging.error("Error occurred while creating user:" + str(e))
+		error = str(e)
 		if "duplicate key value violates " in str(e):
 			if "User_users_username_key" in str(e):
 				error = "That username already exists."
@@ -124,8 +125,6 @@ def createUser(data):
 				error = "That email is already in use."
 			else:
 				error = str(e)
-		else:
-			error = str(e)
 
 		return formJsonResult(error)
 
