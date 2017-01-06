@@ -136,8 +136,8 @@ class TestUser(TestCase):
 		self.assertEquals(result["Error"], "The password does not meet the password requirements: needs to contain at least 1 symbol character.")
 
 		config.PASSWORD_POLICY['Requirements']['Lowercase'][0] = True
-		config.PASSWORD_POLICY['Requirements']['Uppercase'][0] = True
-		config.PASSWORD_POLICY['Requirements']['Number'][0] = True
+		config.PASSWORD_POLICY['Requirements']['Uppercase'][0] = False
+		config.PASSWORD_POLICY['Requirements']['Number'][0] = False
 		config.PASSWORD_POLICY['Requirements']['Symbol'][0] = False
 
 		endTestLog("test07_password_policy_failures")
