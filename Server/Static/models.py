@@ -26,6 +26,7 @@ class Action(models.Model):
 
 class Class(models.Model):	
 	name         = models.CharField(max_length=16)
+	attack_type  = models.CharField(max_length=25)   # Physical or Magical?
 	description  = models.CharField(max_length=100)
 	price        = models.IntegerField(default=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)

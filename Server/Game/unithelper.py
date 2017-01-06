@@ -141,31 +141,86 @@ def setTeam(leader_ability, perks, units, username, version):
 
 	return err_msg
 
-def calculateAttack(game, unit_dict, target):
+def calculateActionResult(action, game, unit_dict, target):
+	version = game.version
+	clss = unit_dict["Unit"].unit_class
+	tgt_clss = target.unit_class
+	hp = Stat.objects.filter(name="HP", version=version).first()
+
+	# Get attack range
+	attack_range_stat = Stat.objects.filter(name="Attack Range", version=version)
+	atk_rng = Unit_Stat.objects.filter(stat=attack_range_stat, unit=clss,
+		version=version)
+
+	# Is the target close enough?
+	distance = abs(unit_dict["NewX"] - target.x_pos) + abs(unit_dict["NewY"] - target.y_pos)
+	if distance > atk_rng:
+		return {"Error":"Must be within {} range.  Target is {} away.".format(atk_rng, distance)}
+
+	# Set the previous HP for each unit
+	tgt_prev_hp = target.hp_remaining
+	unit_prev_hp = unit_dict["Unit"].hp_remaining
+
+	# Get stat objects
+	agility = Stat.objects.filter(name="Agility", version=version).first()
+	intel = Stat.objects.filter(name="Intelligence", version=version).first()
+	strength = Stat.objects.filter(name="Strength", version=version).first()
+	luck = Stat.objects.filter(name="Luck", version=version).first()
+	defense = Stat.objects.filter(name="Defense", version=version).first()
+	resist = Stat.objects.filter(name="Resistance", version=version).first()
+
+	# Determine attack or heal amount and the amount prevented by the target TODO
+	attackType = clss.attack_type
+	if attackType == "Physical":
+		amount = Unit_Stat.objects.filter(stat=strength, unit=clss, version=version).first().value
+		prevent = Unit_Stat.objects.filter(stat=defense, unit=tgt_clss, version=version).first().value
+	elif attackType == "Magical":
+		amount = Unit_Stat.objects.filter(stat=intel, unit=clss, version=version).first().value
+		prevent = Unit_Stat.objects.filter(stat=resist, unit=tgt_clss, version=version).first().value
+
+	# Process unit's action upon target
+	if action == "Attack":
+		if unit_dict["Unit"].owner == target.owner:
+			return {"Error":"Cannot attack your own units!"}
+
+		# Check for a critical hit
+		logging.debug("TODO: Determine crit.  SKIPPED")
+
+		# Calculate result
+		tgt_hp_left = max(0, tgt_prev_hp - (amount - prevent))
+
+		# Determine if there will be a counter attack
+		logging.debug("TODO: Determine counter attack.  SKIPPED")
+		unit_hp_left = unit_prev_hp
+
+	elif action == "Heal":
+		multiplier = 1
+		if unit_dict["Unit"].owner != target.owner:
+			return {"Error":"Cannot heal the enemy units!"}
+
+		# Ensure the target is not already at full health
+		tgt_hp_max = Unit_Stat.objects.filter(stat=hp, unit=tgt_clss, version=version)
+		if tgt_hp_max == tgt_prev_hp:
+			return {"Error":"Target already has full Health."}
+
+		tgt_hp_left = min(tgt_hp_max, tgt_prev_hp + (amount - prevent))
 
 	# Create the response object
 	response = {}
 	response["Unit"] = unit_dict
 	response["Unit"]["ID"] = response["Unit"]["Unit"].id
-	response["Unit"].pop("Unit", None)
-	response["Target"] = {"ID":target.id}
+	response["Unit"]["HP"] = unit_prev_hp
+	response["Unit"]["NewHP"] = unit_hp_left
+	response["Target"] = {"Unit":target,"ID":target.id, "HP":tgt_prev_hp, "NewHP":tgt_hp_left}
 
 	return response
 
-def calculateHeal(game, unit_dict, target):
-
-	# Create the response object
-	response = {}
-	response["Unit"] = unit_dict
-	response["Unit"]["ID"] = response["Unit"]["Unit"].id
-	response["Unit"].pop("Unit", None)
-	response["Target"] = {"ID":target.id}
-
-	return response
-
-def saveActionResults(game, unit_dict, target_dict=None):
+def saveActionResults(action, game, unit_dict, target_dict=None):
 	"""
 	Updates the game with the provided action
+
+	:type action: Action object
+	:param action: The action taken
 
 	:type game: Game object
 	:param game: The game being updated
@@ -175,7 +230,8 @@ def saveActionResults(game, unit_dict, target_dict=None):
 						- "Unit" which is the unit object\n
 						- "NewX" which is the X coordinate to which the unit is moving\n
 						- "NewY" which is the Y coordinate to which the unit is moving\n
-						- "HP" if a target was specified, which is the new HP for this unit after the action
+						- "HP" if a target was specified, which is the old HP for this unit before the action
+						- "NewHP" if a target was specified, which is the new HP for this unit after the action
 
 	:type target_dict: Dictionary
 	:param target_dict: Necessary components to describe the targeted unit,
@@ -185,15 +241,35 @@ def saveActionResults(game, unit_dict, target_dict=None):
 	:return: True if the update was successful, False otherwise
 	"""
 	unit = unit_dict["Unit"]
+	unit.prev_x = unit.x_pos
+	unit.prev_y = unit.y_pos
+	unit.prev_action = action
 	unit.x_pos = unit_dict["NewX"]
 	unit.y_pos = unit_dict["NewY"]
 
+	# If there is not target
 	if target_dict == None:
+		unit.prev_target = None
 		unit.save()
 		return True
 
-	# Target not yet implemented
-	return False
+	# Information specific to having a target
+	unit.prev_target = target_dict["Unit"]
+	unit.prev_hp = unit_dict["HP"]
+	unit.hp_remaining = unit_dict["NewHP"]
+
+	target = target_dict["Unit"]
+	target.prev_hp = target_dict["HP"]
+	target.hp_remaining = target_dict["NewHP"]
+
+	# Save the result
+	unit.save()
+	target.save()
+
+	# Reload the units and ensure the data was saved
+	#TODO
+
+	return True
 
 def validateMove(unit, game, user, newX, newY):
 	"""

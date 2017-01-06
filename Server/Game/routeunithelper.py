@@ -152,16 +152,19 @@ def takeAction(data):
 				 	"Success":True\n
 				 	"Unit"{\n
 						"ID":1,\n
-						"HP":10\n
+						"HP":10,\n
+						"NewHP":10\n
 				 	},\n
 				 	"Target":{\n
 						"ID":9,\n
-						"HP":0\n
+						"HP":10,\n
+						"NewHP":0\n
 				 	}\n
 				 }\n
 				 Notes:\n
 				 	- The "Target" object could be omitted if the action did not involve a target.\n
 				 	- The HP for the unit could be omitted if the action is "Wait" or "Heal"\n
+				 	- The HP is the previous HP
 				 If Unsuccessful:\n
 				 	{"Successful":False,\n
 				 	 "Error":"You did not provide the necessary information."}\n
@@ -225,36 +228,37 @@ def takeAction(data):
 
 	# If the unit is just moving for their action
 	if action.name == "Wait":
-		if not Game.unithelper.saveActionResults(game_usr.game, unit_dict):
+		if not Game.unithelper.saveActionResults(action, game_usr.game, unit_dict):
 			return formJsonResult("There was a problem executing the action.", data)
 		action_result = {}
 		action_result["Unit"] = unit_dict
 		action_result["Unit"]["ID"] = action_result["Unit"]["Unit"].id
-		action_result["Unit"].pop("Unit", None)
 
 	# If the action is one that requires a target
 	else:
 		# Determine the target
 		if not "Target" in data:
 			return formJsonResult("Internal Error: Target Key missing.", data)
-		target_id   = data["Target"]
+		target_id = data["Target"]
+		if target_id == unit_id:
+			return formJsonResult("Cannot target self.", data)
 		target = Unit.objects.filter(pk=target_id, game=game_usr.game).first()
 		if target == None:
 			return formJsonResult("Internal Error: Specified target ID not in game.", data)
 
 		# Process attacking and healing
-		if action.name == "Attack":
-			action_result = Game.unithelper.calculateAttack(game_usr.game, unit_dict, target)
-		elif action.name == "Heal":
-			action_result = Game.unithelper.calculateHeal(game_usr.game, unit_dict,  target)
-
+		action_result = Game.unithelper.calculateActionResult(action.name, game_usr.game, unit_dict, target)
+		
 		if "Error" in action_result:
 			return formJsonResult(action_result["Error"], data)
 
-		if not Game.unithelper.saveActionResults(game_usr.game, action_result["Unit"], action_result["Target"]):
+		if not Game.unithelper.saveActionResults(action, game_usr.game, action_result["Unit"], action_result["Target"]):
 			return formJsonResult("There was a problem targeting that unit.", data)
 
+		action_result["Target"].pop("Unit", None)
+
 	# Prepare the response
+	action_result["Unit"].pop("Unit", None)
 	response = formJsonResult("")
 
 	# The unit response

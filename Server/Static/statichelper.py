@@ -72,6 +72,7 @@ def getClassData(version):
 	:return: Returns a dictionary of the following form:\n
 			 {\n
 			 	"Archer":    {\n
+			 		"AttackType":<Magical, Physical, Heal>,\n
 					"Description":"Ranged unit with low armor.  Good at defeating Fliers.",\n
 					"Stats": {\n
 						"HP":10.0, "Move": 6.0, "Agility": 8.5, "Intelligence": 4.0, "Strength": 7.0, "Luck": 7.0,\n
@@ -94,6 +95,7 @@ def getClassData(version):
 	# Add the name and descrption to the dictionary
 	for clss in all_ver_classes:
 		class_dict[clss.name] = {}
+		class_dict[clss.name]["AttackType"]  = clss.attack_type
 		class_dict[clss.name]["Description"] = clss.description
 		class_dict[clss.name]["Price"]       = clss.price
 

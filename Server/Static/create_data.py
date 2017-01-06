@@ -87,7 +87,8 @@ def setup_static_db(version):
 	# Save the class data
 	logging.info("Creating Class objects...")
 	for clss in data["Classes"].keys():
-		clss_inst = Class(name=clss, description=data["Classes"][clss]["Description"], 
+		clss_inst = Class(name=clss, attack_type=data["Classes"][clss]["AttackType"],
+			description=data["Classes"][clss]["Description"], 
 			price=data["Classes"][clss]["Price"], version=ver)
 		clss_inst.save()
 
@@ -141,9 +142,10 @@ def ver_1_0_static_data():
 	# Class Data
 	data["Classes"] = {
 		"Archer":    {
-			"Description":"Ranged unit with low armor.  Good at defeating Fliers.", 
+			"AttackType":"Physical",
+			"Description":"Ranged unit with low armor.  Good at defeating Fliers.",
 			"Stats": {
-				"HP":10.0, "Move": 6.0, "Agility": 8.5, "Intelligence": 4.0, "Strength": 7.0, "Luck": 7.0, "Attack Range":2,
+				"HP":10.0, "Move": 6.0, "Agility": 8.5, "Intelligence": 4.0, "Strength": 7.0, "Luck": 7.0, "Defense":3, "Resistance":6, "Attack Range":2,
 			},
 			"Terrain": {
 				"G": 1.0, "F": 2.0, "W":99.0, "M": 4.0, "R": 1.0,
@@ -151,9 +153,10 @@ def ver_1_0_static_data():
 			"Price":150,
 		},
 		"Swordsman": {
-			"Description":"Standard melee unit with average stats.", 
+			"AttackType":"Physical",
+			"Description":"Standard melee unit with average stats.",
 			"Stats": {
-				"HP":15.0, "Move": 5.0, "Agility": 6.0, "Intelligence": 3.0, "Strength": 6.0, "Luck": 5.0, "Attack Range":1,
+				"HP":15.0, "Move": 5.0, "Agility": 6.0, "Intelligence": 3.0, "Strength": 6.0, "Luck": 5.0, "Defense":5, "Resistance":4, "Attack Range":1,
 			},
 			"Terrain": {
 				"G": 1.0, "F": 3.0, "W":99.0, "M": 4.0, "R": 1.0,
@@ -161,19 +164,32 @@ def ver_1_0_static_data():
 			"Price":100,
 		},
 		"Mage":      {
-			"Description":"Magical ranged attacker with low defense.  Good at defeating armored units.", 
+			"AttackType":"Magical",
+			"Description":"Magical ranged attacker with low defense.  Good at defeating armored units.",
 			"Stats": {
-				"HP":10.0, "Move": 5.0, "Agility": 5.0, "Intelligence":10.5, "Strength": 1.0, "Luck": 7.0, "Attack Range":2,
+				"HP":10.0, "Move": 5.0, "Agility": 5.0, "Intelligence":10.5, "Strength": 1.0, "Luck": 7.0, "Defense":2, "Resistance":8, "Attack Range":2,
 			},
 			"Terrain": {
 				"G": 1.0, "F": 2.0, "W":99.0, "M": 3.0, "R": 1.0,
 			},
 			"Price":150,
 		},
-		"Rogue":     {
-			"Description":"Fast evasive melee unit.  Has low defense but high attack potential.", 
+		"Cleric":      {
+			"AttackType":"Magical",
+			"Description":"Magical ranged healing unit with low defense.  Restores weak units so they can return to battle.",
 			"Stats": {
-				"HP":10.0, "Move": 6.0, "Agility":10.5, "Intelligence": 4.0, "Strength": 3.0, "Luck":11.0, "Attack Range":1,
+				"HP":5.0, "Move": 5.0, "Agility": 5.0, "Intelligence":10, "Strength": 1.0, "Luck": 5.0, "Defense":2, "Resistance":9, "Attack Range":2,
+			},
+			"Terrain": {
+				"G": 1.0, "F": 2.0, "W":99.0, "M": 3.0, "R": 1.0,
+			},
+			"Price":200,
+		},
+		"Rogue":     {
+			"AttackType":"Physical",
+			"Description":"Fast evasive melee unit.  Has low defense but high attack potential.",
+			"Stats": {
+				"HP":10.0, "Move": 6.0, "Agility":10.5, "Intelligence": 4.0, "Strength": 3.0, "Luck":11.0, "Defense":4, "Resistance":7, "Attack Range":1,
 			},
 			"Terrain": {
 				"G": 1.0, "F": 1.0, "W":99.0, "M": 2.0, "R": 0.5,
@@ -181,9 +197,10 @@ def ver_1_0_static_data():
 			"Price":200,
 		},
 		"Armor":     {
-			"Description":"Melee unit with very high physical defense, but low magical resistance.", 
+			"AttackType":"Physical",
+			"Description":"Melee unit with very high physical defense, but low magical resistance.",
 			"Stats": {
-				"HP":20.5, "Move": 4.0, "Agility": 3.0, "Intelligence": 1.0, "Strength": 8.0, "Luck": 2.0, "Attack Range":1,
+				"HP":20.5, "Move": 4.0, "Agility": 3.0, "Intelligence": 1.0, "Strength": 8.0, "Luck": 2.0, "Defense":8, "Resistance":1, "Attack Range":1,
 			},
 			"Terrain": {
 				"G": 1.0, "F": 3.0, "W":99.0, "M":99.0, "R": 1.0,
@@ -191,9 +208,10 @@ def ver_1_0_static_data():
 			"Price":300,
 		},
 		"Horseman":  {
-			"Description":"Mounted melee unit with high mobility.", 
+			"AttackType":"Physical",
+			"Description":"Mounted melee unit with high mobility.",
 			"Stats": {
-				"HP":20.0, "Move": 7.0, "Agility": 8.0, "Intelligence": 3.0, "Strength": 6.0, "Luck": 6.0, "Attack Range":1,
+				"HP":20.0, "Move": 7.0, "Agility": 8.0, "Intelligence": 3.0, "Strength": 6.0, "Luck": 6.0, "Defense":5, "Resistance":4, "Attack Range":1,
 			},
 			"Terrain": {
 				"G": 1.0, "F": 3.0, "W":99.0, "M":99.0, "R": 0.5,
@@ -201,9 +219,10 @@ def ver_1_0_static_data():
 			"Price":250,
 		},
 		"Flier":     {
+			"AttackType":"Physical",
 			"Description":"Flying melee unit, can move over any tile.  Low defense, especially to archers.",
 			"Stats": {
-				"HP":10.0, "Move": 8.0, "Agility": 8.0, "Intelligence": 5.0, "Strength": 4.0, "Luck": 8.0, "Attack Range":1,
+				"HP":10.0, "Move": 8.0, "Agility": 8.0, "Intelligence": 5.0, "Strength": 4.0, "Luck": 8.0, "Defense":3, "Resistance":6, "Attack Range":1,
 			},
 			"Terrain": {
 				"G": 1.0, "F": 1.0, "W": 1.0, "M": 1.0, "R": 1.0,
@@ -275,8 +294,14 @@ def ver_1_0_static_data():
 		"Luck":         {
 			"Description":"How likely the unit is to deal critical damage.",
 		},
-		"Attack Range":         {
+		"Attack Range": {
 			"Description":"The maximum distance at which the unit can hit a target.",
+		},
+		"Defense":      {
+			"Description":"The unit's ability to prevent physical damage.",
+		},
+		"Resistance":   {
+			"Description":"The unit's ability to prevent magical damage.",
 		},
 	}
 
