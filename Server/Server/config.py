@@ -1,4 +1,5 @@
 import logging
+import string
 
 # Log Level
 DEFAULT_LOG_LEVEL = logging.DEBUG
@@ -8,6 +9,17 @@ LOGIN_TOKEN_EXPIRATION = 14
 
 # How often celery workers execute the matchmaking logic (in seconds)
 GAME_QUEUE_PROCESS_INTERVAL = 5
+
+PASSWORD_POLICY = {
+	'Min Length': 7,
+	'Max Length': 100,
+	'Requirements': {
+		'Lowercase': [True, list(string.ascii_lowercase)],
+		'Uppercase': [True, list(string.ascii_uppercase)],
+		'Number': [True, [str(num) for num in range(0, 10)]],
+		'Symbol': [False, ['~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '?', '.', '/', '"', ',']]
+	}
+}
 
 def startup():
 	"""

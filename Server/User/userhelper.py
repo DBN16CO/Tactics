@@ -10,7 +10,7 @@ from passlib.hash import bcrypt
 import logging
 import uuid
 from django.utils import timezone
-from Server.config import LOGIN_TOKEN_EXPIRATION
+from Server.config import LOGIN_TOKEN_EXPIRATION, PASSWORD_POLICY
 
 def encrypt(password):
 	"""
@@ -84,7 +84,31 @@ def generateLoginToken(user):
 
 	return user.token
 
-# Creates a user with the provided values
+def verify_password_with_policy(password):
+	"""
+	Helper function to validate that the password used during registration meets the password policy.
+	Note: If the password violates the policy an exception will be raised.
+
+	:type password: String
+	:param password: The password entered by the user
+	"""
+
+	# Validate password length
+	if len(password) < PASSWORD_POLICY['Min Length']:
+		raise Exception("The password does not meet the minimum password length of " + str(PASSWORD_POLICY['Min Length']) + ' characters.')
+
+	if len(password) > PASSWORD_POLICY['Max Length']:
+		raise Exception("The password does not meet the maximum password length. Passwords may not exceed " + str(PASSWORD_POLICY['Max Length']) + ' characters.')
+
+	# Validate that there is at least 1 character from each of the listed requirements
+	requirements = PASSWORD_POLICY['Requirements']
+	for req in requirements:
+		req_enabled, req_list = requirements[req]
+		if req_enabled:
+			contains = any(s in password for s in req_list)
+			if not contains:
+				raise Exception("The password does not meet the password requirements: needs to contain at least 1 " + str(req).lower() + " character.")
+
 def createUser(username, password, email):
 	"""
 	Creates a user with the provided values
@@ -102,7 +126,8 @@ def createUser(username, password, email):
 	:return: A user object representing the new user
 	"""
 
-	#TODO Create validation for user values
+	# Validate that the password meets the password policy
+	verify_password_with_policy(password)
 	
 	# Encrypt the password
 	encryptPass = encrypt(password)

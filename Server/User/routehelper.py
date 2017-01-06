@@ -111,6 +111,8 @@ def createUser(data):
 				error = "That email is already in use."
 			else:
 				error = str(e)
+		elif "The password does not meet" in str(e):
+			error = str(e)
 
 		response = {"Success": False,
 					"Error": error}

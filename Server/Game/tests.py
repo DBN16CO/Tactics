@@ -61,7 +61,7 @@ class TestUnit(TestCase):
 
 		# Create user and login
 		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"set_team_user","password":"abc12345","email":"setTeam@email.com"}))
+			{"username":"set_team_user","password":self.channel.generateValidPassword(),"email":"setTeam@email.com"}))
 
 		# Setup values
 		version = Version.objects.latest('pk')
@@ -156,7 +156,7 @@ class TestUnit(TestCase):
 
 		# Create user and login
 		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"set_team_user","password":"abc12345","email":"setTeam@email.com"}))
+			{"username":"set_team_user","password":self.channel.generateValidPassword(),"email":"setTeam@email.com"}))
 
 		# Setup values
 		version = Version.objects.latest('pk')
@@ -177,7 +177,7 @@ class TestUnit(TestCase):
 
 		# Create user and login
 		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"set_team_user","password":"abc12345","email":"setTeam@email.com"}))
+			{"username":"set_team_user","password":self.channel.generateValidPassword(),"email":"setTeam@email.com"}))
 
 		# Setup values
 		version = Version.objects.latest('pk')
@@ -206,7 +206,7 @@ class TestUnit(TestCase):
 		# Create user and login
 		username = "set_team_user"
 		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":username,"password":"abc12345","email":"setTeam@email.com"}))
+			{"username":username,"password":self.channel.generateValidPassword(),"email":"setTeam@email.com"}))
 
 		# Call find match
 		self.channel.send('{"Command":"FM"}')
@@ -226,7 +226,7 @@ class TestUnit(TestCase):
 		# Create user and login
 		username = "set_team_user"
 		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":username,"password":"abc12345","email":"setTeam@email.com"}))
+			{"username":username,"password":self.channel.generateValidPassword(),"email":"setTeam@email.com"}))
 
 		# Setup values
 		version = Version.objects.latest('pk')
@@ -255,12 +255,12 @@ class TestUnit(TestCase):
 	def test06_matchmaking_queue_success(self):
 		startTestLog("test06_matchmaking_queue_success")
 
-		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "first_user", "password": "12345", "email": "fplayer@a.com"}, self.helper_golden_path_set_team_units(), 1))
+		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "first_user", "password": self.channel.generateValidPassword(), "email": "fplayer@a.com"}, self.helper_golden_path_set_team_units(), 1))
 		self.assertTrue(Game_Queue.objects.count() == 1)
 
 		user1 = Users.objects.filter(username="first_user").first()
 
-		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "second_user", "password": "12345", "email": "splayer@a.com"}, self.helper_golden_path_set_team_units(), 2))
+		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "second_user", "password": self.channel.generateValidPassword(), "email": "splayer@a.com"}, self.helper_golden_path_set_team_units(), 2))
 		self.assertTrue(Game_Queue.objects.count() == 2)
 
 		user2 = Users.objects.filter(username="second_user").first()
@@ -295,11 +295,11 @@ class TestUnit(TestCase):
 		# Create user and login
 		username = "place_team_u1"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
+			{"username":username,"password":self.channel.generateValidPassword(),"email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
 
 		username2 = "place_unit_u2"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
+			{"username":username2,"password":self.channel.generateValidPassword(),"email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
 		processMatchmakingQueue()
 
@@ -330,11 +330,11 @@ class TestUnit(TestCase):
 		# Create user and login
 		username = "place_team_u1"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
+			{"username":username,"password":self.channel.generateValidPassword(),"email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
 
 		username2 = "place_unit_u2"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
+			{"username":username2,"password":self.channel.generateValidPassword(),"email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
 		# Place units command
 		self.channel.send('{"Command":"PU","Game":"bad_game_name","Units":' + valid_unit_list + '}', 1)
@@ -360,11 +360,11 @@ class TestUnit(TestCase):
 		# Create user and login
 		username = "place_team_u1"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
+			{"username":username,"password":self.channel.generateValidPassword(),"email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
 
 		username2 = "place_unit_u2"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
+			{"username":username2,"password":self.channel.generateValidPassword(),"email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
 		processMatchmakingQueue()
 
@@ -395,12 +395,12 @@ class TestUnit(TestCase):
 		# Create user and login
 		username = "place_team_u1"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username,"password":"abc12345","email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
+			{"username":username,"password":self.channel.generateValidPassword(),"email":"placeUnitsm@email.com"}, self.helper_golden_path_set_team_units()))
 		user1 = Users.objects.filter(username=username).first()
 
 		username2 = "place_unit_u2"
 		self.assertTrue(self.channel.createUserAndJoinQueue(
-			{"username":username2,"password":"abc12345","email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
+			{"username":username2,"password":self.channel.generateValidPassword(),"email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
 		processMatchmakingQueue()
 		game = Game.objects.latest('pk')
@@ -421,8 +421,8 @@ class TestUnit(TestCase):
 	def test11_query_games_user_success(self):
 		startTestLog("test11_query_games_user_success")
 
-		self.assertTrue(self.channel.createUsersAndMatch({"username": "first_user", "password": "12345", "email": "fplayer@a.com"}, 
-			self.helper_golden_path_set_team_units(), {"username": "second_user", "password": "12345", "email": "splayer@a.com"},
+		self.assertTrue(self.channel.createUsersAndMatch({"username": "first_user", "password": self.channel.generateValidPassword(), "email": "fplayer@a.com"}, 
+			self.helper_golden_path_set_team_units(), {"username": "second_user", "password": self.channel.generateValidPassword(), "email": "splayer@a.com"},
 			self.helper_golden_path_set_team_units()))
 		self.channel.send('{"Command":"QGU"}')
 		result = json.loads(self.channel.receive())
@@ -441,8 +441,8 @@ class TestUnit(TestCase):
 		startTestLog("test12_take_action_bad_json")
 
 		# Setup command
-		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
-		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
 		team1 = self.helper_golden_path_set_team_units()
 		team2 = self.helper_golden_path_set_team_units()
 		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
@@ -542,8 +542,8 @@ class TestUnit(TestCase):
 		startTestLog("test13_take_action_invalid_move")
 
 		# Setup command
-		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
-		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
 		team1 = self.helper_golden_path_set_team_units()
 		team2 = self.helper_golden_path_set_team_units()
 		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
@@ -615,8 +615,8 @@ class TestUnit(TestCase):
 		startTestLog("test14_take_action_basic_success")
 
 		# Setup command
-		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
-		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
 		team1 = self.helper_golden_path_set_team_units()
 		team2 = self.helper_golden_path_set_team_units()
 		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
@@ -641,8 +641,8 @@ class TestUnit(TestCase):
 		startTestLog("test15_take_action_valid_move_success")
 
 		# Setup command
-		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
-		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
 		team1 = self.helper_golden_path_set_team_units()
 		team2 = self.helper_golden_path_set_team_units()
 		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
@@ -667,8 +667,8 @@ class TestUnit(TestCase):
 		startTestLog("test16_take_action_valid_move_through_ally_success")
 
 		# Setup command
-		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
-		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
 		team1 = self.helper_golden_path_set_team_units()
 		team2 = self.helper_golden_path_set_team_units()
 		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
@@ -693,8 +693,8 @@ class TestUnit(TestCase):
 		startTestLog("test17_take_action_before_enemy_placement")
 
 		# Setup command
-		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
-		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
 		team1 = self.helper_golden_path_set_team_units()
 		team2 = self.helper_golden_path_set_team_units()
 		self.channel.createUsersAndMatch(credentials1, team1, credentials2, team2)
@@ -720,8 +720,8 @@ class TestUnit(TestCase):
 		startTestLog("test18_take_action_before_placement")
 
 		# Setup command
-		credentials1 = {"username":"first_user","password":"12345","email":"p1@email.com"}
-		credentials2 = {"username":"second_user","password":"12345","email":"p2@email.com"}
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
 		team1 = self.helper_golden_path_set_team_units()
 		team2 = self.helper_golden_path_set_team_units()
 		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)

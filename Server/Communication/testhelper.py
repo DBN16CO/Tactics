@@ -13,6 +13,7 @@ from Game.maphelper import *
 from Static.models import Map
 import Static.create_data
 from Game.tasks import processMatchmakingQueue
+from Server import config
 
 class TestHelper(ChannelTestCase):
 	"""
@@ -60,6 +61,21 @@ class TestHelper(ChannelTestCase):
 
 		result = self.get_next_message(chn.name, require=True)
 		return result.content['text']
+
+	def generateValidPassword(self):
+		password = ''
+
+		requirements = config.PASSWORD_POLICY["Requirements"]
+		for req in requirements:
+			req_enabled, req_list = requirements[req]
+			if req_enabled:
+				password += req_list[0]
+
+		for _ in range(len(password), config.PASSWORD_POLICY['Min Length']):
+			password += 'a'
+
+		return password
+
 
 	def createTestUser(self, credentials, channel_num=1):
 		"""
