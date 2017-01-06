@@ -10,6 +10,8 @@ LOGIN_TOKEN_EXPIRATION = 14
 # How often celery workers execute the matchmaking logic (in seconds)
 GAME_QUEUE_PROCESS_INTERVAL = 5
 
+# Password policy configuration
+# Note: the requirements lists contain a boolean (whether or not to actively require that particular requirement) and also the valid list
 PASSWORD_POLICY = {
 	'Min Length': 7,
 	'Max Length': 100,
