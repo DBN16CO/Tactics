@@ -9,6 +9,7 @@ from User.models import Users
 from passlib.hash import bcrypt
 import logging
 import uuid
+import re
 from django.utils import timezone
 from Server.config import LOGIN_TOKEN_EXPIRATION, PASSWORD_POLICY
 
@@ -109,6 +110,30 @@ def verify_password_with_policy(password):
 			if not contains:
 				raise Exception("The password does not meet the password requirements: needs to contain at least 1 " + str(req).lower() + " character.")
 
+def verify_valid_email(email):
+	"""
+	Helper function to validate a new user's email address.
+	Note: If the email is not valid an exception will be raised.
+
+	:type email: String
+	:param email: The email address entered by the user
+	"""
+
+	if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+		raise Exception("The email address provided is not valid, please try again.")
+
+def verify_valid_username(username):
+	"""
+	Helper function to validate a new user's username.
+	Note: If the username is not valid an exception will be raised
+
+	:type username: String
+	:param username: The username entered by the user
+	"""
+
+	if len(username) > 16:
+		raise Exception("The username provided is too long. The maximum number of characters for a username is 16.")
+
 def createUser(username, password, email):
 	"""
 	Creates a user with the provided values
@@ -129,15 +154,18 @@ def createUser(username, password, email):
 	# Validate that the password meets the password policy
 	verify_password_with_policy(password)
 	
+	# Validate that the email is a valid email address
+	verify_valid_email(email)
+
+	# Validate that the username is valid
+	verify_valid_username(username)
+
 	# Encrypt the password
 	encryptPass = encrypt(password)
-	logging.debug(encryptPass)
 
 	# Create the user
 	newUser = Users(username=username, password=encryptPass, email=email)
 	newUser.save()
-
-	#TODO Logic for verifying email
 	
 	# Return the user
 	return newUser

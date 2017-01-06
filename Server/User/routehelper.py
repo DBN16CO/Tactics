@@ -9,6 +9,7 @@ as well as any other necessary information regarding the command.
 import logging
 import User.userhelper
 from User.models import Users
+from Communication.routehelper import *
 
 def login(data):
 	"""
@@ -93,13 +94,25 @@ def createUser(data):
 				 	- The error message provided should be of an acceptable form such that
 				 	  errors can be directly displayed for the user.
 	"""
+
 	# Parse the necessary JSON values and validate
+	error = None
+
+	if not "username" in data:
+		error = "No username was provided."
+	elif not "pw" in data:
+		error = "No password was provided."
+	elif not "email" in data:
+		error = "No email address was provided."
+
+	if error:
+		return formJsonResult(error)
+
 	username = data["username"]
 	pw		 = data["pw"]
 	email	 = data["email"]
 
 	# Try to add the user to the database
-	error = None
 	try:
 		usr1 = User.userhelper.createUser(username, pw, email)
 	except Exception, e:
@@ -111,12 +124,10 @@ def createUser(data):
 				error = "That email is already in use."
 			else:
 				error = str(e)
-		elif "The password does not meet" in str(e):
+		else:
 			error = str(e)
 
-		response = {"Success": False,
-					"Error": error}
-		return response
+		return formJsonResult(error)
 
 	# Verify that the user was added
 	usr2 = Users.objects.filter(username=username).first()

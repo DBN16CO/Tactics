@@ -20,8 +20,8 @@ class TestUser(TestCase):
 
 		endTestLog("test01_create_user_success")
 
-	def test02_duplicate_username(self):
-		startTestLog("test02_duplicate_username")
+	def test02_create_user_duplicate_username(self):
+		startTestLog("test02_create_user_duplicate_username")
 
 		result = self.channel.createTestUser({"username":"testDupUser1","password":self.channel.generateValidPassword(),"email":"dupUser@a.com"})
 		self.assertTrue(result["Success"])
@@ -30,10 +30,10 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "That username already exists.")
 
-		endTestLog("test02_duplicate_username")
+		endTestLog("test02_create_user_duplicate_username")
 
-	def test03_duplicate_email(self):
-		startTestLog("test03_duplicate_email")
+	def test03_create_user_duplicate_email(self):
+		startTestLog("test03_create_user_duplicate_email")
 
 		result = self.channel.createTestUser({"username":"dupEmailUsr1","password":self.channel.generateValidPassword(),"email":"dupEmail@a.com"})
 		self.assertTrue(result["Success"])
@@ -42,10 +42,54 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "That email is already in use.")
 
-		endTestLog("test03_duplicate_email")
+		endTestLog("test03_create_user_duplicate_email")
 
-	def test04_password_policy_failures(self):
-		startTestLog("test04_password_policy_failures")
+	def test04_create_user_invalid_email_address(self):
+		startTestLog("test04_create_user_invalid_email_address")
+
+		result = self.channel.createTestUser({"username":"invalidEmail","password":self.channel.generateValidPassword(),"email":"invalid"})
+		self.assertFalse(result["Success"])
+		self.assertEquals(result["Error"], "The email address provided is not valid, please try again.")
+
+		endTestLog("test04_create_user_invalid_email_address")
+
+	def test05_create_user_invalid_username(self):
+		startTestLog("test05_create_user_invalid_username")
+
+		result = self.channel.createTestUser({"username":"TooLongOfAUsername","password":self.channel.generateValidPassword(),"email":"t@t.com"})
+		self.assertFalse(result["Success"])
+		self.assertEquals(result["Error"], "The username provided is too long. The maximum number of characters for a username is 16.")
+
+		endTestLog("test05_create_user_invalid_username")
+
+	def test06_create_user_missing_values(self):
+		startTestLog("test06_create_user_missing_values")
+
+		request = {"Command": "CU", "pw":self.channel.generateValidPassword(),"email":"t@t.com"}
+		self.channel.send(json.dumps(request))
+		result = json.loads(self.channel.receive())
+
+		self.assertFalse(result["Success"])
+		self.assertEquals(result["Error"], "No username was provided.")
+
+		request = {"Command": "CU", "username":"dupEmailUsr2", "email":"t@t.com"}
+		self.channel.send(json.dumps(request))
+		result = json.loads(self.channel.receive())
+
+		self.assertFalse(result["Success"])
+		self.assertEquals(result["Error"], "No password was provided.")
+
+		request = {"Command": "CU", "username":"dupEmailUsr2", "pw":self.channel.generateValidPassword()}
+		self.channel.send(json.dumps(request))
+		result = json.loads(self.channel.receive())
+
+		self.assertFalse(result["Success"])
+		self.assertEquals(result["Error"], "No email address was provided.")
+
+		endTestLog("test06_create_user_missing_values")
+
+	def test07_password_policy_failures(self):
+		startTestLog("test07_password_policy_failures")
 
 		result = self.channel.createTestUser({"username":"minPW","password":"asd", "email":"t@t.com"})
 		self.assertFalse(result["Success"])
@@ -98,10 +142,10 @@ class TestUser(TestCase):
 		config.PASSWORD_POLICY['Requirements']['Number'][0] = True
 		config.PASSWORD_POLICY['Requirements']['Symbol'][0] = False
 
-		endTestLog("test04_password_policy_failures")
+		endTestLog("test07_password_policy_failures")
 
-	def test05_login_success_username_password(self):
-		startTestLog("test05_login_success_username_password")
+	def test08_login_success_username_password(self):
+		startTestLog("test08_login_success_username_password")
 
 		result = self.channel.createTestUser({"username":"testLoginSuccess","password":self.channel.generateValidPassword(),"email":"loginSuccess@a.com"})
 		self.assertTrue(result["Success"])
@@ -116,10 +160,10 @@ class TestUser(TestCase):
 
 		self.assertTrue("PONG_AUTH" in result)
 
-		endTestLog("test05_login_success_username_password")
+		endTestLog("test08_login_success_username_password")
 
-	def test06_login_failure_username_password(self):
-		startTestLog("test05_login_failure_username_password")
+	def test09_login_failure_username_password(self):
+		startTestLog("test09_login_failure_username_password")
 
 		result = self.channel.createTestUser({"username":"testLoginFailure","password":self.channel.generateValidPassword(),"email":"loginFailure@a.com"})
 		self.assertTrue(result["Success"])
@@ -128,10 +172,10 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "Invalid Username/Password.")
 
-		endTestLog("test06_login_failure_username_password")
+		endTestLog("test09_login_failure_username_password")
 
-	def test07_login_success_token(self):
-		startTestLog("test07_login_success_token")
+	def test10_login_success_token(self):
+		startTestLog("test10_login_success_token")
 
 		result = self.channel.createTestUser({"username": "testLoginSToken", "password": self.channel.generateValidPassword(), "email": "loginSuccessToken@a.com"})
 		self.assertTrue(result["Success"])
@@ -145,10 +189,10 @@ class TestUser(TestCase):
 
 		self.assertTrue("PONG_AUTH" in result)
 
-		endTestLog("test07_login_success_token")
+		endTestLog("test10_login_success_token")
 
-	def test08_login_failure_token(self):
-		startTestLog("test08_login_failure_token")
+	def test11_login_failure_token(self):
+		startTestLog("test11_login_failure_token")
 
 		result = self.channel.createTestUser({"username": "testLoginFToken", "password": self.channel.generateValidPassword(), "email": "loginSuccessToken@a.com"})
 		self.assertTrue(result["Success"])
@@ -157,10 +201,10 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEqual(result["Error"], "Invalid Username/Password.")
 
-		endTestLog("test08_login_failure_token")
+		endTestLog("test11_login_failure_token")
 
-	def test09_logout_success(self):
-		startTestLog("test09_logout_success")
+	def test12_logout_success(self):
+		startTestLog("test12_logout_success")
 
 		self.assertTrue(self.channel.createUserAndLogin({"username": "testLogoutS", "password": self.channel.generateValidPassword(), "email": "logoutSuccess@a.com"}))
 		self.assertTrue(Users.objects.get(username="testLogoutS").token != None)
@@ -179,20 +223,20 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEqual(result["Error"], "User is not authenticated, please login.")
 
-		endTestLog("test09_logout_success")
+		endTestLog("test12_logout_success")
 
-	def test10_logout_failure(self):
-		startTestLog("test10_logout_failure")
+	def test13_logout_failure(self):
+		startTestLog("test13_logout_failure")
 
 		self.channel.send('{"Command": "LGO"}')
 		result = json.loads(self.channel.receive())
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "User is not authenticated, please login.")
 
-		endTestLog("test10_logout_failure")
+		endTestLog("test13_logout_failure")
 
-	def test11_get_user_info_success(self):
-		startTestLog("test11_get_user_info_success")
+	def test14_get_user_info_success(self):
+		startTestLog("test14_get_user_info_success")
 
 		self.assertTrue(self.channel.createUserAndLogin({"username": "testGUI", "password": self.channel.generateValidPassword(), "email": "testGUI@a.com"}))
 
@@ -212,10 +256,10 @@ class TestUser(TestCase):
 		self.assertEquals(result["Coins"], user.coins)
 		self.assertEquals(result["Preferences"]["Grid Opacity"], user.pref_grid)
 
-		endTestLog("test11_get_user_info_success")
+		endTestLog("test14_get_user_info_success")
 
-	def test12_login_token_expire(self):
-		startTestLog("test12_login_token_expire")
+	def test15_login_token_expire(self):
+		startTestLog("test15_login_token_expire")
 
 		result = self.channel.createTestUser({"username":"tokExp","password":self.channel.generateValidPassword(),"email":"tokExp@a.com"})
 		self.assertTrue(result["Success"])
@@ -232,10 +276,4 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "Login token has expired, please login again using your username/password.")
 
-		endTestLog("test12_login_token_expire")
-
-
-# TODO
-#	Test missing of each value needed for creating a user
-#   Test missing of each value needed for logging in
-#   Test invalid username/email etc (username too long or too short or invalid email)
+		endTestLog("test15_login_token_expire")
