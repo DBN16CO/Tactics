@@ -123,8 +123,6 @@ def createUser(data):
 				error = "That username already exists."
 			elif "User_users_email_key" in str(e):
 				error = "That email is already in use."
-			else:
-				error = str(e)
 
 		return formJsonResult(error)
 
