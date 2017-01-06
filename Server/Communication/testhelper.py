@@ -63,6 +63,9 @@ class TestHelper(ChannelTestCase):
 		return result.content['text']
 
 	def generateValidPassword(self):
+		"""
+		Generates the same valid password based on the configured password policy
+		"""
 		password = ''
 
 		requirements = config.PASSWORD_POLICY["Requirements"]

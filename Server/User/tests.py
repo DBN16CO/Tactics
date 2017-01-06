@@ -95,7 +95,6 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "The password does not meet the minimum password length of " + 
 			str(config.PASSWORD_POLICY['Min Length']) + " characters.")
-
 		max_pw = ''
 		for _ in range(0, config.PASSWORD_POLICY['Max Length'] + 1):
 			max_pw += 'a'
@@ -104,7 +103,6 @@ class TestUser(TestCase):
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "The password does not meet the maximum password length. Passwords may not exceed " + 
 			str(config.PASSWORD_POLICY['Max Length']) + " characters.")
-
 		config.PASSWORD_POLICY['Requirements']['Lowercase'][0] = True
 		config.PASSWORD_POLICY['Requirements']['Uppercase'][0] = False
 		config.PASSWORD_POLICY['Requirements']['Number'][0] = False
