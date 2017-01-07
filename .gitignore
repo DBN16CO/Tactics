@@ -54,3 +54,4 @@ ehthumbs.db
 nohup.out
 *.rdb
 /Server/Docs
+*.log
