@@ -135,6 +135,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="Game.html#Game.unithelper.calculateAttack">calculateAttack() (in module Game.unithelper)</a>
+  </dt>
+
+      
+  <dt><a href="Game.html#Game.unithelper.calculateHeal">calculateHeal() (in module Game.unithelper)</a>
+  </dt>
+
+      
   <dt><a href="Game.html#Game.models.Game_Queue.channel_name">channel_name (Game.models.Game_Queue attribute)</a>
   </dt>
 
@@ -256,6 +264,10 @@
 
       
   <dt><a href="Communication.html#Communication.testhelper.TestHelper.createUsersAndMatch">createUsersAndMatch() (Communication.testhelper.TestHelper method)</a>
+  </dt>
+
+      
+  <dt><a href="Communication.html#Communication.testhelper.TestHelper.createUsersAndPlaceUnits">createUsersAndPlaceUnits() (Communication.testhelper.TestHelper method)</a>
   </dt>
 
   </dl></td>
@@ -476,12 +488,12 @@
   <dt><a href="Game.html#Game.models.Game_User.DoesNotExist">Game_User.DoesNotExist</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Game.html#Game.models.Game_User.MultipleObjectsReturned">Game_User.MultipleObjectsReturned</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Game.html#Game.models.Game.game_user_set">game_user_set (Game.models.Game attribute)</a>
   </dt>
@@ -502,6 +514,10 @@
 
       
   <dt><a href="User.html#User.userhelper.generateLoginToken">generateLoginToken() (in module User.userhelper)</a>
+  </dt>
+
+      
+  <dt><a href="Communication.html#Communication.testhelper.TestHelper.generateValidPassword">generateValidPassword() (Communication.testhelper.TestHelper method)</a>
   </dt>
 
       
@@ -1199,6 +1215,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="Game.html#Game.unithelper.saveActionResults">saveActionResults() (in module Game.unithelper)</a>
+  </dt>
+
+      
   <dt><a href="Communication.html#Communication.testhelper.TestHelper.send">send() (Communication.testhelper.TestHelper method)</a>
   </dt>
 
@@ -1343,6 +1363,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="Game.html#Game.routeunithelper.takeAction">takeAction() (in module Game.routeunithelper)</a>
+  </dt>
+
+      
   <dt><a href="Game.html#Game.models.Game_User.team">team (Game.models.Game_User attribute)</a>
   </dt>
 
@@ -1397,7 +1421,15 @@
 
       </dl></dd>
       
+  <dt><a href="User.html#User.tests.TestUser.test01_create_user_success">test01_create_user_success() (User.tests.TestUser method)</a>
+  </dt>
+
+      
   <dt><a href="Game.html#Game.tests.TestUnit.test01_set_team_bad_json_input">test01_set_team_bad_json_input() (Game.tests.TestUnit method)</a>
+  </dt>
+
+      
+  <dt><a href="User.html#User.tests.TestUser.test02_create_user_duplicate_username">test02_create_user_duplicate_username() (User.tests.TestUser method)</a>
   </dt>
 
       
@@ -1405,7 +1437,15 @@
   </dt>
 
       
+  <dt><a href="User.html#User.tests.TestUser.test03_create_user_duplicate_email">test03_create_user_duplicate_email() (User.tests.TestUser method)</a>
+  </dt>
+
+      
   <dt><a href="Game.html#Game.tests.TestUnit.test03_set_team_valid_input">test03_set_team_valid_input() (Game.tests.TestUnit method)</a>
+  </dt>
+
+      
+  <dt><a href="User.html#User.tests.TestUser.test04_create_user_invalid_email_address">test04_create_user_invalid_email_address() (User.tests.TestUser method)</a>
   </dt>
 
       
@@ -1413,7 +1453,15 @@
   </dt>
 
       
+  <dt><a href="User.html#User.tests.TestUser.test05_create_user_invalid_username">test05_create_user_invalid_username() (User.tests.TestUser method)</a>
+  </dt>
+
+      
   <dt><a href="Game.html#Game.tests.TestUnit.test05_find_match_success">test05_find_match_success() (Game.tests.TestUnit method)</a>
+  </dt>
+
+      
+  <dt><a href="User.html#User.tests.TestUser.test06_create_user_missing_values">test06_create_user_missing_values() (User.tests.TestUser method)</a>
   </dt>
 
       
@@ -1421,11 +1469,25 @@
   </dt>
 
       
+  <dt><a href="User.html#User.tests.TestUser.test07_password_policy_failures">test07_password_policy_failures() (User.tests.TestUser method)</a>
+  </dt>
+
+      
   <dt><a href="Game.html#Game.tests.TestUnit.test07_place_units_bad_json">test07_place_units_bad_json() (Game.tests.TestUnit method)</a>
   </dt>
 
       
+  <dt><a href="User.html#User.tests.TestUser.test08_login_success_username_password">test08_login_success_username_password() (User.tests.TestUser method)</a>
+  </dt>
+
+      
   <dt><a href="Game.html#Game.tests.TestUnit.test08_place_units_bad_game_name">test08_place_units_bad_game_name() (Game.tests.TestUnit method)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="User.html#User.tests.TestUser.test09_login_failure_username_password">test09_login_failure_username_password() (User.tests.TestUser method)</a>
   </dt>
 
       
@@ -1433,17 +1495,15 @@
   </dt>
 
       
-  <dt><a href="User.html#User.tests.TestUser.test10_get_user_info_success">test10_get_user_info_success() (User.tests.TestUser method)</a>
+  <dt><a href="User.html#User.tests.TestUser.test10_login_success_token">test10_login_success_token() (User.tests.TestUser method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Game.html#Game.tests.TestUnit.test10_place_units_success">test10_place_units_success() (Game.tests.TestUnit method)</a>
   </dt>
 
       
-  <dt><a href="User.html#User.tests.TestUser.test11_login_token_expire">test11_login_token_expire() (User.tests.TestUser method)</a>
+  <dt><a href="User.html#User.tests.TestUser.test11_login_failure_token">test11_login_failure_token() (User.tests.TestUser method)</a>
   </dt>
 
       
@@ -1451,15 +1511,55 @@
   </dt>
 
       
+  <dt><a href="User.html#User.tests.TestUser.test12_logout_success">test12_logout_success() (User.tests.TestUser method)</a>
+  </dt>
+
+      
+  <dt><a href="Game.html#Game.tests.TestUnit.test12_take_action_bad_json">test12_take_action_bad_json() (Game.tests.TestUnit method)</a>
+  </dt>
+
+      
+  <dt><a href="User.html#User.tests.TestUser.test13_logout_failure">test13_logout_failure() (User.tests.TestUser method)</a>
+  </dt>
+
+      
+  <dt><a href="Game.html#Game.tests.TestUnit.test13_take_action_invalid_move">test13_take_action_invalid_move() (Game.tests.TestUnit method)</a>
+  </dt>
+
+      
+  <dt><a href="User.html#User.tests.TestUser.test14_get_user_info_success">test14_get_user_info_success() (User.tests.TestUser method)</a>
+  </dt>
+
+      
+  <dt><a href="Game.html#Game.tests.TestUnit.test14_take_action_basic_success">test14_take_action_basic_success() (Game.tests.TestUnit method)</a>
+  </dt>
+
+      
+  <dt><a href="User.html#User.tests.TestUser.test15_login_token_expire">test15_login_token_expire() (User.tests.TestUser method)</a>
+  </dt>
+
+      
+  <dt><a href="Game.html#Game.tests.TestUnit.test15_take_action_valid_move_success">test15_take_action_valid_move_success() (Game.tests.TestUnit method)</a>
+  </dt>
+
+      
+  <dt><a href="Game.html#Game.tests.TestUnit.test16_take_action_valid_move_through_ally_success">test16_take_action_valid_move_through_ally_success() (Game.tests.TestUnit method)</a>
+  </dt>
+
+      
+  <dt><a href="Game.html#Game.tests.TestUnit.test17_take_action_before_enemy_placement">test17_take_action_before_enemy_placement() (Game.tests.TestUnit method)</a>
+  </dt>
+
+      
+  <dt><a href="Game.html#Game.tests.TestUnit.test18_take_action_before_placement">test18_take_action_before_placement() (Game.tests.TestUnit method)</a>
+  </dt>
+
+      
   <dt><a href="Static.html#Static.tests.TestStatic.test1_bad_db_setup">test1_bad_db_setup() (Static.tests.TestStatic method)</a>
   </dt>
 
       
-  <dt><a href="User.html#User.tests.TestUser.test1_create_user_success">test1_create_user_success() (User.tests.TestUser method)</a>
-  </dt>
-
-      
-  <dt><a href="User.html#User.tests.TestUser.test2_duplicate_username">test2_duplicate_username() (User.tests.TestUser method)</a>
+  <dt><a href="Communication.html#Communication.tests.TestCommunication.test1_ping_server">test1_ping_server() (Communication.tests.TestCommunication method)</a>
   </dt>
 
       
@@ -1467,39 +1567,11 @@
   </dt>
 
       
-  <dt><a href="User.html#User.tests.TestUser.test3_duplicate_email">test3_duplicate_email() (User.tests.TestUser method)</a>
+  <dt><a href="Communication.html#Communication.tests.TestCommunication.test2_internal_error">test2_internal_error() (Communication.tests.TestCommunication method)</a>
   </dt>
 
       
   <dt><a href="Static.html#Static.tests.TestStatic.test3_incomplete_version">test3_incomplete_version() (Static.tests.TestStatic method)</a>
-  </dt>
-
-      
-  <dt><a href="User.html#User.tests.TestUser.test4_login_success_username_password">test4_login_success_username_password() (User.tests.TestUser method)</a>
-  </dt>
-
-      
-  <dt><a href="User.html#User.tests.TestUser.test5_login_failure_username_password">test5_login_failure_username_password() (User.tests.TestUser method)</a>
-  </dt>
-
-      
-  <dt><a href="User.html#User.tests.TestUser.test6_login_success_token">test6_login_success_token() (User.tests.TestUser method)</a>
-  </dt>
-
-      
-  <dt><a href="User.html#User.tests.TestUser.test7_login_failure_token">test7_login_failure_token() (User.tests.TestUser method)</a>
-  </dt>
-
-      
-  <dt><a href="User.html#User.tests.TestUser.test8_logout_success">test8_logout_success() (User.tests.TestUser method)</a>
-  </dt>
-
-      
-  <dt><a href="User.html#User.tests.TestUser.test9_logout_failure">test9_logout_failure() (User.tests.TestUser method)</a>
-  </dt>
-
-      
-  <dt><a href="Communication.html#Communication.tests.TestCommunication.test_ping_server">test_ping_server() (Communication.tests.TestCommunication method)</a>
   </dt>
 
       
@@ -1758,6 +1830,18 @@
 
       
   <dt><a href="User.html#User.models.Users.verified">verified (User.models.Users attribute)</a>
+  </dt>
+
+      
+  <dt><a href="User.html#User.userhelper.verify_password_with_policy">verify_password_with_policy() (in module User.userhelper)</a>
+  </dt>
+
+      
+  <dt><a href="User.html#User.userhelper.verify_valid_email">verify_valid_email() (in module User.userhelper)</a>
+  </dt>
+
+      
+  <dt><a href="User.html#User.userhelper.verify_valid_username">verify_valid_username() (in module User.userhelper)</a>
   </dt>
 
       

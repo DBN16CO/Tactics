@@ -776,6 +776,81 @@ errors can be directly displayed for the user.</li>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="Game.routeunithelper.takeAction">
+<code class="descclassname">Game.routeunithelper.</code><code class="descname">takeAction</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.routeunithelper.takeAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a user wants to take an action with a specific unit, such as
+attacking an opponent, healing an ally, or simply moving to a new location.
+Command: TA (Take Action)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>Dictionary</em>) &#8211; <p>The necessary input information to process the command, should
+be of the following format:</p>
+<p>{</p>
+<blockquote>
+<div>&#8220;Action&#8221;:&#8221;Attack&#8221;,<p>&#8220;Game&#8221;:&#8221;vs. opponent #1&#8221;,</p>
+<p>&#8220;Unit&#8221;:1,</p>
+<p>&#8220;X&#8221;:3,</p>
+<p>&#8220;Y&#8221;:4,</p>
+<p>&#8220;Target&#8221;:9</p>
+</div></blockquote>
+<p>}</p>
+<p>Notes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Action is the NAME of a valid action</li>
+<li>The value for Unit and Target are the unit&#8217;s ID</li>
+<li>The X and Y values are the new location for the unit</li>
+<li>Depending on the action, the Target may be optional</li>
+<li>Both X AND Y are required</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dictionary</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A JSON object noting the success of the method call:<p>If Successful:</p>
+<p>{</p>
+<blockquote>
+<div>&#8220;Success&#8221;:True<p>&#8220;Unit&#8221;{</p>
+<blockquote>
+<div>&#8220;ID&#8221;:1,<p>&#8220;HP&#8221;:10</p>
+</div></blockquote>
+<p>},</p>
+<p>&#8220;Target&#8221;:{</p>
+<blockquote>
+<div>&#8220;ID&#8221;:9,<p>&#8220;HP&#8221;:0</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+<p>Notes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The &#8220;Target&#8221; object could be omitted if the action did not involve a target.</li>
+<li>The HP for the unit could be omitted if the action is &#8220;Wait&#8221; or &#8220;Heal&#8221;</li>
+</ul>
+</div></blockquote>
+<p>If Unsuccessful:</p>
+<blockquote>
+<div>{&#8220;Successful&#8221;:False,<blockquote>
+<div>&#8220;Error&#8221;:&#8221;You did not provide the necessary information.&#8221;}</div></blockquote>
+</div></blockquote>
+<p>Notes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The error message provided should be of an acceptable form such that
+errors can be directly displayed for the user.</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="module-Game.tests">
 <span id="game-tests-module"></span><h2>Game.tests module<a class="headerlink" href="#module-Game.tests" title="Permalink to this headline">¶</a></h2>
@@ -786,18 +861,18 @@ errors can be directly displayed for the user.</li>
 <dl class="method">
 <dt id="Game.tests.TestUnit.helper_golden_path_place_unit_units">
 <code class="descname">helper_golden_path_place_unit_units</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.helper_golden_path_place_unit_units" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function which creates a list of units as well as their placement location to test with.</p>
-<p>The list will consist of one of each unit in the database, alphabetically.
+<dd><p>Helper function which creates a list of units as well as their placement location to test with.
+The list will consist of one of each unit in the database, alphabetically.
 It will stop once the number needed for the specific version is reached.
-If there are less than the max number of units, it will then repeat the first unit</p>
-<p>For the placement location, they will start at (0,0) and increment the X value</p>
+If there are less than the max number of units, it will then repeat the first unit
+For the placement location, they will start at (0,0) and increment the X value</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="Game.tests.TestUnit.helper_golden_path_set_team_units">
 <code class="descname">helper_golden_path_set_team_units</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.helper_golden_path_set_team_units" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function which creates a list of units to test with.</p>
-<p>The list will consist of one of each unit in the database, alphabetically.
+<dd><p>Helper function which creates a list of units to test with.
+The list will consist of one of each unit in the database, alphabetically.
 It will stop once the number needed for the specific version is reached.
 If there are less than the max number of units, it will then repeat the first unit</p>
 </dd></dl>
@@ -862,12 +937,57 @@ If there are less than the max number of units, it will then repeat the first un
 <code class="descname">test11_query_games_user_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test11_query_games_user_success" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="Game.tests.TestUnit.test12_take_action_bad_json">
+<code class="descname">test12_take_action_bad_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test12_take_action_bad_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test13_take_action_invalid_move">
+<code class="descname">test13_take_action_invalid_move</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test13_take_action_invalid_move" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test14_take_action_basic_success">
+<code class="descname">test14_take_action_basic_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test14_take_action_basic_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test15_take_action_valid_move_success">
+<code class="descname">test15_take_action_valid_move_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test15_take_action_valid_move_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test16_take_action_valid_move_through_ally_success">
+<code class="descname">test16_take_action_valid_move_through_ally_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test16_take_action_valid_move_through_ally_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test17_take_action_before_enemy_placement">
+<code class="descname">test17_take_action_before_enemy_placement</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test17_take_action_before_enemy_placement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test18_take_action_before_placement">
+<code class="descname">test18_take_action_before_placement</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test18_take_action_before_placement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
 <div class="section" id="module-Game.unithelper">
 <span id="game-unithelper-module"></span><h2>Game.unithelper module<a class="headerlink" href="#module-Game.unithelper" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-unithelper"></span><dl class="function">
+<dt id="Game.unithelper.calculateAttack">
+<code class="descclassname">Game.unithelper.</code><code class="descname">calculateAttack</code><span class="sig-paren">(</span><em>game</em>, <em>unit_dict</em>, <em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.calculateAttack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="Game.unithelper.calculateHeal">
+<code class="descclassname">Game.unithelper.</code><code class="descname">calculateHeal</code><span class="sig-paren">(</span><em>game</em>, <em>unit_dict</em>, <em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.calculateHeal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="Game.unithelper.placeUnits">
 <code class="descclassname">Game.unithelper.</code><code class="descname">placeUnits</code><span class="sig-paren">(</span><em>game_user</em>, <em>units</em>, <em>user</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.placeUnits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Validates that the units provided can be placed at their desired location.
@@ -888,6 +1008,39 @@ Then it adds them to the database.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An error message if any part of the process were to fail.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Game.unithelper.saveActionResults">
+<code class="descclassname">Game.unithelper.</code><code class="descname">saveActionResults</code><span class="sig-paren">(</span><em>game</em>, <em>unit_dict</em>, <em>target_dict=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.saveActionResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the game with the provided action</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>game</strong> (<em>Game object</em>) &#8211; The game being updated</li>
+<li><strong>unit_dict</strong> (<em>Dictionary</em>) &#8211; <p>Necessary components to describe the updated unit, should contain:</p>
+<ul>
+<li>&#8220;Unit&#8221; which is the unit object</li>
+<li>&#8220;NewX&#8221; which is the X coordinate to which the unit is moving</li>
+<li>&#8220;NewY&#8221; which is the Y coordinate to which the unit is moving</li>
+<li>&#8220;HP&#8221; if a target was specified, which is the new HP for this unit after the action</li>
+</ul>
+</li>
+<li><strong>target_dict</strong> (<em>Dictionary</em>) &#8211; Necessary components to describe the targeted unit,
+should have &#8220;Unit&#8221; and &#8220;HP&#8221; keys which act the same as those in the unit_dict</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">Boolean</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if the update was successful, False otherwise</p>
 </td>
 </tr>
 </tbody>
@@ -925,8 +1078,30 @@ the database for that user.</p>
 
 <dl class="function">
 <dt id="Game.unithelper.validateMove">
-<code class="descclassname">Game.unithelper.</code><code class="descname">validateMove</code><span class="sig-paren">(</span><em>unit</em>, <em>game</em>, <em>newX</em>, <em>newY</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.validateMove" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descclassname">Game.unithelper.</code><code class="descname">validateMove</code><span class="sig-paren">(</span><em>unit</em>, <em>game</em>, <em>user</em>, <em>newX</em>, <em>newY</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.validateMove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Using a modified BFS algorithm, ensures that the specified movement is a valid location for the specified unit</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>unit</strong> (<em>Unit object</em>) &#8211; The unit being moved</li>
+<li><strong>game</strong> (<em>Game object</em>) &#8211; The game in which the unit exists</li>
+<li><strong>user</strong> (<em>User object</em>) &#8211; The owner of the unit being moved</li>
+<li><strong>newX</strong> (<em>Integer</em>) &#8211; The X coordinate to which the unit is moving</li>
+<li><strong>newY</strong> (<em>Integer</em>) &#8211; The Y coordinate to which the unit is moving</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">Boolean</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if the movement is valid, false otherwise.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-Game.validation">
