@@ -108,7 +108,7 @@ public class StartupController : MonoBehaviour {
 		Server.GetUserInfo();
 		if(Server.InitialLoad()) {
 			Screen.orientation = ScreenOrientation.LandscapeLeft; // Not sure if this works
-			SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
+			SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 		}
 	}
 
