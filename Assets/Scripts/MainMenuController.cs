@@ -18,7 +18,6 @@ public class MainMenuController : MonoBehaviour {
 		get{return _ttab * _ttabmult;}
 	}
 
-
 	void Start () {
 		_selectedTabIndex = 0;
 		_moving = false;
