@@ -14,7 +14,7 @@ class TestStatic(TestCase):
 	def test2_initial_load_v1_0(self):
 		startTestLog("test2_initial_load_v1_0")
 		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"init_user","password":"abc12345","email":"initUser@email.com"}))
+			{"username":"init_user","password":self.channel.generateValidPassword(),"email":"initUser@email.com"}))
 
 		self.channel.send('{"Command":"IL"}')
 		result = self.channel.receive()
@@ -73,7 +73,7 @@ class TestStatic(TestCase):
 	def test3_incomplete_version(self):
 		startTestLog("test3_incomplete_version")
 		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"init_user","password":"abc12345","email":"initUser@email.com"}))
+			{"username":"init_user","password":self.channel.generateValidPassword(),"email":"initUser@email.com"}))
 
 		bad_ver = Version(name="bad version")
 		bad_ver.save()

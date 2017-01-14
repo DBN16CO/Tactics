@@ -27,7 +27,7 @@ class TestCommunication(TestCase):
 
 		# Create user and login
 		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"bad_cmd_usr","password":"abc12345","email":"bcu@email.com"}))
+			{"username":"bad_cmd_usr","password":self.channel.generateValidPassword(),"email":"bcu@email.com"}))
 
 		self.channel.send('{"Command":"fake_command"}')
 		result = json.loads(self.channel.receive())
