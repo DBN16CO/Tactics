@@ -9,12 +9,10 @@ using System.Text.RegularExpressions;
 // This class contains all of the Server call functions
 public static class Server {
 
-	//private const float SERVER_TIMEOUT = 5f;			// Seconds before server call times out
-
-	//private static bool _timedOut;
 
 	public static void Connect() {
 		Communication.Connect(new Uri("ws://localhost:8000"));
+		//Communication.Connect(new Uri("ws://tactics-production.herokuapp.com/"));
 	}
 
 	public static bool InitialLoad() {
@@ -35,21 +33,6 @@ public static class Server {
 		}
 		return success;
 	}
-
-	/*public static IEnumerator Timeout(int timeout) {
-		Server._timedOut = false;
-		Debug.Log("Trying to connect to server...");
-		int seconds = 0;
-		while(seconds < timeout) {
-			seconds++;
-			yield return new WaitForSeconds(1f);
-			Debug.Log("Waited " + seconds + " of " + Server.SERVER_TIMEOUT + " seconds...");
-			if(seconds == timeout) {
-				Server._timedOut = true;
-				break;
-			}
-		}
-	}*/
 
 	// Used to login to server with username and password
 	public static bool Login(string username, string pw) {
