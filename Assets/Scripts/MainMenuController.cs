@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 
 public class MainMenuController : MonoBehaviour {
 
@@ -8,10 +7,7 @@ public class MainMenuController : MonoBehaviour {
 	private float _ttab;				// Arbitrary measure of time for tab movement
 	private const float _ttabmax = 0.2f;// Unit of time it takes to move the selected tab
 	private float _ttabmult;			// Multiplier calculated to make _ttabmax the time it takes
-
-	// References to the transforms of the moving objects
 	private RectTransform _selectedTabRT;
-
 
 	// The real value of time to use for lerp functions
 	private float _timetab {
@@ -23,8 +19,23 @@ public class MainMenuController : MonoBehaviour {
 		_moving = false;
 		_ttab = 0f;
 		_ttabmult = 1f / _ttabmax;
-
 		_selectedTabRT = (RectTransform)GameObject.Find("SelectedTab").transform;
+
+		LoadCustomGames();
+	}
+
+	private void LoadCustomGames() {
+		// Run the QGU command here. For now, just populate dummy games
+		int numGames = 8;
+		Transform activeGames = GameObject.Find("ActiveCustomGamesContent").transform;
+		for(int i = 0; i < numGames; i++) {
+			GameObject currGame = Instantiate(Resources.Load("Prefabs/ActiveCustomGame"), Vector3.zero, Quaternion.identity, activeGames) as GameObject;
+			currGame.GetComponent<ActiveCustomGameController>().SetDetailedProperties(i);
+
+			currGame.GetComponent<RectTransform>().anchoredPosition = new Vector3(0,-300 * i);
+			currGame.transform.SetAsFirstSibling();
+		}
+		activeGames.GetComponent<RectTransform>().sizeDelta = new Vector3(1440,300 * numGames);
 	}
 
 	void Update () {
