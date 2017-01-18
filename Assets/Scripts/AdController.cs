@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class AdController : MonoBehaviour {
 
-	Button btn;
+	public Button btn;
 
 	// Use this for initialization
 	void Start () {
