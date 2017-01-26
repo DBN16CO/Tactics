@@ -10,7 +10,7 @@ as well as any other necessary information regarding the command.
 import logging
 import Game.unithelper
 from Communication.routehelper import formJsonResult
-from Static.models import Ability, Action, Class, Leader, Leader_Ability, Perk, Version
+from Static.models import Ability, Action, Class, Class_Action, Leader, Leader_Ability, Perk, Version
 from Game.models import Game_User, Unit
 from User.models import Users
 
@@ -189,20 +189,13 @@ def takeAction(data):
 
 	# Now verify both players have placed their units
 	game = game_usr.game
-	user_placed_unit_count = Unit.objects.filter(game=game, owner=user).exclude(x_pos=-1).exclude(y_pos=-1).count()
-	opponent_placed_unit_count = Unit.objects.filter(game=game).exclude(x_pos=-1).exclude(y_pos=-1).exclude(owner=user).count()
+	user_placed_unit_count = Unit.objects.filter(game=game, owner=user).exclude(x=-1).exclude(y=-1).count()
+	opponent_placed_unit_count = Unit.objects.filter(game=game).exclude(x=-1).exclude(y=-1).exclude(owner=user).count()
 	expected_count = version.unit_count
 	if user_placed_unit_count != expected_count:
 		return formJsonResult("You must place all of your units before taking a turn.")
 	elif opponent_placed_unit_count != expected_count:
 		return formJsonResult("Please wait until your opponent places their units before taking a turn.")
-
-	# The valid actions for a user in this version
-	if not "Action" in data:
-		return formJsonResult("Internal Error: Action Key missing.", data)
-	action = Action.objects.filter(version=version, name=data["Action"]).first()
-	if action == None:
-		return formJsonResult("The selected action is not valid.", data)
 
 	# Get the new coordinates for the action
 	if not "X" in data or not "Y" in data:
@@ -217,6 +210,15 @@ def takeAction(data):
 	unit = Unit.objects.filter(pk=unit_id, game=game_usr.game, owner=user).first()
 	if unit == None:
 		return formJsonResult("Internal Error: Specified unit ID not in game.", data)
+
+	# The valid actions for a user in this version
+	if not "Action" in data:
+		return formJsonResult("Internal Error: Action Key missing.", data)
+	action = Action.objects.filter(version=version, name=data["Action"]).first()
+	if action == None or Class_Action.objects.filter(version=version, clss=unit.unit_class, action=action).first() == None:
+		return formJsonResult("The selected action is not valid.", data)
+
+	
 
 	# Ensure that the move is valid
 	is_move_valid = Game.unithelper.validateMove(unit, game_usr.game, user, x, y)

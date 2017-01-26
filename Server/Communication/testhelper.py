@@ -46,7 +46,7 @@ class TestHelper(ChannelTestCase):
 			chn = self.channel2
 
 		chn.send({u'bytes': payload, u'reply_channel': chn.name})
-		logging.error("Chn.name="+chn.name)
+		logging.debug("Chn.name="+chn.name)
 		message = self.get_next_message(chn.name, require=True)
 		processRequest(message)
 
@@ -197,7 +197,7 @@ class TestHelper(ChannelTestCase):
 		logging.debug("Printing information about the units created for this test:")
 		units = Unit.objects.filter()
 		for unit in units:
-			logging.debug("Unit: X: %d\t Y: %d\t ID: %d\t Name: %s\t Owner: %s", unit.x_pos, unit.y_pos,
+			logging.debug("Unit: X: %d\t Y: %d\t ID: %d\t Name: %s\t Owner: %s", unit.x, unit.y,
 				unit.pk, unit.unit_class.name, unit.owner.username)
 
 		return game_users

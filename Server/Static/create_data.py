@@ -5,7 +5,7 @@
 .. moduleauthor:: Drew, Brennan, and Nick
 
 """
-from Static.models import Version, Ability, Action, Class, Leader, Leader_Ability, Perk, Map, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
+from Static.models import Version, Ability, Action, Class, Class_Action, Leader, Leader_Ability, Perk, Map, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
 import logging
 
 def setup_static_db(version):
@@ -92,12 +92,21 @@ def setup_static_db(version):
 			price=data["Classes"][clss]["Price"], version=ver)
 		clss_inst.save()
 
+		# Set the class' actions
+		for actn in data["Classes"][clss]["Actions"].keys():
+			if data["Classes"][clss]["Actions"][actn]:
+				action = Action.objects.get(name=actn, version=ver)
+				clss_actn_inst = Class_Action(clss=clss_inst, action=action, version=ver)
+				clss_actn_inst.save()
+
+		# Set the class' stats
 		for stt in data["Classes"][clss]["Stats"].keys():
-			stat = Stat.objects.get(name=stt, version_id=ver)
+			stat = Stat.objects.get(name=stt, version=ver)
 			stt_unit_inst = Unit_Stat(stat=stat, unit=clss_inst,
 				value=data["Classes"][clss]["Stats"][stt], version=ver)
 			stt_unit_inst.save()
 
+		# Set the class' movement
 		for ter in data["Classes"][clss]["Terrain"].keys():
 			terrain = Terrain.objects.get(shortname=ter, version_id=ver.id)
 			ter_unt_mv_inst = Terrain_Unit_Movement(terrain=terrain, unit=clss_inst,
@@ -144,6 +153,7 @@ def ver_1_0_static_data():
 		"Archer":    {
 			"AttackType":"Physical",
 			"Description":"Ranged unit with low armor.  Good at defeating Fliers.",
+			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
 				"HP":10.0, "Move": 6.0, "Agility": 8.5, "Intelligence": 4.0, "Strength": 7.0, "Luck": 7.0, "Defense":3, "Resistance":6, "Attack Range":2,
 			},
@@ -155,6 +165,7 @@ def ver_1_0_static_data():
 		"Swordsman": {
 			"AttackType":"Physical",
 			"Description":"Standard melee unit with average stats.",
+			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
 				"HP":15.0, "Move": 5.0, "Agility": 6.0, "Intelligence": 3.0, "Strength": 6.0, "Luck": 5.0, "Defense":5, "Resistance":4, "Attack Range":1,
 			},
@@ -166,6 +177,7 @@ def ver_1_0_static_data():
 		"Mage":      {
 			"AttackType":"Magical",
 			"Description":"Magical ranged attacker with low defense.  Good at defeating armored units.",
+			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
 				"HP":10.0, "Move": 5.0, "Agility": 5.0, "Intelligence":10.5, "Strength": 1.0, "Luck": 7.0, "Defense":2, "Resistance":8, "Attack Range":2,
 			},
@@ -177,6 +189,7 @@ def ver_1_0_static_data():
 		"Cleric":      {
 			"AttackType":"Magical",
 			"Description":"Magical ranged healing unit with low defense.  Restores weak units so they can return to battle.",
+			"Actions":{"Attack":False,"Heal":True,"Wait":True},
 			"Stats": {
 				"HP":5.0, "Move": 5.0, "Agility": 5.0, "Intelligence":10, "Strength": 1.0, "Luck": 5.0, "Defense":2, "Resistance":9, "Attack Range":2,
 			},
@@ -188,6 +201,7 @@ def ver_1_0_static_data():
 		"Rogue":     {
 			"AttackType":"Physical",
 			"Description":"Fast evasive melee unit.  Has low defense but high attack potential.",
+			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
 				"HP":10.0, "Move": 6.0, "Agility":10.5, "Intelligence": 4.0, "Strength": 3.0, "Luck":11.0, "Defense":4, "Resistance":7, "Attack Range":1,
 			},
@@ -199,6 +213,7 @@ def ver_1_0_static_data():
 		"Armor":     {
 			"AttackType":"Physical",
 			"Description":"Melee unit with very high physical defense, but low magical resistance.",
+			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
 				"HP":20.5, "Move": 4.0, "Agility": 3.0, "Intelligence": 1.0, "Strength": 8.0, "Luck": 2.0, "Defense":8, "Resistance":1, "Attack Range":1,
 			},
@@ -210,6 +225,7 @@ def ver_1_0_static_data():
 		"Horseman":  {
 			"AttackType":"Physical",
 			"Description":"Mounted melee unit with high mobility.",
+			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
 				"HP":20.0, "Move": 7.0, "Agility": 8.0, "Intelligence": 3.0, "Strength": 6.0, "Luck": 6.0, "Defense":5, "Resistance":4, "Attack Range":1,
 			},
@@ -221,6 +237,7 @@ def ver_1_0_static_data():
 		"Flier":     {
 			"AttackType":"Physical",
 			"Description":"Flying melee unit, can move over any tile.  Low defense, especially to archers.",
+			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
 				"HP":10.0, "Move": 8.0, "Agility": 8.0, "Intelligence": 5.0, "Strength": 4.0, "Luck": 8.0, "Defense":3, "Resistance":6, "Attack Range":1,
 			},

@@ -34,6 +34,11 @@ class Class(models.Model):
 	class Meta:
 		unique_together = ('name', 'version')
 
+class Class_Action(models.Model):
+	clss         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
+	action       = models.ForeignKey(Action,       on_delete=models.DO_NOTHING)
+	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
+
 class Leader(models.Model):	
 	name         = models.CharField(max_length=16)
 	description  = models.CharField(max_length=100)

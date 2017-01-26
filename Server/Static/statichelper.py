@@ -7,7 +7,7 @@
 
 """
 import logging
-from Static.models import Ability, Action, Class, Leader_Ability, Map, Perk, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
+from Static.models import Ability, Action, Class, Class_Action, Leader_Ability, Map, Perk, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
 
 def getAbilityData(version):
 	"""
@@ -98,6 +98,14 @@ def getClassData(version):
 		class_dict[clss.name]["AttackType"]  = clss.attack_type
 		class_dict[clss.name]["Description"] = clss.description
 		class_dict[clss.name]["Price"]       = clss.price
+
+		# Add the Action information
+		class_dict[clss.name]["Actions"] = {}
+		for action in Action.objects.filter(version=version):
+			if Class_Action.objects.filter(clss=clss, action=action, version=version).first() == None:
+				class_dict[clss.name]["Actions"][action.name] = False
+			else:
+				class_dict[clss.name]["Actions"][action.name] = True
 
 		# Add The Stat information
 		class_dict[clss.name]["Stats"] = {}
@@ -198,22 +206,6 @@ def getMapData(version):
 
 	return map_dict
 
-# Gets the perk information for the specified version
-# Returns a dictionary of the following form:
-# {
-# 	"Extra money":{
-# 		"Description":"More $$$$$!",
-# 		"Tier":1,
-# 	},
-# 	"Strong Arrows":{
-# 		"Description":"You shoot stuff, it dies faster!",
-# 		"Tier":2,
-# 	},
-# 	"Forest Fighter":{
-# 		"Description":"You can now raise a wood elf army!",
-# 		"Tier":3,
-# 	},
-# }
 def getPerkData(version):
 	"""
 	Gets the perk information for the specified version

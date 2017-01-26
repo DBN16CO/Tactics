@@ -11,6 +11,7 @@ import logging
 from Game.models import Game, Game_User, Unit
 from Static.models import Action, Class, Stat, Unit_Stat, Version
 from User.models import Users
+from random import randint
 import Game.maphelper
 
 def placeUnits(game_user, units, user, version):
@@ -37,7 +38,7 @@ def placeUnits(game_user, units, user, version):
 
 	# Ensure that the list of units matches the number from the set team
 	if len(units) != len(set_units):
-		return "Must place (" + len(set_units) + ") units, not (" + len(units) + ")."
+		return "Must place (" + str(len(set_units)) + ") units, not (" + str(len(units)) + ")."
 
 	# Loop over every object in the query set and update (without saving yet) the X, Y, and health
 	placed_units = sorted(units, key=lambda k: k['Name'])
@@ -53,9 +54,14 @@ def placeUnits(game_user, units, user, version):
 		if not "X" in placed_units[0] or not "Y" in placed_units[0]:
 			return "Internal Error: Missing X or Y."
 
+		# Further check that the game has started - ensure the user is on a team
+		user_team = game_user.team
+		if user_team == 0:
+			return "You cannot place units until both players have set their teams."
+
 		# Check that the specific location in the map is valid for placement
-		if version_map_data[placed_units[0]["X"]][placed_units[0]["Y"]]["Placement"] != "1":
-			return "Location X:" + str(placed_units[0]["X"]) + " Y:" + str(placed_units[0]["Y"]) + " is not a valid placement location for a unit."
+		if version_map_data[placed_units[0]["X"]][placed_units[0]["Y"]]["Placement"] != user_team:
+			return "Location X:" + str(placed_units[0]["X"]) + " Y:" + str(placed_units[0]["Y"]) + " is not a valid placement location for a unit for your team."
 
 		# Momentarily store class HP maxes, in case the unit is selected more than once
 		if not unit.unit_class.name in class_max_hp:
@@ -64,9 +70,9 @@ def placeUnits(game_user, units, user, version):
 			class_max_hp[unit.unit_class.name] = Unit_Stat.objects.filter(unit=class_obj, stat=unit_hp_max, version=version).first().value
 
 		# Update the DB with the unit placement
-		unit.x_pos = placed_units[0]["X"]
-		unit.y_pos = placed_units[0]["Y"]
-		unit.hp_remaining = class_max_hp[unit.unit_class.name]
+		unit.x = placed_units[0]["X"]
+		unit.y = placed_units[0]["Y"]
+		unit.hp = class_max_hp[unit.unit_class.name]
 
 		# To keep the 0th unit to match with the current unit iteration in set_untis
 		del placed_units[0]
@@ -142,6 +148,24 @@ def setTeam(leader_ability, perks, units, username, version):
 	return err_msg
 
 def calculateActionResult(action, game, unit_dict, target):
+	"""
+	Determine the result of the provided action
+
+	:type action: String
+	:param action: The action the unit is trying to take
+
+	:type game: Game object
+	:param game: The game in which the acting unit resides
+
+	:type unit_dict: Dictionary
+	:param unit_dict: Describes the acting unit, has the Unit object, current HP and its location
+
+	:type target: Unit Object
+	:param target: The target of this unit's action
+
+	:rtype: Dictionary
+	:return: The result of the action, will have a "Unit" and "Target" dictionary
+	"""
 	version = game.version
 	clss = unit_dict["Unit"].unit_class
 	tgt_clss = target.unit_class
@@ -150,16 +174,18 @@ def calculateActionResult(action, game, unit_dict, target):
 	# Get attack range
 	attack_range_stat = Stat.objects.filter(name="Attack Range", version=version)
 	atk_rng = Unit_Stat.objects.filter(stat=attack_range_stat, unit=clss,
-		version=version)
+		version=version).first().value
 
 	# Is the target close enough?
-	distance = abs(unit_dict["NewX"] - target.x_pos) + abs(unit_dict["NewY"] - target.y_pos)
+	distance = abs(unit_dict["NewX"] - target.x) + abs(unit_dict["NewY"] - target.y)
+	logging.debug("Attempting action on target {} away (Range={}).".format(distance, atk_rng))
 	if distance > atk_rng:
-		return {"Error":"Must be within {} range.  Target is {} away.".format(atk_rng, distance)}
+		return {"Error":"Must be within {} range.  Target is {} away.".format(int(atk_rng), distance)}
 
 	# Set the previous HP for each unit
-	tgt_prev_hp = target.hp_remaining
-	unit_prev_hp = unit_dict["Unit"].hp_remaining
+	tgt_prev_hp = target.hp
+	unit_prev_hp = unit_dict["Unit"].hp
+	unit_hp_left = unit_prev_hp
 
 	# Get stat objects
 	agility = Stat.objects.filter(name="Agility", version=version).first()
@@ -169,7 +195,7 @@ def calculateActionResult(action, game, unit_dict, target):
 	defense = Stat.objects.filter(name="Defense", version=version).first()
 	resist = Stat.objects.filter(name="Resistance", version=version).first()
 
-	# Determine attack or heal amount and the amount prevented by the target TODO
+	# Determine attack or heal amount and the amount prevented by the target 
 	attackType = clss.attack_type
 	if attackType == "Physical":
 		amount = Unit_Stat.objects.filter(stat=strength, unit=clss, version=version).first().value
@@ -180,30 +206,64 @@ def calculateActionResult(action, game, unit_dict, target):
 
 	# Process unit's action upon target
 	if action == "Attack":
+		logging.debug("{}[{}] attacking {}".format(clss.name,unit_dict["Unit"].id, target.id))
+
 		if unit_dict["Unit"].owner == target.owner:
 			return {"Error":"Cannot attack your own units!"}
+		elif tgt_prev_hp == 0:
+			return {"Error":"You cannot attack dead units."}
 
 		# Check for a critical hit
-		logging.debug("TODO: Determine crit.  SKIPPED")
+		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=clss, version=version).first().value
+		tgt_luck = Unit_Stat.objects.filter(stat=luck, unit=tgt_clss, version=version).first().value
+		luck_val = max(1, ((unit_luck - tgt_luck) * 5 ) + 5)
+		
+		# If critting, double attack amount
+		if randint(0, 99) < luck_val:
+			logging.debug("The unit had a critical hit on the target!")
+			amount = 2 * amount
 
 		# Calculate result
-		tgt_hp_left = max(0, tgt_prev_hp - (amount - prevent))
+		tgt_hp_left = max(0, tgt_prev_hp - max(0, (amount - prevent)))
 
 		# Determine if there will be a counter attack
-		logging.debug("TODO: Determine counter attack.  SKIPPED")
-		unit_hp_left = unit_prev_hp
+		tgt_atk_rng = Unit_Stat.objects.filter(stat=attack_range_stat, unit=tgt_clss,
+		version=version)
+		if distance <= tgt_atk_rng and tgt_hp_left > 0:
+			logging.debug("Target within range to counter attack.")
+
+			attackType = tgt_clss.attack_type
+			if attackType == "Physical":
+				amount = Unit_Stat.objects.filter(stat=strength, unit=tgt_clss, version=version).first().value
+				prevent = Unit_Stat.objects.filter(stat=defense, unit=clss, version=version).first().value
+			elif attackType == "Magical":
+				amount = Unit_Stat.objects.filter(stat=intel, unit=tgt_clss, version=version).first().value
+				prevent = Unit_Stat.objects.filter(stat=resist, unit=clss, version=version).first().value
+
+			luck_val = max(1, (((tgt_luck - unit_luck) * 5 ) + 5) / 2)
+		
+			# If critting, double attack amount
+			if randint(0, 99) < luck_val:
+				logging.debug("The the target got a crit in response. Ouch!")
+				amount = 2 * amount
+
+			unit_hp_left = max(0, unit_prev_hp - max(0, (amount - prevent) / 2))
 
 	elif action == "Heal":
 		multiplier = 1
 		if unit_dict["Unit"].owner != target.owner:
 			return {"Error":"Cannot heal the enemy units!"}
+		elif unit_dict["Unit"].id == target.id:
+			return {"Error":"That unit cannot heal itself."}
 
 		# Ensure the target is not already at full health
-		tgt_hp_max = Unit_Stat.objects.filter(stat=hp, unit=tgt_clss, version=version)
+		tgt_hp_max = Unit_Stat.objects.filter(stat=hp, unit=tgt_clss, version=version).first().value
 		if tgt_hp_max == tgt_prev_hp:
 			return {"Error":"Target already has full Health."}
+		elif tgt_prev_hp == 0:
+			return {"Error":"You cannot heal dead units."}
 
-		tgt_hp_left = min(tgt_hp_max, tgt_prev_hp + (amount - prevent))
+		tgt_hp_left = min(tgt_hp_max, tgt_prev_hp + max(0, (amount - prevent)))
 
 	# Create the response object
 	response = {}
@@ -212,6 +272,8 @@ def calculateActionResult(action, game, unit_dict, target):
 	response["Unit"]["HP"] = unit_prev_hp
 	response["Unit"]["NewHP"] = unit_hp_left
 	response["Target"] = {"Unit":target,"ID":target.id, "HP":tgt_prev_hp, "NewHP":tgt_hp_left}
+
+	logging.debug("Result: %s", response)
 
 	return response
 
@@ -241,11 +303,8 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 	:return: True if the update was successful, False otherwise
 	"""
 	unit = unit_dict["Unit"]
-	unit.prev_x = unit.x_pos
-	unit.prev_y = unit.y_pos
-	unit.prev_action = action
-	unit.x_pos = unit_dict["NewX"]
-	unit.y_pos = unit_dict["NewY"]
+	unit.x = unit_dict["NewX"]
+	unit.y = unit_dict["NewY"]
 
 	# If there is not target
 	if target_dict == None:
@@ -254,13 +313,17 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 		return True
 
 	# Information specific to having a target
-	unit.prev_target = target_dict["Unit"]
-	unit.prev_hp = unit_dict["HP"]
-	unit.hp_remaining = unit_dict["NewHP"]
+	unit.target = target_dict["Unit"]
+	unit.hp = unit_dict["NewHP"]
+	if unit.hp <= 0:
+		logging.debug("The attacking unit was KILLED by a counterattack.")
+		unit.dead = True
 
 	target = target_dict["Unit"]
-	target.prev_hp = target_dict["HP"]
-	target.hp_remaining = target_dict["NewHP"]
+	target.hp = target_dict["NewHP"]
+	if target.hp <= 0:
+		logging.debug("The target was KILLED!")
+		target.dead = True
 
 	# Save the result
 	unit.save()
@@ -296,8 +359,8 @@ def validateMove(unit, game, user, newX, newY):
 	unit_locations = {}
 	other_units = Unit.objects.filter(game=game).exclude(pk=unit.pk)
 	for unt in other_units:
-		x = unt.x_pos
-		y = unt.y_pos
+		x = unt.x
+		y = unt.y
 
 		if not x in unit_locations:
 			unit_locations[x] = {}
@@ -315,7 +378,7 @@ def validateMove(unit, game, user, newX, newY):
 	# Determine how far this unit can move
 	version = game.version
 	move_range = Unit_Stat.objects.filter(unit=unit.unit_class, version=version, stat=Stat.objects.filter(version=version, name="Move").first()).first().value
-	logging.debug("Attempting to move %s from location (%d,%d) to location (%d,%d).", unit.unit_class.name, unit.x_pos, unit.y_pos, newX, newY)
+	logging.debug("Attempting to move %s from location (%d,%d) to location (%d,%d).", unit.unit_class.name, unit.x, unit.y, newX, newY)
 
 	# Helper variables for next section of code
 	map_data = Game.maphelper.maps[version.name][game.map_path.name]
@@ -334,8 +397,8 @@ def validateMove(unit, game, user, newX, newY):
 	# Uses:
 	# valid_move_queue - List of tokens to check in queue, has the X, Y, and the remaining movement range
 	# checked_tokens_dict - Dictionary of checked tokens, to ensure the same token is not checked twice
-	valid_move_queue = [{"X":unit.x_pos, "Y":unit.y_pos, "Remaining":move_range}]
-	checked_tokens_dict = {unit.x_pos:{unit.y_pos:True}}
+	valid_move_queue = [{"X":unit.x, "Y":unit.y, "Remaining":move_range}]
+	checked_tokens_dict = {unit.x:{unit.y:True}}
 	while len(valid_move_queue) > 0:
 		# Get next list element and prepare for processing
 		token = valid_move_queue.pop(0)
@@ -393,5 +456,5 @@ def validateMove(unit, game, user, newX, newY):
 					valid_move_queue.append({"X":deltX,"Y":deltY,"Remaining":rem_mvmt})
 
 	# If exited the while loop, target token was not found
-	error = "Target location ({},{}) was out of reach for {} at location ({},{}).".format(newX, newY, class_name, unit.x_pos, unit.y_pos)
+	error = "Target location ({},{}) was out of reach for {} at location ({},{}).".format(newX, newY, class_name, unit.x, unit.y)
 	return {"Error":error}
