@@ -76,7 +76,7 @@ def loadMaps(version_name=''):
 						continue
 
 					# The components of the token
-					placement = split_token[0]
+					placement = int(split_token[0])
 					tile_type = split_token[1]
 
 					# Add the token to the dictionary

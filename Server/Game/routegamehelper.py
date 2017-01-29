@@ -83,14 +83,10 @@ def queryGamesUser(data):
 					                {\n
 					                   "ID": 1,\n
 					                   "Name": "(Class)",\n
-					                   "HP_Rem": 99,\n
+					                   "HP": 99,\n
 					                   "Prev_HP": 109,\n
 					                   "X": 7,\n
 					                   "Y": 8,\n
-					                   "Prev_X": 9,\n
-					                   "Prev_Y": 10,\n
-					                   "Prev_Target": 2,\n
-					                   "Prev_Action": "(Action Name)"\n
 					                }\n
 					          ],\n
 					          "Your_Leader": {\n
@@ -107,14 +103,10 @@ def queryGamesUser(data):
 					               {\n
 					                   "ID": 2,\n
 					                   "Name": "(Class)",\n
-					                   "HP_Rem": 99,\n
+					                   "HP": 99,\n
 					                   "Prev_HP": 109,\n
 					                   "X": 7,\n
 					                   "Y": 8,\n
-					                   "Prev_X": 9,\n
-					                   "Prev_Y": 10,\n
-					                   "Prev_Target": 1,\n
-					                   "Prev_Action": "(Action Name)"\n
 					               }\n
 					          ],\n
 					          "Enemy_Leader": {\n
@@ -176,21 +168,9 @@ def queryGamesUser(data):
 					unit = {}
 					unit["ID"] = your_unit.id
 					unit["Name"] = your_unit.unit_class.name
-					unit["HP_Rem"] = your_unit.hp_remaining
-					unit["Prev_HP"] = your_unit.prev_hp
-					unit["X"] = your_unit.x_pos
-					unit["Y"] = your_unit.y_pos
-					unit["Prev_X"] = your_unit.prev_x
-					unit["Prev_Y"] = your_unit.prev_y
-					
-					prev_target = your_unit.prev_target
-					prev_action = your_unit.prev_action
-					if prev_target:
-						unit["Prev_Target"] = prev_target.id
-						unit["Prev_Action"] = prev_action.name
-					else:
-						unit["Prev_Target"] = None
-						unit["Prev_Action"] = None
+					unit["HP"] = your_unit.hp
+					unit["X"] = your_unit.x
+					unit["Y"] = your_unit.y
 
 					game_response["Your_Units"].append(unit)
 
@@ -199,21 +179,9 @@ def queryGamesUser(data):
 					unit = {}
 					unit["ID"] = enemy_unit.id
 					unit["Name"] = enemy_unit.unit_class.name
-					unit["HP_Rem"] = enemy_unit.hp_remaining
-					unit["Prev_HP"] = enemy_unit.prev_hp
-					unit["X"] = enemy_unit.x_pos
-					unit["Y"] = enemy_unit.y_pos
-					unit["Prev_X"] = enemy_unit.prev_x
-					unit["Prev_Y"] = enemy_unit.prev_y
-
-					prev_target = enemy_unit.prev_target
-					prev_action = enemy_unit.prev_action
-					if prev_target:
-						unit["Prev_Target"] = prev_target.id
-						unit["Prev_Action"] = prev_action.name
-					else:
-						unit["Prev_Target"] = None
-						unit["Prev_Action"] = None
+					unit["HP"] = enemy_unit.hp
+					unit["X"] = enemy_unit.x
+					unit["Y"] = enemy_unit.y
 
 					game_response["Enemy_Units"].append(unit)
 
