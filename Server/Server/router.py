@@ -1,5 +1,7 @@
 from channels.routing import route
+from Communication.router import *
 
 channel_routing = [
-    route('websocket.receive', 'Communication.router.processRequest')
+	route('websocket.connect', connect),
+    route('websocket.receive', processRequest)
 ]
