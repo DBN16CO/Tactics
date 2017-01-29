@@ -1,6 +1,6 @@
 from django.test import TestCase
 from Game.models import Game_User, Game_Queue, Unit, Game
-from Static.models import Version, Class
+from Static.models import Version, Class, Stat, Unit_Stat
 from User.models import Users
 from Communication.testhelper import *
 from Game.tasks import processMatchmakingQueue
@@ -516,7 +516,7 @@ class TestUnit(TestCase):
 
 		# Test an invalid unit key value
 		bad_unit_command = copy.deepcopy(valid_wait_command)
-		bad_unit_command["Unit"] = 999
+		bad_unit_command["Unit"] = -1
 		self.channel.send(json.dumps(bad_unit_command))
 		result = json.loads(self.channel.receive())
 		self.assertTrue(result["Success"] == False)
@@ -534,7 +534,7 @@ class TestUnit(TestCase):
 		# Test target key invalid unit
 		bad_target_command = copy.deepcopy(valid_wait_command)
 		bad_target_command["Action"] = "Heal"
-		bad_target_command["Target"] = 999
+		bad_target_command["Target"] = -1
 		self.channel.send(json.dumps(bad_target_command))
 		result = json.loads(self.channel.receive())
 		self.assertTrue(result["Success"] == False)
@@ -605,7 +605,7 @@ class TestUnit(TestCase):
 		sword.y = 5
 		sword.save()
 
-		# Moving through enemy unit
+		# Forest impedes full movement
 		move_through_forest_command = copy.deepcopy(valid_wait_command)
 		move_through_forest_command["Unit"] = sword.id
 		move_through_forest_command["X"] = 1
@@ -617,8 +617,8 @@ class TestUnit(TestCase):
 
 		endTestLog("test13_take_action_invalid_move")
 
-	def test14_take_action_basic_success(self):
-		startTestLog("test14_take_action_basic_success")
+	def test14_take_action_move_on_self_success(self):
+		startTestLog("test14_take_action_move_on_self_success")
 
 		# Setup command
 		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
@@ -641,7 +641,7 @@ class TestUnit(TestCase):
 		self.assertEqual(unit.x, newX)
 		self.assertEqual(unit.y, newY)
 
-		endTestLog("test14_take_action_basic_success")
+		endTestLog("test14_take_action_move_on_self_success")
 
 	def test15_take_action_valid_move_success(self):
 		startTestLog("test15_take_action_valid_move_success")
@@ -653,12 +653,12 @@ class TestUnit(TestCase):
 		team2 = self.helper_golden_path_set_team_units()
 		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
 		self.assertTrue(len(game_users) == 2)
-		unit = Unit.objects.filter(game=game_users.first().game, x=0, y=0).first()	# Get flier in location 0,0
-		newX = 0
-		newY = 1
+		unit = Unit.objects.filter(game=game_users.first().game, x=2, y=0).first()	# Get flier in location 2,0
+		newX = 2
+		newY = 3
 		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY}
 
-		# Moving south one spot
+		# Moving south full distance
 		valid_move_command = copy.deepcopy(valid_wait_command)
 		self.channel.send(json.dumps(valid_move_command))
 		result = json.loads(self.channel.receive())
@@ -668,6 +668,32 @@ class TestUnit(TestCase):
 		self.assertEqual(unit.y, newY)
 
 		endTestLog("test15_take_action_valid_move_success")
+
+	def test15a_take_action_full_move_success(self):
+		startTestLog("test15a_take_action_full_move_success")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x=2, y=0).first()	# Get flier in location 2,0
+		newX = 2
+		newY = 8
+		valid_wait_command = {"Command":"TA", "Action":"Wait", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY}
+
+		# Moving south full distance
+		valid_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(valid_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x, newX)
+		self.assertEqual(unit.y, newY)
+
+		endTestLog("test15a_take_action_full_move_success")
 
 	def test16_take_action_valid_move_through_ally_success(self):
 		startTestLog("test16_take_action_valid_move_through_ally_success")
@@ -796,16 +822,30 @@ class TestUnit(TestCase):
 		self.assertTrue(len(game_users) == 2)
 		unit = Unit.objects.filter(game=game_users.first().game, x=2, y=0).first()	# Get flier in location 2,0
 
+		# Ensure the attacker cannot crit
+		version = Version.objects.latest('pk')
+		clss = unit.unit_class
+		luck = Stat.objects.filter(name="Luck", version=version).first()
+		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=clss, version=version).first()
+		unit_luck.value = -1
+		unit_luck.save()
+
+		# Ensure the attacker cannot miss
+		agil = Stat.objects.filter(name="Agility", version=version).first()
+		unit_agil = Unit_Stat.objects.filter(stat=agil, unit=clss, version=version).first()
+		unit_agil.value = 15
+		unit_agil.save()
+
 		# Move unit near target
 		unit.y = 14
 		unit.save()
 		oldHp = unit.hp
 
-		# Get target at location 0,15
-		tgt = Unit.objects.filter(game=game_users.first().game, x=0, y=15).first()	# Get flier in location 2,0
+		# Get target at location 1,15
+		tgt = Unit.objects.filter(game=game_users.first().game, x=1, y=15).first()
 		oldTgtHp = tgt.hp
 
-		newX = 0
+		newX = 1
 		newY = 14
 		valid_wait_command = {"Command":"TA", "Action":"Attack", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY, "Target":tgt.id}
 
@@ -813,12 +853,24 @@ class TestUnit(TestCase):
 		self_move_command = copy.deepcopy(valid_wait_command)
 		self.channel.send(json.dumps(self_move_command))
 		result = json.loads(self.channel.receive())
-		self.assertTrue(result["Success"])
 		unit = Unit.objects.filter(pk=unit.id).first()
 		self.assertEqual(unit.x, newX)
 		self.assertEqual(unit.y, newY)
+		# Target had a: Normal Hit      Critical Hit    Missed
+		self.assertTrue(unit.hp == 8 or unit.hp == 4 or unit.hp == 10)
 		tgt = Unit.objects.filter(pk=tgt.id).first()
-		#fdsjalkfhasdjklfhasdjklfahsdjklfahsdjkflh check healths
+		self.assertEqual(tgt.hp, 9)
+
+		self.assertTrue(result["Success"])
+		self.assertEqual(result["Unit"]["NewX"], newX)
+		self.assertEqual(result["Unit"]["NewY"], newY)
+		self.assertEqual(result["Unit"]["ID"], unit.id)
+		self.assertEqual(result["Unit"]["HP"], 10)
+		self.assertTrue(result["Unit"]["NewHP"] == 8 or result["Unit"]["NewHP"] == 4 or result["Unit"]["NewHP"] == 10)
+		self.assertEqual(result["Target"]["ID"], tgt.id)
+		self.assertEqual(result["Target"]["HP"], 10)
+		self.assertEqual(result["Target"]["NewHP"], 9)
+
 
 		endTestLog("test20_take_action_basic_attack_success")
 
@@ -952,3 +1004,469 @@ class TestUnit(TestCase):
 		logging.debug(result)
 
 		endTestLog("test22_take_action_bad_attack")
+
+	def test23_take_action_crit_attack_success(self):
+		startTestLog("test23_take_action_crit_attack_success")
+
+		# NOTE: Also tests that the dead target cannot counter 
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x=2, y=0).first()	# Get flier in location 2,0
+
+		# Ensure the attacker cannot crit
+		version = Version.objects.latest('pk')
+		clss = unit.unit_class
+		luck = Stat.objects.filter(name="Luck", version=version).first()
+		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=clss, version=version).first()
+		unit_luck.value = 100
+		unit_luck.save()
+
+		# Ensure the attacker cannot miss
+		agil = Stat.objects.filter(name="Agility", version=version).first()
+		unit_agil = Unit_Stat.objects.filter(stat=agil, unit=clss, version=version).first()
+		unit_agil.value = 15
+		unit_agil.save()
+
+		# Move unit near target
+		unit.y = 14
+		unit.save()
+		oldHp = unit.hp
+
+		# Get target at location 0,15
+		tgt = Unit.objects.filter(game=game_users.first().game, x=0, y=15).first()	# Get flier in location 2,0
+		oldTgtHp = tgt.hp
+
+		newX = 0
+		newY = 14
+		valid_wait_command = {"Command":"TA", "Action":"Attack", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY, "Target":tgt.id}
+
+		# Moving onto self
+		self_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(self_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x, newX)
+		self.assertEqual(unit.y, newY)
+		self.assertEqual(unit.hp, 10)
+		tgt = Unit.objects.filter(pk=tgt.id).first()
+		self.assertEqual(tgt.hp, 0)
+
+		self.assertTrue(result["Success"])
+		self.assertEqual(result["Unit"]["NewX"], newX)
+		self.assertEqual(result["Unit"]["NewY"], newY)
+		self.assertEqual(result["Unit"]["ID"], unit.id)
+		self.assertEqual(result["Unit"]["HP"], 10)
+		self.assertEqual(result["Unit"]["NewHP"], 10)
+		self.assertEqual(result["Target"]["ID"], tgt.id)
+		self.assertEqual(result["Target"]["HP"], 5)
+		self.assertEqual(result["Target"]["NewHP"], 0)
+
+		endTestLog("test23_take_action_crit_attack_success")
+
+	def test24_take_action_attack_no_counter_success(self):
+		startTestLog("test24_take_action_attack_no_counter_success")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x=1, y=0).first()	# Get archer in location 1,0
+
+		# Ensure the attacker cannot crit
+		version = Version.objects.latest('pk')
+		clss = unit.unit_class
+		luck = Stat.objects.filter(name="Luck", version=version).first()
+		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=clss, version=version).first()
+		unit_luck.value = -1
+		unit_luck.save()
+
+		# Ensure the attacker cannot miss
+		agil = Stat.objects.filter(name="Agility", version=version).first()
+		unit_agil = Unit_Stat.objects.filter(stat=agil, unit=clss, version=version).first()
+		unit_agil.value = 10
+		unit_agil.save()
+
+		# Move unit near target
+		unit.y = 14
+		unit.save()
+		oldHp = unit.hp
+
+		# Get target at location 5,15
+		tgt = Unit.objects.filter(game=game_users.first().game, x=5, y=15).first()
+		oldTgtHp = tgt.hp
+
+		newX = 4
+		newY = 14
+		valid_wait_command = {"Command":"TA", "Action":"Attack", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY, "Target":tgt.id}
+
+		# Moving right 4 (outside target counter range)
+		self_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(self_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x, newX)
+		self.assertEqual(unit.y, newY)
+		self.assertEqual(unit.hp, 10)
+		tgt = Unit.objects.filter(pk=tgt.id).first()
+		self.assertEqual(tgt.hp, 18)
+
+		self.assertTrue(result["Success"])
+		self.assertEqual(result["Unit"]["NewX"], newX)
+		self.assertEqual(result["Unit"]["NewY"], newY)
+		self.assertEqual(result["Unit"]["ID"], unit.id)
+		self.assertEqual(result["Unit"]["HP"], 10)
+		self.assertEqual(result["Unit"]["NewHP"], 10)
+		self.assertEqual(result["Target"]["ID"], tgt.id)
+		self.assertEqual(result["Target"]["HP"], 20)
+		self.assertEqual(result["Target"]["NewHP"], 18)
+
+		endTestLog("test24_take_action_attack_no_counter_success")
+
+	def test25_take_action_attack_miss_success(self):
+		startTestLog("test25_take_action_attack_miss_success")
+
+		# NOTE: Also tests that target can counter (and crit)
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x=2, y=0).first()	# Get flier in location 2,0
+
+		# Ensure the attacker cannot crit (and guarantee counter is a crit)
+		version = Version.objects.latest('pk')
+		clss = unit.unit_class
+		luck = Stat.objects.filter(name="Luck", version=version).first()
+		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=clss, version=version).first()
+		unit_luck.value = -100
+		unit_luck.save()
+
+		# Ensure the attacker always misses
+		agil = Stat.objects.filter(name="Agility", version=version).first()
+		unit_agil = Unit_Stat.objects.filter(stat=agil, unit=clss, version=version).first()
+		unit_agil.value = -100
+		unit_agil.save()
+
+		# Move unit near target
+		unit.y = 14
+		unit.save()
+		oldHp = unit.hp
+
+		# Get target at location 5,15
+		tgt = Unit.objects.filter(game=game_users.first().game, x=3, y=15).first()
+		oldTgtHp = tgt.hp
+
+		newX = 3
+		newY = 14
+		valid_wait_command = {"Command":"TA", "Action":"Attack", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY, "Target":tgt.id}
+
+		# Move into attack range
+		self_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(self_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x, newX)
+		self.assertEqual(unit.y, newY)
+		self.assertEqual(unit.hp, 3)
+		tgt = Unit.objects.filter(pk=tgt.id).first()
+		self.assertEqual(tgt.hp, 20)
+
+		self.assertTrue(result["Success"])
+		self.assertEqual(result["Unit"]["NewX"], newX)
+		self.assertEqual(result["Unit"]["NewY"], newY)
+		self.assertEqual(result["Unit"]["ID"], unit.id)
+		self.assertEqual(result["Unit"]["HP"], 10)
+		self.assertEqual(result["Unit"]["NewHP"], 3)
+		self.assertEqual(result["Target"]["ID"], tgt.id)
+		self.assertEqual(result["Target"]["HP"], 20)
+		self.assertEqual(result["Target"]["NewHP"], 20)
+
+		endTestLog("test25_take_action_attack_miss_success")
+
+	def test25b_take_action_tgt_passive_success(self):
+		startTestLog("test25b_take_action_tgt_passive_success")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x=2, y=0).first()	# Get flier in location 2,0
+
+		# Ensure the attacker cannot crit (and guarantee counter is a crit)
+		version = Version.objects.latest('pk')
+		clss = unit.unit_class
+		luck = Stat.objects.filter(name="Luck", version=version).first()
+		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=clss, version=version).first()
+		unit_luck.value = -100
+		unit_luck.save()
+
+		# Ensure the attacker always misses
+		agil = Stat.objects.filter(name="Agility", version=version).first()
+		unit_agil = Unit_Stat.objects.filter(stat=agil, unit=clss, version=version).first()
+		unit_agil.value = -100
+		unit_agil.save()
+
+		# Move unit near target
+		unit.y = 14
+		unit.save()
+		oldHp = unit.hp
+
+		# Get target at location 5,15
+		tgt = Unit.objects.filter(game=game_users.first().game, x=0, y=15).first()
+		oldTgtHp = tgt.hp
+
+		newX = 0
+		newY = 14
+		valid_wait_command = {"Command":"TA", "Action":"Attack", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY, "Target":tgt.id}
+
+		# Moving right 4 (outside target counter range)
+		self_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(self_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x, newX)
+		self.assertEqual(unit.y, newY)
+		self.assertEqual(unit.hp, 10)
+		tgt = Unit.objects.filter(pk=tgt.id).first()
+		self.assertEqual(tgt.hp, 5)
+
+		self.assertTrue(result["Success"])
+		self.assertEqual(result["Unit"]["NewX"], newX)
+		self.assertEqual(result["Unit"]["NewY"], newY)
+		self.assertEqual(result["Unit"]["ID"], unit.id)
+		self.assertEqual(result["Unit"]["HP"], 10)
+		self.assertEqual(result["Unit"]["NewHP"], 10)
+		self.assertEqual(result["Target"]["ID"], tgt.id)
+		self.assertEqual(result["Target"]["HP"], 5)
+		self.assertEqual(result["Target"]["NewHP"], 5)
+
+		endTestLog("test25b_take_action_tgt_passive_success")
+
+	def test25a_take_action_counter_misses_success(self):
+		startTestLog("test25a_take_action_counter_misses_success")
+
+		# NOTE: Also tests that target can counter
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x=2, y=0).first()	# Get flier in location 2,0
+
+		# Ensure the attacker cannot crit (and guarantee counter is a crit)
+		version = Version.objects.latest('pk')
+		clss = unit.unit_class
+		luck = Stat.objects.filter(name="Luck", version=version).first()
+		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=clss, version=version).first()
+		unit_luck.value = -100
+		unit_luck.save()
+
+		# Ensure the attacker never misses
+		agil = Stat.objects.filter(name="Agility", version=version).first()
+		unit_agil = Unit_Stat.objects.filter(stat=agil, unit=clss, version=version).first()
+		unit_agil.value = 100
+		unit_agil.save()
+
+		# Move unit near target
+		unit.y = 14
+		unit.save()
+		oldHp = unit.hp
+
+		# Get target at location 5,15
+		tgt = Unit.objects.filter(game=game_users.first().game, x=0, y=15).first()
+		oldTgtHp = tgt.hp
+
+		newX = 0
+		newY = 14
+		valid_wait_command = {"Command":"TA", "Action":"Attack", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY, "Target":tgt.id}
+
+		# Moving right 4 (outside target counter range)
+		self_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(self_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x, newX)
+		self.assertEqual(unit.y, newY)
+		self.assertEqual(unit.hp, 10)
+		tgt = Unit.objects.filter(pk=tgt.id).first()
+		self.assertEqual(tgt.hp, 3)
+
+		self.assertTrue(result["Success"])
+		self.assertEqual(result["Unit"]["NewX"], newX)
+		self.assertEqual(result["Unit"]["NewY"], newY)
+		self.assertEqual(result["Unit"]["ID"], unit.id)
+		self.assertEqual(result["Unit"]["HP"], 10)
+		self.assertEqual(result["Unit"]["NewHP"], 10)
+		self.assertEqual(result["Target"]["ID"], tgt.id)
+		self.assertEqual(result["Target"]["HP"], 5)
+		self.assertEqual(result["Target"]["NewHP"], 3)
+
+		endTestLog("test25a_take_action_counter_misses_success")
+
+	def test26_take_action_heal_fully_success(self):
+		startTestLog("test26_take_action_heal_fully_success")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x=0, y=0).first()	# Get cleric in location 0,0
+
+		# Get target at location 1,0
+		tgt = Unit.objects.filter(game=game_users.first().game, x=1, y=0).first()
+
+		# Simulate target losing 1 health
+		oldTgtHp = tgt.hp
+		tgt.hp = oldTgtHp - 1
+		tgt.save()
+
+		newX = 0
+		newY = 0
+		valid_wait_command = {"Command":"TA", "Action":"Heal", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY, "Target":tgt.id}
+
+		# Moving onto self
+		self_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(self_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x, newX)
+		self.assertEqual(unit.y, newY)
+		self.assertEqual(unit.hp, 5)
+		tgt = Unit.objects.filter(pk=tgt.id).first()
+		self.assertEqual(tgt.hp, oldTgtHp)
+
+		self.assertTrue(result["Success"])
+		self.assertEqual(result["Unit"]["NewX"], newX)
+		self.assertEqual(result["Unit"]["NewY"], newY)
+		self.assertEqual(result["Unit"]["ID"], unit.id)
+		self.assertEqual(result["Unit"]["HP"], 5)
+		self.assertEqual(result["Unit"]["NewHP"], 5)
+		self.assertEqual(result["Target"]["ID"], tgt.id)
+		self.assertEqual(result["Target"]["HP"], oldTgtHp-1)
+		self.assertEqual(result["Target"]["NewHP"], oldTgtHp)
+
+		endTestLog("test26_take_action_heal_fully_success")
+
+	def test27_take_action_heal_partial_success(self):
+		startTestLog("test27_take_action_heal_partial_success")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x=0, y=0).first()	# Get cleric in location 0,0
+
+		# Get target at location 1,0
+		tgt = Unit.objects.filter(game=game_users.first().game, x=1, y=0).first()
+
+		# Simulate target losing all but 1 health
+		oldTgtHp = tgt.hp
+		tgt.hp = 1
+		tgt.save()
+
+		newX = 0
+		newY = 0
+		valid_wait_command = {"Command":"TA", "Action":"Heal", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY, "Target":tgt.id}
+
+		# Moving onto self
+		self_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(self_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x, newX)
+		self.assertEqual(unit.y, newY)
+		self.assertEqual(unit.hp, 5)
+		tgt = Unit.objects.filter(pk=tgt.id).first()
+		self.assertEqual(tgt.hp, 5)
+
+		self.assertTrue(result["Success"])
+		self.assertEqual(result["Unit"]["NewX"], newX)
+		self.assertEqual(result["Unit"]["NewY"], newY)
+		self.assertEqual(result["Unit"]["ID"], unit.id)
+		self.assertEqual(result["Unit"]["HP"], 5)
+		self.assertEqual(result["Unit"]["NewHP"], 5)
+		self.assertEqual(result["Target"]["ID"], tgt.id)
+		self.assertEqual(result["Target"]["HP"], 1)
+		self.assertEqual(result["Target"]["NewHP"], 5)
+
+		endTestLog("test27_take_action_heal_partial_success")
+
+	def test28_take_action_heal_exact_full_success(self):
+		startTestLog("test28_take_action_heal_exact_full_success")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		unit = Unit.objects.filter(game=game_users.first().game, x=0, y=0).first()	# Get cleric in location 0,0
+
+		# Get target at location 1,0
+		tgt = Unit.objects.filter(game=game_users.first().game, x=1, y=0).first()
+
+		# Simulate target losing all but 1 health
+		oldTgtHp = tgt.hp
+		tgt.hp = 6
+		tgt.save()
+
+		newX = 0
+		newY = 0
+		valid_wait_command = {"Command":"TA", "Action":"Heal", "Game":"vs. second_user #1", "Unit":unit.id, "X":newX,"Y":newY, "Target":tgt.id}
+
+		# Moving onto self
+		self_move_command = copy.deepcopy(valid_wait_command)
+		self.channel.send(json.dumps(self_move_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"])
+		unit = Unit.objects.filter(pk=unit.id).first()
+		self.assertEqual(unit.x, newX)
+		self.assertEqual(unit.y, newY)
+		self.assertEqual(unit.hp, 5)
+		tgt = Unit.objects.filter(pk=tgt.id).first()
+		self.assertEqual(tgt.hp, 10)
+
+		self.assertTrue(result["Success"])
+		self.assertEqual(result["Unit"]["NewX"], newX)
+		self.assertEqual(result["Unit"]["NewY"], newY)
+		self.assertEqual(result["Unit"]["ID"], unit.id)
+		self.assertEqual(result["Unit"]["HP"], 5)
+		self.assertEqual(result["Unit"]["NewHP"], 5)
+		self.assertEqual(result["Target"]["ID"], tgt.id)
+		self.assertEqual(result["Target"]["HP"], 6)
+		self.assertEqual(result["Target"]["NewHP"], 10)
+
+		endTestLog("test28_take_action_heal_exact_full_success")
+

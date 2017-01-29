@@ -7,11 +7,12 @@
 .. moduleauthor:: Drew, Brennan, and Nick
 
 """
-import logging
-from Game.models import Game, Game_User, Unit
-from Static.models import Action, Class, Stat, Unit_Stat, Version
-from User.models import Users
+import logging, math
 from random import randint
+
+from Game.models import Game, Game_User, Unit
+from Static.models import Action, Class, Class_Action, Stat, Unit_Stat, Version
+from User.models import Users
 import Game.maphelper
 
 def placeUnits(game_user, units, user, version):
@@ -184,6 +185,7 @@ def calculateActionResult(action, game, unit_dict, target):
 
 	# Set the previous HP for each unit
 	tgt_prev_hp = target.hp
+	tgt_hp_left = tgt_prev_hp
 	unit_prev_hp = unit_dict["Unit"].hp
 	unit_hp_left = unit_prev_hp
 
@@ -213,23 +215,42 @@ def calculateActionResult(action, game, unit_dict, target):
 		elif tgt_prev_hp == 0:
 			return {"Error":"You cannot attack dead units."}
 
+		# Check for a missed attack
+		unit_agil = Unit_Stat.objects.filter(stat=agility, unit=clss, version=version).first().value
+		tgt_agil = Unit_Stat.objects.filter(stat=agility, unit=tgt_clss, version=version).first().value
+		agil_val = max(0, ((tgt_agil - unit_agil) * 5 ) + 5)
+
 		# Check for a critical hit
 		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=clss, version=version).first().value
 		tgt_luck = Unit_Stat.objects.filter(stat=luck, unit=tgt_clss, version=version).first().value
-		luck_val = max(1, ((unit_luck - tgt_luck) * 5 ) + 5)
-		
-		# If critting, double attack amount
-		if randint(0, 99) < luck_val:
-			logging.debug("The unit had a critical hit on the target!")
-			amount = 2 * amount
+		luck_val = max(0, ((unit_luck - tgt_luck) * 5 ) + 5)
 
-		# Calculate result
-		tgt_hp_left = max(0, tgt_prev_hp - max(0, (amount - prevent)))
+		# If attack misses, skip this section for dealing damage to target
+		if randint(0, 99) > agil_val:			
+			# If critting, double attack amount
+			if randint(0, 99) < luck_val:
+				logging.debug("The unit had a critical hit on the target!")
+				amount = 2 * amount
+
+			# Calculate result
+			tgt_hp_left = max(0, tgt_prev_hp - max(0, (amount - prevent)))
+		else:
+			logging.debug("MISSED the target!")
 
 		# Determine if there will be a counter attack
+		# 1. Is the target within range?
 		tgt_atk_rng = Unit_Stat.objects.filter(stat=attack_range_stat, unit=tgt_clss,
-		version=version)
-		if distance <= tgt_atk_rng and tgt_hp_left > 0:
+		version=version).first().value
+		logging.debug("Attempting counter attack on unit {} away (Range={}).".format(distance, tgt_atk_rng))
+
+		# 2. Did the target's counter miss?
+		agil_val = max(0, ((unit_agil - tgt_agil) * 5 ) + 5)
+
+		# 3. Can the target even attack?
+		action = Action.objects.filter(version=version, name="Attack").first()
+		canAttack = not Class_Action.objects.filter(version=version, clss=tgt_clss, action=action).first() == None
+
+		if distance <= tgt_atk_rng and tgt_hp_left > 0 and randint(0, 99) > agil_val and canAttack:
 			logging.debug("Target within range to counter attack.")
 
 			attackType = tgt_clss.attack_type
@@ -241,13 +262,15 @@ def calculateActionResult(action, game, unit_dict, target):
 				prevent = Unit_Stat.objects.filter(stat=resist, unit=clss, version=version).first().value
 
 			luck_val = max(1, (((tgt_luck - unit_luck) * 5 ) + 5) / 2)
-		
+
 			# If critting, double attack amount
 			if randint(0, 99) < luck_val:
 				logging.debug("The the target got a crit in response. Ouch!")
 				amount = 2 * amount
 
-			unit_hp_left = max(0, unit_prev_hp - max(0, (amount - prevent) / 2))
+			unit_hp_left = max(0, unit_prev_hp - max(0, math.ceil((amount - prevent) / 2)))
+		else:
+			logging.debug("MISSED! Or out of range to counter.")
 
 	elif action == "Heal":
 		multiplier = 1
