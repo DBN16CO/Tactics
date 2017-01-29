@@ -226,7 +226,7 @@ def calculateActionResult(action, game, unit_dict, target):
 		luck_val = max(0, ((unit_luck - tgt_luck) * 5 ) + 5)
 
 		# If attack misses, skip this section for dealing damage to target
-		if randint(0, 99) > agil_val:	
+		if randint(0, 99) > agil_val:
 			# If critting, double attack amount
 			if randint(0, 99) < luck_val:
 				logging.debug("The unit had a critical hit on the target!")
