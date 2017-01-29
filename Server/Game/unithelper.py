@@ -11,7 +11,7 @@ import logging, math
 from random import randint
 
 from Game.models import Game, Game_User, Unit
-from Static.models import Action, Class, Class_Action, Stat, Unit_Stat, Version
+from Static.models import Action, Class, Class_Action, Stat, Unit_Stat
 from User.models import Users
 import Game.maphelper
 
@@ -197,7 +197,7 @@ def calculateActionResult(action, game, unit_dict, target):
 	defense = Stat.objects.filter(name="Defense", version=version).first()
 	resist = Stat.objects.filter(name="Resistance", version=version).first()
 
-	# Determine attack or heal amount and the amount prevented by the target 
+	# Determine attack or heal amount and the amount prevented by the target
 	attackType = clss.attack_type
 	if attackType == "Physical":
 		amount = Unit_Stat.objects.filter(stat=strength, unit=clss, version=version).first().value
@@ -226,7 +226,7 @@ def calculateActionResult(action, game, unit_dict, target):
 		luck_val = max(0, ((unit_luck - tgt_luck) * 5 ) + 5)
 
 		# If attack misses, skip this section for dealing damage to target
-		if randint(0, 99) > agil_val:			
+		if randint(0, 99) > agil_val:	
 			# If critting, double attack amount
 			if randint(0, 99) < luck_val:
 				logging.debug("The unit had a critical hit on the target!")
@@ -273,7 +273,6 @@ def calculateActionResult(action, game, unit_dict, target):
 			logging.debug("MISSED! Or out of range to counter.")
 
 	elif action == "Heal":
-		multiplier = 1
 		if unit_dict["Unit"].owner != target.owner:
 			return {"Error":"Cannot heal the enemy units!"}
 		elif unit_dict["Unit"].id == target.id:

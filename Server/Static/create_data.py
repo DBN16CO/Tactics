@@ -88,7 +88,7 @@ def setup_static_db(version):
 	logging.info("Creating Class objects...")
 	for clss in data["Classes"].keys():
 		clss_inst = Class(name=clss, attack_type=data["Classes"][clss]["AttackType"],
-			description=data["Classes"][clss]["Description"], 
+			description=data["Classes"][clss]["Description"],
 			price=data["Classes"][clss]["Price"], version=ver)
 		clss_inst.save()
 
