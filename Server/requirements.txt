@@ -1,0 +1,12 @@
+Django==1.10.2
+asgi-redis>=0.10.0
+channels==0.17.3
+daphne>=0.11.1
+Psycopg2==2.6.2
+coverage>=4.2
+django-nose>=1.4.4
+passlib>=1.6.5
+bcrypt>=2.0.0
+sphinx>=1.4.9
+celery>=4.0.0
+django-celery-beat>=1.0.0

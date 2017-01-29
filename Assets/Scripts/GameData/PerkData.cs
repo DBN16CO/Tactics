@@ -1,0 +1,17 @@
+﻿using System.Collections.Generic;		// For dictionaries
+
+// Class holding game data for each unit
+public class PerkData {
+
+	public string name;
+	public int tier;
+	public string description;
+
+	public PerkData(KeyValuePair<string, object> perk) {
+		Dictionary<string, object> perkData = (Dictionary<string, object>)perk.Value;
+		name = perk.Key;
+		tier = int.Parse(perkData["Tier"].ToString());
+		description = perkData["Description"].ToString();
+	}
+
+}

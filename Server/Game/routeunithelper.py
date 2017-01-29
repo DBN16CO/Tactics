@@ -1,0 +1,269 @@
+"""
+This file will handle all routed methods managing unit data
+All methods must follow the following standards:\n
+Inputs - they will all take in only one input: the JSON data\n
+Outputs - they will pass back a formatted JSON response object
+which will detail the success or failure of the command
+as well as any other necessary information regarding the command.
+
+"""
+import logging
+import Game.unithelper
+from Communication.routehelper import formJsonResult
+from Static.models import Ability, Action, Class, Leader, Leader_Ability, Perk, Version
+from Game.models import Game_User, Unit
+from User.models import Users
+
+def setTeam(data):
+	"""
+	Called when a user wants to set their team lineup before starting a game.
+	Will store their unit selection as well as their leader, his ability, and the perk data
+	Command: ST (Set team)
+
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+	             be of the following format:\n
+	             {\n
+	             	"Leader":"Sniper",\n
+	             	"Ability":"Increased Range"\n
+	             	"Units":["Archer","Archer","Mage","Flier","Swordsman","Swordsman","Swordsman","Swordsman"],\n
+	             	"Perks":["Extra Money","Strong Arrows","Mountain Fighter"]\n
+	             }\n
+	             Notes:\n
+	             	- All of the values provided for each key are the X{Name} chosen for that key.\n
+	             	- If no perks are chosen an empty list should still still be sent for that key
+
+	:rtype: 	 Dictionary
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {"Success":True}\n
+				 If Unsuccessful:\n
+				 	{"Successful":False,\n
+				 	 "Error":"You did not provide the necessary information."}\n
+				 Notes:\n
+				 	- The error message provided should be of an acceptable form such that
+				 	  errors can be directly displayed for the user.
+	"""
+	username = data["session_username"]
+
+	error = ""
+	logging.debug(data)
+
+	# Get Version data, for use in validation - if setting team, must be newest version
+	version = Version.objects.latest('pk')
+
+	# Ensure that the 'Units' key exists' there were at least some units and a leader selected
+	if not "Units" in data:
+		error = "The unit information is incomplete."
+	elif not "Perks" in data:
+		error = "The perk information is incomplete."
+	# Ensure the user selected the proper number of units - too many, cheater!
+	elif len(data["Units"]) > version.unit_count:
+		error = "Too many units have been selected (" + str(len(data["Units"])) + ")."
+	# Ensure the user selected the proper number of units - too few, oops, add a few!
+	elif len(data["Units"]) < version.unit_count:
+		error = ("You must select " + str(version.unit_count) + " units, only "
+			+ str(len(data["Units"])) + " chosen.")
+	# Ensure that at least a leader and ability were provided
+	elif not "Leader" in data or not "Ability" in data:
+		error = "The leader information is incomplete."
+	# All expected JSON keys existed
+	else:
+		# Get the ability and leader data and validate it
+		ability = Ability.objects.filter(version=version, name=data["Ability"]).first()
+		leader = Leader.objects.filter(version=version, name=data["Leader"]).first()
+		leader_ability = Leader_Ability.objects.filter(ability=ability, leader=leader, version=version).first()
+
+		# Ensure that the leader and ability are names that exist in the DB
+		if ability == None or leader == None:
+			error = "The leader information provided is invalid."
+		# Ensure that the pair of leader+ability is a valid pair
+		elif leader_ability == None:
+			error = "The " + leader.name + " cannot use the ability " + ability.name + "."
+		else:
+			# Add each of the valid units to a list
+			units = []
+			unit_errs = ''
+			for unt_nam in data["Units"]:
+				unit = Class.objects.filter(name=unt_nam, version=version).first()
+
+				# If a unit name provided was not valid
+				if unit == None:
+					unit_errs += unt_nam +","
+				else:
+					units.append(unit)
+
+			# Add each of the valid perks to a list
+			perks = []
+			perk_errs = ''
+			for prk_nam in data["Perks"]:
+				perk = Perk.objects.filter(name=prk_nam, version=version).first()
+
+				# If a perk name provided was not valid
+				if perk == None:
+					perk_errs += prk_nam +","
+				else:
+					perks.append(perk)
+
+			# If some of the units provided were not valid names
+			if len(unit_errs) != 0:
+				unit_errs = unit_errs.strip(",")
+				error = "The following are not valid unit selections: " + unit_errs
+			# If some of the perks provided were not valid names
+			elif len(perk_errs) != 0:
+				perk_errs = perk_errs.strip(",")
+				error = "The following are not valid perk selections: " + perk_errs
+			# If too many perks were selected
+			elif len(perks) > 3:
+				error = "Too many perks have been selected (" + str(len(perks)) + ")."
+			else:
+				error = Game.unithelper.setTeam(leader_ability, perks, units, username, version)
+					
+	return formJsonResult(error, data)
+
+def takeAction(data):
+	"""
+	Called when a user wants to take an action with a specific unit, such as
+	attacking an opponent, healing an ally, or simply moving to a new location.
+	Command: TA (Take Action)
+
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+				 be of the following format:\n
+				 {\n
+					"Action":"Attack",\n
+					"Game":"vs. opponent #1",\n
+				 	"Unit":1,\n
+				 	"X":3,\n
+				 	"Y":4,\n
+				 	"Target":9\n
+				 }\n
+				 Notes:\n
+				 	- Action is the NAME of a valid action\n
+				 	- The value for Unit and Target are the unit's ID\n
+				 	- The X and Y values are the new location for the unit\n
+				 	- Depending on the action, the Target may be optional\n
+				 	- Both X AND Y are required
+
+	:rtype: 	 Dictionary
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {\n
+				 	"Success":True\n
+				 	"Unit"{\n
+						"ID":1,\n
+						"HP":10\n
+				 	},\n
+				 	"Target":{\n
+						"ID":9,\n
+						"HP":0\n
+				 	}\n
+				 }\n
+				 Notes:\n
+				 	- The "Target" object could be omitted if the action did not involve a target.\n
+				 	- The HP for the unit could be omitted if the action is "Wait" or "Heal"\n
+				 If Unsuccessful:\n
+				 	{"Successful":False,\n
+				 	 "Error":"You did not provide the necessary information."}\n
+				 Notes:\n
+				 	- The error message provided should be of an acceptable form such that
+				 	  errors can be directly displayed for the user.
+	"""
+	username = data["session_username"]
+	user = Users.objects.filter(username=username).first()
+
+	# Ensure that the game name provided is valid
+	if not "Game" in data:
+		return formJsonResult("Internal Error: Game Key missing.", data)
+	game_name = data["Game"]
+
+	# Ensure that the game name matches with this user
+	game_usr = Game_User.objects.filter(user=user, name=game_name).first()
+	if game_usr == None:
+		return formJsonResult("No match for game of name " + game_name + ".", data)
+
+	version = game_usr.game.version
+
+	# Now verify both players have placed their units
+	game = game_usr.game
+	user_placed_unit_count = Unit.objects.filter(game=game, owner=user).exclude(x_pos=-1).exclude(y_pos=-1).count()
+	opponent_placed_unit_count = Unit.objects.filter(game=game).exclude(x_pos=-1).exclude(y_pos=-1).exclude(owner=user).count()
+	expected_count = version.unit_count
+	if user_placed_unit_count != expected_count:
+		return formJsonResult("You must place all of your units before taking a turn.")
+	elif opponent_placed_unit_count != expected_count:
+		return formJsonResult("Please wait until your opponent places their units before taking a turn.")
+
+	# The valid actions for a user in this version
+	if not "Action" in data:
+		return formJsonResult("Internal Error: Action Key missing.", data)
+	action = Action.objects.filter(version=version, name=data["Action"]).first()
+	if action == None:
+		return formJsonResult("The selected action is not valid.", data)
+
+	# Get the new coordinates for the action
+	if not "X" in data or not "Y" in data:
+		return formJsonResult("Internal Error: New location information incomplete.", data)
+	x = data["X"]
+	y = data["Y"]
+
+	# Get the unit taking the action
+	if not "Unit" in data:
+		return formJsonResult("Internal Error: Unit Key missing.", data)
+	unit_id  = data["Unit"]
+	unit = Unit.objects.filter(pk=unit_id, game=game_usr.game, owner=user).first()
+	if unit == None:
+		return formJsonResult("Internal Error: Specified unit ID not in game.", data)
+
+	# Ensure that the move is valid
+	is_move_valid = Game.unithelper.validateMove(unit, game_usr.game, user, x, y)
+	if "Error" in is_move_valid:
+		return formJsonResult(is_move_valid["Error"], data)
+
+	# Create a dictionary to describe the action for the unit
+	unit_dict = {"Unit":unit, "NewX":x, "NewY":y}
+
+	# If the unit is just moving for their action
+	if action.name == "Wait":
+		if not Game.unithelper.saveActionResults(game_usr.game, unit_dict):
+			return formJsonResult("There was a problem executing the action.", data)
+		action_result = {}
+		action_result["Unit"] = unit_dict
+		action_result["Unit"]["ID"] = action_result["Unit"]["Unit"].id
+		action_result["Unit"].pop("Unit", None)
+
+	# If the action is one that requires a target
+	else:
+		# Determine the target
+		if not "Target" in data:
+			return formJsonResult("Internal Error: Target Key missing.", data)
+		target_id   = data["Target"]
+		target = Unit.objects.filter(pk=target_id, game=game_usr.game).first()
+		if target == None:
+			return formJsonResult("Internal Error: Specified target ID not in game.", data)
+
+		# Process attacking and healing
+		if action.name == "Attack":
+			action_result = Game.unithelper.calculateAttack(game_usr.game, unit_dict, target)
+		elif action.name == "Heal":
+			action_result = Game.unithelper.calculateHeal(game_usr.game, unit_dict,  target)
+
+		if "Error" in action_result:
+			return formJsonResult(action_result["Error"], data)
+
+		if not Game.unithelper.saveActionResults(game_usr.game, action_result["Unit"], action_result["Target"]):
+			return formJsonResult("There was a problem targeting that unit.", data)
+
+	# Prepare the response
+	response = formJsonResult("")
+
+	# The unit response
+	response_unit = action_result["Unit"]
+	response["Unit"] = response_unit
+
+	# The target unit response, if there was one
+	if "Target" in action_result:
+		target_unit = action_result["Target"]
+		response["Target"] = target_unit
+
+	return response
