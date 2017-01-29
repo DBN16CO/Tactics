@@ -34,14 +34,10 @@ class Game_User(models.Model):
 
 class Unit(models.Model):
 	unit_class   = models.ForeignKey('Static.Class',  on_delete=models.DO_NOTHING)
-	hp_remaining = models.IntegerField(default=0)
-	prev_hp      = models.IntegerField(default=0)
-	x_pos        = models.IntegerField(default=-1)
-	y_pos        = models.IntegerField(default=-1)
-	prev_x       = models.IntegerField(default=0)
-	prev_y       = models.IntegerField(default=0)
-	prev_target  = models.ForeignKey('self',          on_delete=models.DO_NOTHING, null=True, default=None)
-	prev_action  = models.ForeignKey('Static.Action', on_delete=models.DO_NOTHING, null=True, default=None)
+	hp           = models.IntegerField(default=0)
+	x            = models.IntegerField(default=-1)
+	y            = models.IntegerField(default=-1)
+	target       = models.ForeignKey('self',          on_delete=models.DO_NOTHING, null=True, default=None)
 	owner        = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
 	game         = models.ForeignKey('Game',          on_delete=models.DO_NOTHING, null=True, default=None)
 	version      = models.ForeignKey('Static.Version',on_delete=models.DO_NOTHING)
