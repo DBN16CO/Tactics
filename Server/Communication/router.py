@@ -20,6 +20,11 @@ import Communication.routehelper
 
 from channels.sessions import channel_session
 
+def connect(message):
+	message.reply_channel.send({
+		"accept": True
+	})
+
 @channel_session
 def processRequest(message):
 	"""
