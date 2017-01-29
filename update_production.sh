@@ -53,6 +53,12 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
+git archive --remote=git@bitbucket.org:akkowal2/tactics-production.git HEAD asgi.py | tar -xO > asgi.py
+if [ "$?" != "0" ]; then
+	echo "Failed to checkout production asgi.py"
+	exit 1
+fi
+
 popd
 popd
 
