@@ -4,8 +4,6 @@ using UnityEngine.UI;
 
 public class ActiveCustomGameController : MonoBehaviour {
 
-	private MainMenuController _mc;
-
 	public Button btn;
 	private GameObject _detailedView;
 
@@ -18,7 +16,6 @@ public class ActiveCustomGameController : MonoBehaviour {
 
 	// Initialization - set variables & add click listener
 	void Awake () {
-		_mc = GameObject.Find("MainMenuController").GetComponent<MainMenuController>();
 		gameObject.name = gameObject.name.Substring(0, 16);
 
 		_expanding = false;
@@ -72,7 +69,6 @@ public class ActiveCustomGameController : MonoBehaviour {
 	// also resize parent transform (scrollable area)
 	private void LerpBelowGames() {
 		int currIndex = transform.GetSiblingIndex();
-		int maxY = (transform.parent.childCount - 1) * -300;
 		for(int i = currIndex-1; i >= 0; i--) {
 			RectTransform childRT = transform.parent.GetChild(i).GetComponent<RectTransform>();
 			childRT.anchoredPosition = new Vector2(0,childRT.anchoredPosition.y + _deltaY);

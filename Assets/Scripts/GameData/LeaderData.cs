@@ -14,6 +14,7 @@ public class LeaderData {
 		Dictionary<string, object> leaderData = (Dictionary<string, object>)leader.Value;
 		name = leader.Key;
 		description = leaderData["Description"].ToString();
+		spritePath = "Sprites/Units/axeman";
 
 		/*stats = new List<StatData>();
 		foreach(KeyValuePair<string, object> stat in (Dictionary<string, object>)leaderData["Stats"]) {

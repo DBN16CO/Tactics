@@ -7,6 +7,8 @@ public static class GameData {
 
 	private static Dictionary<string, object> playerData;
 	public static PlayerData Player;
+	private static Dictionary<string, object> matchData;
+	public static MatchData Match;
 
 	private static List<StatData> stats;
 	private static Dictionary<string, object> statData;
@@ -63,6 +65,8 @@ public static class GameData {
 		SetTerrainData(terrainData);
 		SetMapData(mapData);
 
+		Match = new MatchData((Dictionary<string, object>)responseDict["Version"]);
+
 		CreateWeightMap();
 	}
 
@@ -102,6 +106,7 @@ public static class GameData {
 		foreach(KeyValuePair<string, object> perk in perkDict) {
 			perks.Add(new PerkData(perk));
 		}
+		perks.Sort((x,y) => x.tier.CompareTo(y.tier));
 	}
 
 	// Populates unit data and creates callable list
