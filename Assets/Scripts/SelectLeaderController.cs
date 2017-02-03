@@ -3,6 +3,9 @@ using UnityEngine.UI;
 
 public class SelectLeaderController : MonoBehaviour {
 
+	private LeaderData _data;
+	private SetTeamController stc;
+
 	public Sprite LeaderImage {
 		get{return gameObject.transform.FindChild("Image").GetComponent<Image>().sprite;}
 		set{gameObject.transform.FindChild("Image").GetComponent<Image>().sprite = value;}
@@ -13,9 +16,24 @@ public class SelectLeaderController : MonoBehaviour {
 	}
 
 	public void AssignLeader(LeaderData leaderData) {
-		gameObject.name = leaderData.name;
-		LeaderImage = Resources.Load<Sprite>(leaderData.spritePath);
+		stc = GameObject.Find("SetTeamController").GetComponent<SetTeamController>();
+		_data = leaderData;
+		gameObject.name = _data.name;
+		LeaderImage = Resources.Load<Sprite>(_data.spritePath);
 		DisplayName = gameObject.name;
+	}
+
+	public void ToggleLeader() {
+		if(stc.leader != gameObject) {
+			if(stc.leader != null) {
+				stc.leader.GetComponent<SelectLeaderController>().ToggleLeader();
+			}
+			stc.leader = gameObject;
+			gameObject.GetComponent<Image>().color = Color.grey;
+		}else {
+			stc.leader = null;
+			gameObject.GetComponent<Image>().color = Color.white;
+		}
 	}
 
 }

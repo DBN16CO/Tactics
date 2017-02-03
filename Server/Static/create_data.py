@@ -61,7 +61,7 @@ def setup_static_db(version):
 	# Save the Perk Data
 	logging.info("Creating Perk objects...")
 	for prk in data["Perks"].keys():
-		perk_inst = Perk(name=prk, description=data["Perks"][prk]["Description"], 
+		perk_inst = Perk(name=prk, description=data["Perks"][prk]["Description"],
 			tier=data["Perks"][prk]["Tier"], version=ver)
 		perk_inst.save()
 
@@ -80,7 +80,7 @@ def setup_static_db(version):
 	# Save the Terrain Data
 	logging.info("Creating Terrain objects...")
 	for ter in data["Terrain"].keys():
-		ter_inst = Terrain(name=data["Terrain"][ter]["DisplayName"], 
+		ter_inst = Terrain(name=data["Terrain"][ter]["DisplayName"],
 			description=data["Terrain"][ter]["Description"], shortname=ter, version=ver)
 		ter_inst.save()
 
@@ -143,8 +143,8 @@ def ver_1_0_static_data():
 
 	# Action Data
 	data["Actions"] = {
-		"Attack": "Deal damage to target unit.", 
-		"Heal":   "Restore health to target allied unit.", 
+		"Attack": "Deal damage to target unit.",
+		"Heal":   "Restore health to target allied unit.",
 		"Wait":   "End move without taking action."
 	}
 
@@ -272,7 +272,7 @@ def ver_1_0_static_data():
 		},
 		"Strong Arrows":{
 			"Tier":2,
-			"Description":"Provides an extra 10% damage for arrows.", 
+			"Description":"Provides an extra 10% damage for arrows.",
 		},
 		"Forest Fighter":{
 			"Tier":1,
@@ -324,7 +324,7 @@ def ver_1_0_static_data():
 
 	# Terrain Data
 	data["Terrain"] = {
-		"G":{ 
+		"G":{
 			"DisplayName":"Grass",
 			"Description":"Basic terrain with no obstructions.",
 		},
