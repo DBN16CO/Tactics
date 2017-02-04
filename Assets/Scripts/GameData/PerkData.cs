@@ -14,7 +14,7 @@ public class PerkData {
 		tier = int.Parse(perkData["Tier"].ToString());
 		description = perkData["Description"].ToString();
 
-		iconSpritePath = "Sprites/PerkIcons/DefaultTier" + tier;
+		iconSpritePath = "Sprites/PerkIcons/DefaultTier" + tier; // Testing
 	}
 
 }

@@ -1,32 +1,37 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+// This class controls each selectable Perk GameObject
 public class SelectPerkController : MonoBehaviour {
 
-	private PerkData _data;
+	public PerkData data;
 	private SetTeamController stc;
 
+	// Controls the image of the selectable GameObject
 	public Sprite PerkIcon {
 		get{return gameObject.transform.FindChild("Icon").GetComponent<Image>().sprite;}
 		set{gameObject.transform.FindChild("Icon").GetComponent<Image>().sprite = value;}
 	}
+	// Controls the description text of the selectable GameObject
 	public string Description {
 		get{return gameObject.transform.FindChild("Text").GetComponent<Text>().text;}
 		set{gameObject.transform.FindChild("Text").GetComponent<Text>().text = value;}
 	}
-
+	// Returns the index of the perk tier
 	public int ListTier {
-		get{return _data.tier-1;}
+		get{return data.tier-1;}
 	}
 
+	// Set specified game data on the selectable GameObject
 	public void AssignPerk(PerkData perkData) {
 		stc = GameObject.Find("SetTeamController").GetComponent<SetTeamController>();
-		_data = perkData;
-		gameObject.name = _data.name;
-		PerkIcon = Resources.Load<Sprite>(_data.iconSpritePath);
-		Description = _data.description;
+		data = perkData;
+		gameObject.name = data.name;
+		PerkIcon = Resources.Load<Sprite>(data.iconSpritePath);
+		Description = data.description;
 	}
 
+	// Select and unselect this perk
 	public void TogglePerk() {
 		if(stc.perks[ListTier] != gameObject) {
 			if(stc.perks[ListTier] != null) {

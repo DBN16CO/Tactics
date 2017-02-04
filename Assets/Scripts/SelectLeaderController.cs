@@ -1,28 +1,33 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+// This class controls each selectable Leader GameObject
 public class SelectLeaderController : MonoBehaviour {
 
-	private LeaderData _data;
+	public LeaderData data;
 	private SetTeamController stc;
 
+	// Controls the image of the selectable GameObject
 	public Sprite LeaderImage {
 		get{return gameObject.transform.FindChild("Image").GetComponent<Image>().sprite;}
 		set{gameObject.transform.FindChild("Image").GetComponent<Image>().sprite = value;}
 	}
+	// Controls the display name text of the selectable GameObject
 	public string DisplayName {
 		get{return gameObject.transform.FindChild("Name").GetComponent<Text>().text;}
 		set{gameObject.transform.FindChild("Name").GetComponent<Text>().text = value;}
 	}
 
+	// Set specified game data on the selectable GameObject
 	public void AssignLeader(LeaderData leaderData) {
 		stc = GameObject.Find("SetTeamController").GetComponent<SetTeamController>();
-		_data = leaderData;
-		gameObject.name = _data.name;
-		LeaderImage = Resources.Load<Sprite>(_data.spritePath);
+		data = leaderData;
+		gameObject.name = data.name;
+		LeaderImage = Resources.Load<Sprite>(data.spritePath);
 		DisplayName = gameObject.name;
 	}
 
+	// Select and unselect this leader
 	public void ToggleLeader() {
 		if(stc.leader != gameObject) {
 			if(stc.leader != null) {

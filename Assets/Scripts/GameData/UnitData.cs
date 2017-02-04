@@ -16,7 +16,7 @@ public class UnitData {
 		name = unit.Key;
 		description = unitData["Description"].ToString();
 		price = Int32.Parse(unitData["Price"].ToString());
-		spritePath = "Sprites/Units/axeman";
+		spritePath = "Sprites/Units/axeman"; // Testing
 
 		stats = new List<StatData>();
 		foreach(KeyValuePair<string, object> stat in (Dictionary<string, object>)unitData["Stats"]) {
