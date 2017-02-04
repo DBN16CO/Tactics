@@ -130,7 +130,7 @@ def ver_1_0_static_data():
 	data["Version"] = {
 		"Name":"1.0",
 		"Price_Max":2000,
-		"Unit_Count":8,
+		"Unit_Count":3,
 	}
 
 	# Hero Ability Data

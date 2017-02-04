@@ -15,7 +15,6 @@ public class MapData {
 	public MapData(KeyValuePair<string, object> map) {
 		name = map.Key;
 		CreateMapData(map.Value.ToString());
-		//UnityEngine.Debug.Log(int.Parse("1"));
 	}
 
 	// Creates public arrays from map size and values

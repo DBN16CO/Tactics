@@ -141,13 +141,34 @@ public static class Server {
 		Communication.SendString(Json.ToString(request));
 		// Wait for the response, then parse
 		string strResponse = null;
-		while (strResponse == null) {
+		while(strResponse == null) {
 			strResponse = Communication.RecvString();
 		}
 		var response = Json.ToDict(strResponse);
 		// Error Handling
 		bool success = (bool)response["Success"];
 		Debug.Log("user '" + username + "' created: " + success);
+		return success;
+	}
+
+	// Used to set selected team in database
+	public static bool SetTeam(string leader, string ability, List<string> units, List<string> perks) {
+		// Create the request, set the data, and send
+		var request = new Dictionary<string, object>();
+		request["Command"] = "ST";
+		request["Leader"] = leader;
+		request["Ability"] = ability;
+		request["Units"] = units;
+		request["Perks"] = perks;
+		Communication.SendString(Json.ToString(request));
+		// Wait for the response, then parse
+		string strResponse = null;
+		while(strResponse == null) {
+			strResponse = Communication.RecvString();
+		}
+		var response = Json.ToDict(strResponse);
+		// Error handling
+		bool success = (bool)response["Success"];
 		return success;
 	}
 
