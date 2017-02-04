@@ -107,10 +107,10 @@ public class SetTeamController : MonoBehaviour {
 				}
 				SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 			}else {
-				Debug.Log("Server fucked up. Try again");
+				Debug.Log("Server messed up. Try again");
 			}
 		}else{
-			Debug.Log("You fucked up. Try again");
+			Debug.Log("You messed up. Try again");
 		}
 	}
 
