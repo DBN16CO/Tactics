@@ -219,7 +219,7 @@ class TestUnit(TestCase):
 		endTestLog("test04_find_match_before_set_team")
 
 	def test05_find_match_success(self):
-		startTestLog("test04_find_match_success")
+		startTestLog("test05_find_match_success")
 		# Create user and login
 		username = "set_team_user"
 		self.assertTrue(self.channel.createUserAndLogin(
@@ -247,7 +247,24 @@ class TestUnit(TestCase):
 		self.assertEqual(game_queue_obj_count, 1)
 		self.assertEqual(user.game_queue.channel_name, u'Test')
 
-		endTestLog("test04_find_match_success")
+		endTestLog("test05_find_match_success")
+
+	def test05a_cancel_search_success(self):
+		startTestLog("test05a_cancel_search_success")
+
+		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "first_user", "password": self.channel.generateValidPassword(), "email": "fplayer@a.com"}, self.helper_golden_path_set_team_units(), 1))
+		self.assertTrue(Game_Queue.objects.count() == 1)
+
+		# Test Cancel Game Search succeeds
+		result = self.channel.cancelGameSearch()
+		self.assertTrue(result["Success"])
+		self.assertTrue(Game_Queue.objects.count() == 0)
+
+		# Test Cancel Game Search succeeds even when user isn't in the queue
+		result = self.channel.cancelGameSearch()
+		self.assertTrue(result["Success"])
+
+		endTestLog("test05a_cancel_search_success")
 
 	def test06_matchmaking_queue_success(self):
 		startTestLog("test06_matchmaking_queue_success")

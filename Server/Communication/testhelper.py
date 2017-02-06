@@ -153,6 +153,10 @@ class TestHelper(ChannelTestCase):
 
 		return result["Success"]
 
+	def cancelGameSearch(self, channel_num=1):
+		self.send('{"Command":"CS"}')
+		return json.loads(self.receive(channel_num))
+
 	def createUsersAndMatch(self, credentials1, team1, credentials2, team2):
 		self.createUserAndJoinQueue(credentials1, team1, 1)
 		self.createUserAndJoinQueue(credentials2, team2, 2)

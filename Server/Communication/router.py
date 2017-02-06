@@ -38,6 +38,8 @@ def processRequest(message):
 					+-------+------------------+---------+--------------------+--------------------------------+
 					| Abrev | Command Name     | App     | Method Name        | Successful Test                |
 					+=======+==================+=========+====================+================================+
+					| CS    | Cancel Search    | Game    | cancelSearch       | cancel_search_success          |
+					+-------+------------------+---------+--------------------+--------------------------------+
 					| CU    | Create User      | User    | createUser         | create_user_success            |
 					+-------+------------------+---------+--------------------+--------------------------------+
 					| FM    | Find Match       | Game    | findGame           | find_game_success              |
@@ -140,7 +142,9 @@ def processRequest(message):
 
 
 	# Start processing the request
-	commands={"CU":User.routehelper.createUser,
+	commands={
+			  "CS":Game.routegamehelper.cancelSearch,
+			  "CU":User.routehelper.createUser,
 			  "FM":Game.routegamehelper.findMatch,
 			  "GUI":User.routehelper.getUserInfo,
 			  "IL":Static.routehelper.getAllStaticData,
