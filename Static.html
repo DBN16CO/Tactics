@@ -229,6 +229,21 @@ object the first time, the query is executed.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="Static.models.Action.class_action_set">
+<code class="descclassname">Action.</code><code class="descname">class_action_set</code><a class="headerlink" href="#Static.models.Action.class_action_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related objects manager on the reverse side of a
+many-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">parent.children</span></code> is a <code class="docutils literal"><span class="pre">ReverseManyToOneDescriptor</span></code> instance.</p>
+<p>Most of the implementation is delegated to a dynamically defined manager
+class built by <code class="docutils literal"><span class="pre">create_forward_many_to_many_manager()</span></code> defined below.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="Static.models.Action.description">
 <code class="descclassname">Action.</code><code class="descname">description</code><a class="headerlink" href="#Static.models.Action.description" title="Permalink to this definition">¶</a></dt>
 <dd><p>A wrapper for a deferred-loading field. When the value is read from this
@@ -255,21 +270,6 @@ object the first time, the query is executed.</p>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="Static.models.Action.unit_set">
-<code class="descclassname">Action.</code><code class="descname">unit_set</code><a class="headerlink" href="#Static.models.Action.unit_set" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accessor to the related objects manager on the reverse side of a
-many-to-one relation.</p>
-<p>In the example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><code class="docutils literal"><span class="pre">parent.children</span></code> is a <code class="docutils literal"><span class="pre">ReverseManyToOneDescriptor</span></code> instance.</p>
-<p>Most of the implementation is delegated to a dynamically defined manager
-class built by <code class="docutils literal"><span class="pre">create_forward_many_to_many_manager()</span></code> defined below.</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="Static.models.Action.version">
 <code class="descclassname">Action.</code><code class="descname">version</code><a class="headerlink" href="#Static.models.Action.version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor to the related object on the forward side of a many-to-one or
@@ -293,7 +293,7 @@ object the first time, the query is executed.</p>
 
 <dl class="class">
 <dt id="Static.models.Class">
-<em class="property">class </em><code class="descclassname">Static.models.</code><code class="descname">Class</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>description</em>, <em>price</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.models.Class" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">Static.models.</code><code class="descname">Class</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>attack_type</em>, <em>description</em>, <em>price</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.models.Class" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
 <dl class="exception">
 <dt id="Static.models.Class.DoesNotExist">
@@ -305,6 +305,28 @@ object the first time, the query is executed.</p>
 <dt id="Static.models.Class.MultipleObjectsReturned">
 <em class="property">exception </em><code class="descclassname">Class.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#Static.models.Class.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Class.attack_type">
+<code class="descclassname">Class.</code><code class="descname">attack_type</code><a class="headerlink" href="#Static.models.Class.attack_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Class.class_action_set">
+<code class="descclassname">Class.</code><code class="descname">class_action_set</code><a class="headerlink" href="#Static.models.Class.class_action_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related objects manager on the reverse side of a
+many-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">parent.children</span></code> is a <code class="docutils literal"><span class="pre">ReverseManyToOneDescriptor</span></code> instance.</p>
+<p>Most of the implementation is delegated to a dynamically defined manager
+class built by <code class="docutils literal"><span class="pre">create_forward_many_to_many_manager()</span></code> defined below.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -401,6 +423,96 @@ one-to-one relation.</p>
 <dl class="attribute">
 <dt id="Static.models.Class.version_id">
 <code class="descclassname">Class.</code><code class="descname">version_id</code><a class="headerlink" href="#Static.models.Class.version_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Static.models.Class_Action">
+<em class="property">class </em><code class="descclassname">Static.models.</code><code class="descname">Class_Action</code><span class="sig-paren">(</span><em>id</em>, <em>clss</em>, <em>action</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Static.models.Class_Action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<dl class="exception">
+<dt id="Static.models.Class_Action.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#Static.models.Class_Action.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="Static.models.Class_Action.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">Class_Action.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#Static.models.Class_Action.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Class_Action.action">
+<code class="descclassname">Class_Action.</code><code class="descname">action</code><a class="headerlink" href="#Static.models.Class_Action.action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related object on the forward side of a many-to-one or
+one-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">child.parent</span></code> is a <code class="docutils literal"><span class="pre">ForwardManyToOneDescriptor</span></code> instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Class_Action.action_id">
+<code class="descclassname">Class_Action.</code><code class="descname">action_id</code><a class="headerlink" href="#Static.models.Class_Action.action_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Class_Action.clss">
+<code class="descclassname">Class_Action.</code><code class="descname">clss</code><a class="headerlink" href="#Static.models.Class_Action.clss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related object on the forward side of a many-to-one or
+one-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">child.parent</span></code> is a <code class="docutils literal"><span class="pre">ForwardManyToOneDescriptor</span></code> instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Class_Action.clss_id">
+<code class="descclassname">Class_Action.</code><code class="descname">clss_id</code><a class="headerlink" href="#Static.models.Class_Action.clss_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Class_Action.id">
+<code class="descclassname">Class_Action.</code><code class="descname">id</code><a class="headerlink" href="#Static.models.Class_Action.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper for a deferred-loading field. When the value is read from this
+object the first time, the query is executed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Class_Action.objects">
+<code class="descclassname">Class_Action.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#Static.models.Class_Action.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Class_Action.version">
+<code class="descclassname">Class_Action.</code><code class="descname">version</code><a class="headerlink" href="#Static.models.Class_Action.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related object on the forward side of a many-to-one or
+one-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">child.parent</span></code> is a <code class="docutils literal"><span class="pre">ForwardManyToOneDescriptor</span></code> instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Static.models.Class_Action.version_id">
+<code class="descclassname">Class_Action.</code><code class="descname">version_id</code><a class="headerlink" href="#Static.models.Class_Action.version_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>A wrapper for a deferred-loading field. When the value is read from this
 object the first time, the query is executed.</p>
 </dd></dl>
@@ -1192,6 +1304,21 @@ class built by <code class="docutils literal"><span class="pre">create_forward_m
 </dd></dl>
 
 <dl class="attribute">
+<dt id="Static.models.Version.class_action_set">
+<code class="descclassname">Version.</code><code class="descname">class_action_set</code><a class="headerlink" href="#Static.models.Version.class_action_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to the related objects manager on the reverse side of a
+many-to-one relation.</p>
+<p>In the example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">parent.children</span></code> is a <code class="docutils literal"><span class="pre">ReverseManyToOneDescriptor</span></code> instance.</p>
+<p>Most of the implementation is delegated to a dynamically defined manager
+class built by <code class="docutils literal"><span class="pre">create_forward_many_to_many_manager()</span></code> defined below.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="Static.models.Version.class_set">
 <code class="descclassname">Version.</code><code class="descname">class_set</code><a class="headerlink" href="#Static.models.Version.class_set" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor to the related objects manager on the reverse side of a
@@ -1588,7 +1715,8 @@ errors can be directly displayed for the user.</li>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Returns a dictionary of the following form:<p>{</p>
 <blockquote>
 <div>&#8220;Archer&#8221;:    {<blockquote>
-<div>&#8220;Description&#8221;:&#8221;Ranged unit with low armor.  Good at defeating Fliers.&#8221;,<p>&#8220;Stats&#8221;: {</p>
+<div>&#8220;AttackType&#8221;:&lt;Magical, Physical, Heal&gt;,<p>&#8220;Description&#8221;:&#8221;Ranged unit with low armor.  Good at defeating Fliers.&#8221;,</p>
+<p>&#8220;Stats&#8221;: {</p>
 <blockquote>
 <div>&#8220;HP&#8221;:10.0, &#8220;Move&#8221;: 6.0, &#8220;Agility&#8221;: 8.5, &#8220;Intelligence&#8221;: 4.0, &#8220;Strength&#8221;: 7.0, &#8220;Luck&#8221;: 7.0,</div></blockquote>
 <p>},</p>

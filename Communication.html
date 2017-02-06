@@ -132,6 +132,11 @@ if not, then the session is invalid.</td>
 <div class="section" id="module-Communication.router">
 <span id="communication-router-module"></span><h2>Communication.router module<a class="headerlink" href="#module-Communication.router" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-router"></span><dl class="function">
+<dt id="Communication.router.connect">
+<code class="descclassname">Communication.router.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.router.connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="Communication.router.processRequest">
 <code class="descclassname">Communication.router.</code><code class="descname">processRequest</code><span class="sig-paren">(</span><em>message</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.router.processRequest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Communicates with the front end by sending and receiving JSON through a channel session</p>
@@ -158,61 +163,67 @@ if not, then the session is invalid.</td>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>CU</td>
+<tr class="row-even"><td>CS</td>
+<td>Cancel Search</td>
+<td>Game</td>
+<td>cancelSearch</td>
+<td>cancel_search_success</td>
+</tr>
+<tr class="row-odd"><td>CU</td>
 <td>Create User</td>
 <td>User</td>
 <td>createUser</td>
 <td>create_user_success</td>
 </tr>
-<tr class="row-odd"><td>FM</td>
+<tr class="row-even"><td>FM</td>
 <td>Find Match</td>
 <td>Game</td>
 <td>findGame</td>
 <td>find_game_success</td>
 </tr>
-<tr class="row-even"><td>GUI</td>
+<tr class="row-odd"><td>GUI</td>
 <td>Get User Info</td>
 <td>User</td>
 <td>getUserInfo</td>
 <td>get_user_info_success</td>
 </tr>
-<tr class="row-odd"><td>IL</td>
+<tr class="row-even"><td>IL</td>
 <td>Iniitial Load</td>
 <td>Static</td>
 <td>getAllStaticData</td>
 <td>initial_load_v1_0</td>
 </tr>
-<tr class="row-even"><td>LGN</td>
+<tr class="row-odd"><td>LGN</td>
 <td>Login</td>
 <td>User</td>
 <td>login</td>
 <td>login_success_token</td>
 </tr>
-<tr class="row-odd"><td>PA</td>
+<tr class="row-even"><td>PA</td>
 <td>Ping Auth</td>
 <td>Comm</td>
 <td>pingAuthentication</td>
 <td>&nbsp;</td>
 </tr>
-<tr class="row-even"><td>PU</td>
+<tr class="row-odd"><td>PU</td>
 <td>Place Units</td>
 <td>Game</td>
 <td>placeUnits</td>
 <td>place_units_success</td>
 </tr>
-<tr class="row-odd"><td>QGU</td>
+<tr class="row-even"><td>QGU</td>
 <td>Query Games User</td>
 <td>Game</td>
 <td>queryGamesUser</td>
 <td>test11_query_games_user_success</td>
 </tr>
-<tr class="row-even"><td>ST</td>
+<tr class="row-odd"><td>ST</td>
 <td>Set Team</td>
 <td>Game</td>
 <td>setTeam</td>
 <td>set_team_valid_input</td>
 </tr>
-<tr class="row-odd"><td>TA</td>
+<tr class="row-even"><td>TA</td>
 <td>Take Action</td>
 <td>Game</td>
 <td>takeAction</td>
@@ -243,6 +254,11 @@ if not, then the session is invalid.</td>
 <em class="property">class </em><code class="descclassname">Communication.testhelper.</code><code class="descname">TestHelper</code><a class="headerlink" href="#Communication.testhelper.TestHelper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">channels.tests.base.ChannelTestCase</span></code></p>
 <p>Used to set up any unit tests</p>
+<dl class="method">
+<dt id="Communication.testhelper.TestHelper.cancelGameSearch">
+<code class="descname">cancelGameSearch</code><span class="sig-paren">(</span><em>channel_num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.cancelGameSearch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="Communication.testhelper.TestHelper.createTestUser">
 <code class="descname">createTestUser</code><span class="sig-paren">(</span><em>credentials</em>, <em>channel_num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#Communication.testhelper.TestHelper.createTestUser" title="Permalink to this definition">¶</a></dt>

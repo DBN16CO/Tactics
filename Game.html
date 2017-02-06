@@ -512,7 +512,7 @@ object the first time, the query is executed.</p>
 
 <dl class="class">
 <dt id="Game.models.Unit">
-<em class="property">class </em><code class="descclassname">Game.models.</code><code class="descname">Unit</code><span class="sig-paren">(</span><em>id</em>, <em>unit_class</em>, <em>hp_remaining</em>, <em>prev_hp</em>, <em>x_pos</em>, <em>y_pos</em>, <em>prev_x</em>, <em>prev_y</em>, <em>prev_target</em>, <em>prev_action</em>, <em>owner</em>, <em>game</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Unit" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">Game.models.</code><code class="descname">Unit</code><span class="sig-paren">(</span><em>id</em>, <em>unit_class</em>, <em>hp</em>, <em>x</em>, <em>y</em>, <em>target</em>, <em>owner</em>, <em>game</em>, <em>version</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.models.Unit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
 <dl class="exception">
 <dt id="Game.models.Unit.DoesNotExist">
@@ -547,8 +547,8 @@ object the first time, the query is executed.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="Game.models.Unit.hp_remaining">
-<code class="descclassname">Unit.</code><code class="descname">hp_remaining</code><a class="headerlink" href="#Game.models.Unit.hp_remaining" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.models.Unit.hp">
+<code class="descclassname">Unit.</code><code class="descname">hp</code><a class="headerlink" href="#Game.models.Unit.hp" title="Permalink to this definition">¶</a></dt>
 <dd><p>A wrapper for a deferred-loading field. When the value is read from this
 object the first time, the query is executed.</p>
 </dd></dl>
@@ -586,8 +586,8 @@ object the first time, the query is executed.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="Game.models.Unit.prev_action">
-<code class="descclassname">Unit.</code><code class="descname">prev_action</code><a class="headerlink" href="#Game.models.Unit.prev_action" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.models.Unit.target">
+<code class="descclassname">Unit.</code><code class="descname">target</code><a class="headerlink" href="#Game.models.Unit.target" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor to the related object on the forward side of a many-to-one or
 one-to-one relation.</p>
 <p>In the example:</p>
@@ -599,49 +599,8 @@ one-to-one relation.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="Game.models.Unit.prev_action_id">
-<code class="descclassname">Unit.</code><code class="descname">prev_action_id</code><a class="headerlink" href="#Game.models.Unit.prev_action_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>A wrapper for a deferred-loading field. When the value is read from this
-object the first time, the query is executed.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Game.models.Unit.prev_hp">
-<code class="descclassname">Unit.</code><code class="descname">prev_hp</code><a class="headerlink" href="#Game.models.Unit.prev_hp" title="Permalink to this definition">¶</a></dt>
-<dd><p>A wrapper for a deferred-loading field. When the value is read from this
-object the first time, the query is executed.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Game.models.Unit.prev_target">
-<code class="descclassname">Unit.</code><code class="descname">prev_target</code><a class="headerlink" href="#Game.models.Unit.prev_target" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accessor to the related object on the forward side of a many-to-one or
-one-to-one relation.</p>
-<p>In the example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">parent</span> <span class="o">=</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;children&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><code class="docutils literal"><span class="pre">child.parent</span></code> is a <code class="docutils literal"><span class="pre">ForwardManyToOneDescriptor</span></code> instance.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Game.models.Unit.prev_target_id">
-<code class="descclassname">Unit.</code><code class="descname">prev_target_id</code><a class="headerlink" href="#Game.models.Unit.prev_target_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>A wrapper for a deferred-loading field. When the value is read from this
-object the first time, the query is executed.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Game.models.Unit.prev_x">
-<code class="descclassname">Unit.</code><code class="descname">prev_x</code><a class="headerlink" href="#Game.models.Unit.prev_x" title="Permalink to this definition">¶</a></dt>
-<dd><p>A wrapper for a deferred-loading field. When the value is read from this
-object the first time, the query is executed.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Game.models.Unit.prev_y">
-<code class="descclassname">Unit.</code><code class="descname">prev_y</code><a class="headerlink" href="#Game.models.Unit.prev_y" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.models.Unit.target_id">
+<code class="descclassname">Unit.</code><code class="descname">target_id</code><a class="headerlink" href="#Game.models.Unit.target_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>A wrapper for a deferred-loading field. When the value is read from this
 object the first time, the query is executed.</p>
 </dd></dl>
@@ -702,15 +661,15 @@ object the first time, the query is executed.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="Game.models.Unit.x_pos">
-<code class="descclassname">Unit.</code><code class="descname">x_pos</code><a class="headerlink" href="#Game.models.Unit.x_pos" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.models.Unit.x">
+<code class="descclassname">Unit.</code><code class="descname">x</code><a class="headerlink" href="#Game.models.Unit.x" title="Permalink to this definition">¶</a></dt>
 <dd><p>A wrapper for a deferred-loading field. When the value is read from this
 object the first time, the query is executed.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="Game.models.Unit.y_pos">
-<code class="descclassname">Unit.</code><code class="descname">y_pos</code><a class="headerlink" href="#Game.models.Unit.y_pos" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.models.Unit.y">
+<code class="descclassname">Unit.</code><code class="descname">y</code><a class="headerlink" href="#Game.models.Unit.y" title="Permalink to this definition">¶</a></dt>
 <dd><p>A wrapper for a deferred-loading field. When the value is read from this
 object the first time, the query is executed.</p>
 </dd></dl>
@@ -816,12 +775,14 @@ be of the following format:</p>
 <blockquote>
 <div>&#8220;Success&#8221;:True<p>&#8220;Unit&#8221;{</p>
 <blockquote>
-<div>&#8220;ID&#8221;:1,<p>&#8220;HP&#8221;:10</p>
+<div>&#8220;ID&#8221;:1,<p>&#8220;HP&#8221;:10,</p>
+<p>&#8220;NewHP&#8221;:10</p>
 </div></blockquote>
 <p>},</p>
 <p>&#8220;Target&#8221;:{</p>
 <blockquote>
-<div>&#8220;ID&#8221;:9,<p>&#8220;HP&#8221;:0</p>
+<div>&#8220;ID&#8221;:9,<p>&#8220;HP&#8221;:10,</p>
+<p>&#8220;NewHP&#8221;:0</p>
 </div></blockquote>
 <p>}</p>
 </div></blockquote>
@@ -831,6 +792,7 @@ be of the following format:</p>
 <div><ul class="simple">
 <li>The &#8220;Target&#8221; object could be omitted if the action did not involve a target.</li>
 <li>The HP for the unit could be omitted if the action is &#8220;Wait&#8221; or &#8220;Heal&#8221;</li>
+<li>The HP is the previous HP</li>
 </ul>
 </div></blockquote>
 <p>If Unsuccessful:</p>
@@ -908,6 +870,11 @@ If there are less than the max number of units, it will then repeat the first un
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="Game.tests.TestUnit.test05a_cancel_search_success">
+<code class="descname">test05a_cancel_search_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test05a_cancel_search_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="Game.tests.TestUnit.test06_matchmaking_queue_success">
 <code class="descname">test06_matchmaking_queue_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test06_matchmaking_queue_success" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -948,13 +915,18 @@ If there are less than the max number of units, it will then repeat the first un
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="Game.tests.TestUnit.test14_take_action_basic_success">
-<code class="descname">test14_take_action_basic_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test14_take_action_basic_success" title="Permalink to this definition">¶</a></dt>
+<dt id="Game.tests.TestUnit.test14_take_action_move_on_self_success">
+<code class="descname">test14_take_action_move_on_self_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test14_take_action_move_on_self_success" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="Game.tests.TestUnit.test15_take_action_valid_move_success">
 <code class="descname">test15_take_action_valid_move_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test15_take_action_valid_move_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test15a_take_action_full_move_success">
+<code class="descname">test15a_take_action_full_move_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test15a_take_action_full_move_success" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -972,20 +944,96 @@ If there are less than the max number of units, it will then repeat the first un
 <code class="descname">test18_take_action_before_placement</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test18_take_action_before_placement" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="Game.tests.TestUnit.test19_place_units_not_matched">
+<code class="descname">test19_place_units_not_matched</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test19_place_units_not_matched" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test20_take_action_basic_attack_success">
+<code class="descname">test20_take_action_basic_attack_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test20_take_action_basic_attack_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test21_take_action_bad_heal">
+<code class="descname">test21_take_action_bad_heal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test21_take_action_bad_heal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test22_take_action_bad_attack">
+<code class="descname">test22_take_action_bad_attack</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test22_take_action_bad_attack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test23_take_action_crit_attack_success">
+<code class="descname">test23_take_action_crit_attack_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test23_take_action_crit_attack_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test24_take_action_attack_no_counter_success">
+<code class="descname">test24_take_action_attack_no_counter_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test24_take_action_attack_no_counter_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test25_take_action_attack_miss_success">
+<code class="descname">test25_take_action_attack_miss_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test25_take_action_attack_miss_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test25a_take_action_counter_misses_success">
+<code class="descname">test25a_take_action_counter_misses_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test25a_take_action_counter_misses_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test25b_take_action_tgt_passive_success">
+<code class="descname">test25b_take_action_tgt_passive_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test25b_take_action_tgt_passive_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test26_take_action_heal_fully_success">
+<code class="descname">test26_take_action_heal_fully_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test26_take_action_heal_fully_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test27_take_action_heal_partial_success">
+<code class="descname">test27_take_action_heal_partial_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test27_take_action_heal_partial_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Game.tests.TestUnit.test28_take_action_heal_exact_full_success">
+<code class="descname">test28_take_action_heal_exact_full_success</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Game.tests.TestUnit.test28_take_action_heal_exact_full_success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
 <div class="section" id="module-Game.unithelper">
 <span id="game-unithelper-module"></span><h2>Game.unithelper module<a class="headerlink" href="#module-Game.unithelper" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-unithelper"></span><dl class="function">
-<dt id="Game.unithelper.calculateAttack">
-<code class="descclassname">Game.unithelper.</code><code class="descname">calculateAttack</code><span class="sig-paren">(</span><em>game</em>, <em>unit_dict</em>, <em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.calculateAttack" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="Game.unithelper.calculateHeal">
-<code class="descclassname">Game.unithelper.</code><code class="descname">calculateHeal</code><span class="sig-paren">(</span><em>game</em>, <em>unit_dict</em>, <em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.calculateHeal" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="Game.unithelper.calculateActionResult">
+<code class="descclassname">Game.unithelper.</code><code class="descname">calculateActionResult</code><span class="sig-paren">(</span><em>action</em>, <em>game</em>, <em>unit_dict</em>, <em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.calculateActionResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the result of the provided action</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>action</strong> (<em>String</em>) &#8211; The action the unit is trying to take</li>
+<li><strong>game</strong> (<em>Game object</em>) &#8211; The game in which the acting unit resides</li>
+<li><strong>unit_dict</strong> (<em>Dictionary</em>) &#8211; Describes the acting unit, has the Unit object, current HP and its location</li>
+<li><strong>target</strong> (<em>Unit Object</em>) &#8211; The target of this unit&#8217;s action</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">Dictionary</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The result of the action, will have a &#8220;Unit&#8221; and &#8220;Target&#8221; dictionary</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="Game.unithelper.placeUnits">
@@ -1016,20 +1064,22 @@ Then it adds them to the database.</p>
 
 <dl class="function">
 <dt id="Game.unithelper.saveActionResults">
-<code class="descclassname">Game.unithelper.</code><code class="descname">saveActionResults</code><span class="sig-paren">(</span><em>game</em>, <em>unit_dict</em>, <em>target_dict=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.saveActionResults" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">Game.unithelper.</code><code class="descname">saveActionResults</code><span class="sig-paren">(</span><em>action</em>, <em>game</em>, <em>unit_dict</em>, <em>target_dict=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Game.unithelper.saveActionResults" title="Permalink to this definition">¶</a></dt>
 <dd><p>Updates the game with the provided action</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>action</strong> (<em>Action object</em>) &#8211; The action taken</li>
 <li><strong>game</strong> (<em>Game object</em>) &#8211; The game being updated</li>
 <li><strong>unit_dict</strong> (<em>Dictionary</em>) &#8211; <p>Necessary components to describe the updated unit, should contain:</p>
 <ul>
 <li>&#8220;Unit&#8221; which is the unit object</li>
 <li>&#8220;NewX&#8221; which is the X coordinate to which the unit is moving</li>
 <li>&#8220;NewY&#8221; which is the Y coordinate to which the unit is moving</li>
-<li>&#8220;HP&#8221; if a target was specified, which is the new HP for this unit after the action</li>
+<li>&#8220;HP&#8221; if a target was specified, which is the old HP for this unit before the action</li>
+<li>&#8220;NewHP&#8221; if a target was specified, which is the new HP for this unit after the action</li>
 </ul>
 </li>
 <li><strong>target_dict</strong> (<em>Dictionary</em>) &#8211; Necessary components to describe the targeted unit,
