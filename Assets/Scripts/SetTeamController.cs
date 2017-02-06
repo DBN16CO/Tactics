@@ -98,19 +98,16 @@ public class SetTeamController : MonoBehaviour {
 				}
 			}
 			if(Server.SetTeam(strLeader, ability, units, strPerks)) {
-				Debug.Log(strLeader + " with " + ability);
-				foreach(string unit in units) {
-					Debug.Log(unit);
-				}
-				foreach(string perk in strPerks) {
-					Debug.Log(perk);
-				}
+				/*if(!Server.FindMatch()) {
+					Debug.Log("Couldn't add to game queue - are you already in queue?");
+				}*/
+				Debug.Log("Team set successfully");
 				SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 			}else {
-				Debug.Log("Server messed up. Try again");
+				Debug.Log("Server error");
 			}
 		}else{
-			Debug.Log("You messed up. Try again");
+			Debug.Log("Invalid team");
 		}
 	}
 
