@@ -180,42 +180,50 @@ public static class Server {
 
 	// Called to find ranked match after team is set
 	public static bool FindMatch() {
-		// Create the request, set the data, and send
-		var request = new Dictionary<string, object>();
-		request["Command"] = "FM";
-		Communication.SendString(Json.ToString(request));
-		// Wait for the response, then parse
-		string strResponse = null;
-		while(strResponse == null) {
-			strResponse = Communication.RecvString();
+		if(inQueue) {
+			// Create the request, set the data, and send
+			var request = new Dictionary<string, object>();
+			request["Command"] = "FM";
+			Communication.SendString(Json.ToString(request));
+			// Wait for the response, then parse
+			string strResponse = null;
+			while(strResponse == null) {
+				strResponse = Communication.RecvString();
+			}
+			var response = Json.ToDict(strResponse);
+			// Error handling
+			bool success = (bool)response["Success"];
+			if(success) {
+				inQueue = true;
+			}
+			return success;
 		}
-		var response = Json.ToDict(strResponse);
-		// Error handling
-		bool success = (bool)response["Success"];
-		if(success) {
-			inQueue = true;
-		}
-		return success;
+		Debug.Log("User is already in queue");
+		return false;
 	}
 
 	// Called to cancel ranked match queue
 	public static bool CancelQueue() {
-		// Create the request, set the data, and send
-		var request = new Dictionary<string, object>();
-		request["Command"] = "CS";
-		Communication.SendString(Json.ToString(request));
-		// Wait for the response, then parse
-		string strResponse = null;
-		while(strResponse == null) {
-			strResponse = Communication.RecvString();
+		if(!inQueue) {
+			// Create the request, set the data, and send
+			var request = new Dictionary<string, object>();
+			request["Command"] = "CS";
+			Communication.SendString(Json.ToString(request));
+			// Wait for the response, then parse
+			string strResponse = null;
+			while(strResponse == null) {
+				strResponse = Communication.RecvString();
+			}
+			var response = Json.ToDict(strResponse);
+			// Error handling
+			bool success = (bool)response["Success"];
+			if(success) {
+				inQueue = false;
+			}
+			return success;
 		}
-		var response = Json.ToDict(strResponse);
-		// Error handling
-		bool success = (bool)response["Success"];
-		if(success) {
-			inQueue = false;
-		}
-		return success;
+		Debug.Log("User does not have a queue to cancel");
+		return false;
 	}
 
 	// Generates the key to use for AES encryption
