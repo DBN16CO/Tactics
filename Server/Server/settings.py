@@ -61,6 +61,8 @@ NOSE_ARGS = [
     '--with-coverage',
     '--cover-package=Communication,Game,Static,User',
     '--cover-inclusive',
+    '--cover-erase',
+    '--cover-html',
     '--nocapture',
     '--nologcapture',
     '--verbosity=3'
