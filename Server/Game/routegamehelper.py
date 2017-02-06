@@ -54,6 +54,48 @@ def findMatch(data):
 
 	return formJsonResult(error)
 
+def cancelSearch(data):
+	"""
+	Called when the user wants to cancel the game search.
+	Note: This is a best effort attempt since it races the matchmaker.
+	Command: CS (Cancel Search)
+
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+	             be of the following format:\n
+	             {\n
+	             }\n
+
+	:rtype: 	 Dictionary
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {"Success":True\n
+				 }\n
+				 If Unsuccessful:\n
+				 	{"Successful":False,\n
+				 	 "Error":"Failed to cancel the game search"}\n
+	"""
+	username = data['session_username']
+	user = Users.objects.filter(username=username).first()
+	in_game_queue = Game_Queue.objects.filter(user=user).first()
+
+	error = ''
+	if in_game_queue:
+		logging.info("User ({0}) is in the game queue...deleting queue entry".format(username))
+		try:
+			in_game_queue.delete()
+		except Exception as e:
+			is_in_queue = Game_Queue.objects.filter(user=user).first() != None
+			if is_in_queue:
+				error = "Failed to cancel the game search"
+				logging.exception(e)
+			else:
+				logging.info("User ({0}) was taken out of queue before delete could occur".format(username))
+	else:
+		logging.warning("User ({0}) requested to cancel game search but was not in the queue".format(username))
+
+	return formJsonResult(error)
+
 def queryGamesUser(data):
 	"""
 	Called when the front end wants to refresh the game information for a user.
