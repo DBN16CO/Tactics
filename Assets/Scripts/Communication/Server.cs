@@ -9,9 +9,15 @@ using System.Text.RegularExpressions;
 // This class contains all of the Server call functions
 public static class Server {
 
+	public static bool inQueue;
+
 
 	public static void Connect() {
-		Communication.Connect(new Uri("ws://localhost:8000"));
+		// Local host -----------
+		//Communication.Connect(new Uri("ws://localhost:8000"));
+		// Raspberry Pi ---------
+		Communication.Connect(new Uri("ws://tactics-dev.ddns.net:8443"));
+		// Heroku ---------------
 		//Communication.Connect(new Uri("ws://tactics-production.herokuapp.com/"));
 	}
 
@@ -170,6 +176,54 @@ public static class Server {
 		// Error handling
 		bool success = (bool)response["Success"];
 		return success;
+	}
+
+	// Called to find ranked match after team is set
+	public static bool FindMatch() {
+		if(inQueue) {
+			// Create the request, set the data, and send
+			var request = new Dictionary<string, object>();
+			request["Command"] = "FM";
+			Communication.SendString(Json.ToString(request));
+			// Wait for the response, then parse
+			string strResponse = null;
+			while(strResponse == null) {
+				strResponse = Communication.RecvString();
+			}
+			var response = Json.ToDict(strResponse);
+			// Error handling
+			bool success = (bool)response["Success"];
+			if(success) {
+				inQueue = true;
+			}
+			return success;
+		}
+		Debug.Log("User is already in queue");
+		return false;
+	}
+
+	// Called to cancel ranked match queue
+	public static bool CancelQueue() {
+		if(!inQueue) {
+			// Create the request, set the data, and send
+			var request = new Dictionary<string, object>();
+			request["Command"] = "CS";
+			Communication.SendString(Json.ToString(request));
+			// Wait for the response, then parse
+			string strResponse = null;
+			while(strResponse == null) {
+				strResponse = Communication.RecvString();
+			}
+			var response = Json.ToDict(strResponse);
+			// Error handling
+			bool success = (bool)response["Success"];
+			if(success) {
+				inQueue = false;
+			}
+			return success;
+		}
+		Debug.Log("User does not have a queue to cancel");
+		return false;
 	}
 
 	// Generates the key to use for AES encryption
