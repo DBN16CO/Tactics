@@ -62,8 +62,8 @@ def setTeam(data):
 		error = "Too many units have been selected ({0}).".format(len(data["Units"]))
 	# Ensure the user selected the proper number of units - too few, oops, add a few!
 	elif len(data["Units"]) < version.unit_min:
-		error = ("You must select at least {0} unit(s), {1} chosen.").format(version.unit_min,
-			"none" if (len(data["Units"]) == 0) else len(data["Units"]))
+		error = "You must select at least {0} unit(s), {1} chosen.".format(version.unit_min,
+			"none" if len(data["Units"]) == 0 else len(data["Units"]))
 	# Ensure that at least a leader and ability were provided
 	elif not "Leader" in data or not "Ability" in data:
 		error = "The leader information is incomplete."
