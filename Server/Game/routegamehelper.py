@@ -44,8 +44,8 @@ def findMatch(data):
 
 	# Ensure that the user has set a team
 	unitCount = Unit.objects.filter(owner=user, version=version, game=None).count()
-	if unitCount != version.unit_count:
-		logging.error(str(data["session_username"]) + "'s unit count is " + str(unitCount) + " when it should be " + str(version.unit_count) + ".")
+	if unitCount < version.unit_min or unitCount > version.unit_max:
+		logging.error("{0}'s unit count is {1} when it should be between {2} and {3}.".format(data["session_username"], unitCount, version.unit_min, version.unit_max))
 		error = "You must set a team before starting a match."
 	else:
 		# Add the user to the game queue
@@ -304,17 +304,21 @@ def placeUnits(data):
 		return formJsonResult(error, data)
 
 	game_name = data["Game"]
-	unit_list = data["Units"]
-
-	if len(unit_list) != version.unit_count:
-		error = "Not enough units selected: (" + str(version.unit_count) + ") required, (" + str(len(unit_list)) + ") chosen."
-		return formJsonResult(error, data)
 
 	# Ensure that the game name provided is valid
 	game_user_obj = Game_User.objects.filter(user=user, name=game_name).first()
 	if game_user_obj == None:
-		error = "Invalid game name (" + game_name + ") for user " + user.username + "."
-	else:
-		error = Game.unithelper.placeUnits(game_user_obj, unit_list, user, version)
+		return formJsonResult("Invalid game name ({0}) for user {1}.".format(game_name, user.username))
+
+	unit_list = data["Units"]
+	units_set = Unit.objects.filter(game=game_user_obj.game, owner=user, x=-1, y=-1).count()
+
+	# Ensure the user is setting the proper number of units
+	if len(unit_list) != units_set:
+		error = "Incorrect number of units selected: ({0}) required, ({1}) chosen.".format(units_set, len(unit_list))
+		return formJsonResult(error, data)
+
+	# Call place units
+	error = Game.unithelper.placeUnits(game_user_obj, unit_list, user, version)
 
 	return formJsonResult(error, data)

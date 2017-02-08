@@ -58,12 +58,12 @@ def setTeam(data):
 	elif not "Perks" in data:
 		error = "The perk information is incomplete."
 	# Ensure the user selected the proper number of units - too many, cheater!
-	elif len(data["Units"]) > version.unit_count:
-		error = "Too many units have been selected (" + str(len(data["Units"])) + ")."
+	elif len(data["Units"]) > version.unit_max:
+		error = "Too many units have been selected ({0}).".format(len(data["Units"]))
 	# Ensure the user selected the proper number of units - too few, oops, add a few!
-	elif len(data["Units"]) < version.unit_count:
-		error = ("You must select " + str(version.unit_count) + " units, only "
-			+ str(len(data["Units"])) + " chosen.")
+	elif len(data["Units"]) < version.unit_min:
+		error = "You must select at least {0} unit(s), {1} chosen.".format(version.unit_min,
+			"none" if len(data["Units"]) == 0 else len(data["Units"]))
 	# Ensure that at least a leader and ability were provided
 	elif not "Leader" in data or not "Ability" in data:
 		error = "The leader information is incomplete."
@@ -190,12 +190,20 @@ def takeAction(data):
 	# Now verify both players have placed their units
 	game = game_usr.game
 	user_placed_unit_count = Unit.objects.filter(game=game, owner=user).exclude(x=-1).exclude(y=-1).count()
+	user_unplaced_unit_count = Unit.objects.filter(game=game, owner=user, x=-1, y=-1).count()
 	opponent_placed_unit_count = Unit.objects.filter(game=game).exclude(x=-1).exclude(y=-1).exclude(owner=user).count()
-	expected_count = version.unit_count
-	if user_placed_unit_count != expected_count:
+	opponent_unplaced_unit_count = Unit.objects.filter(game=game, x=-1, y=-1).exclude(owner=user).count()
+	expected_min = version.unit_min
+
+	# All units are placed
+	if user_unplaced_unit_count != 0:
 		return formJsonResult("You must place all of your units before taking a turn.")
-	elif opponent_placed_unit_count != expected_count:
+	elif opponent_unplaced_unit_count != 0:
 		return formJsonResult("Please wait until your opponent places their units before taking a turn.")
+
+	# Enough units are placed
+	if user_placed_unit_count < expected_min or opponent_placed_unit_count < expected_min:
+		return formJsonResult("Internal Error: Teams were set with the incorrect team size.", data)
 
 	# Get the new coordinates for the action
 	if not "X" in data or not "Y" in data:

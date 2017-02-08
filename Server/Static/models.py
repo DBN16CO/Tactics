@@ -6,7 +6,8 @@ from django.db import models
 class Version(models.Model):
 	name         = models.CharField(max_length=16, unique=True)
 	price_max    = models.IntegerField(default=1000)
-	unit_count   = models.IntegerField(default=8)
+	unit_min     = models.IntegerField(default=1)
+	unit_max     = models.IntegerField(default=10)
 
 class Ability(models.Model):
 	name         = models.CharField(max_length=16)

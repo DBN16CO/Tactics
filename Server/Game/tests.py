@@ -26,10 +26,10 @@ class TestUnit(TestCase):
 			units.append(str(unit.name))
 			count += 1
 
-			if count >= version.unit_count:
+			if count >= version.unit_max:
 				break
 
-		while len(units) < version.unit_count:
+		while len(units) < version.unit_min:
 			units.append(str(all_units[0].name))
 
 		return json.dumps(units)
@@ -63,14 +63,14 @@ class TestUnit(TestCase):
 		# Setup values
 		version = Version.objects.latest('pk')
 		too_many_units = ''
-		for _ in range(version.unit_count+1):
+		for _ in range(version.unit_max+1):
 			too_many_units += '"Archer",'
 		too_many_units =too_many_units.strip(",")
 		valid_unit_list = ''
 		valid_unit_list = self.helper_golden_path_set_team_units()
 		invalid_unit_name_list = ''
 		invalid_unit_name_str  = ''
-		for _ in range(version.unit_count):
+		for _ in range(version.unit_max):
 			invalid_unit_name_list += "fake_unit,"
 			invalid_unit_name_str += '"fake_unit",'
 		invalid_unit_name_list = invalid_unit_name_list.strip(",")
@@ -96,15 +96,15 @@ class TestUnit(TestCase):
 		self.assertEqual(result, json.dumps({"Success":False,"Error":"The perk information is incomplete."}))
 
 		# Test too few units selected
-		self.channel.send('{"Command":"ST","Units":["Archer"],"Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
+		self.channel.send('{"Command":"ST","Units":[],"Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
 		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"You must select "
-			+ str(version.unit_count) + " units, only 1 chosen."}))
+		self.assertEqual(result, json.dumps({"Success":False,"Error":"You must select at least "
+			+ str(version.unit_min) + " unit(s), none chosen."}))
 
 		# Test too many units selected
 		self.channel.send('{"Command":"ST","Units":[' + too_many_units + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
 		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"Too many units have been selected (9)."}))
+		self.assertEqual(result, json.dumps({"Success":False,"Error":"Too many units have been selected (11)."}))
 
 		# Test missing leader
 		self.channel.send('{"Command":"ST","Units":' + valid_unit_list + ',"Ability":"Extra Range","Perks":[]}')
@@ -158,14 +158,14 @@ class TestUnit(TestCase):
 		# Setup values
 		version = Version.objects.latest('pk')
 		too_expensive_team = ''
-		for _ in range(version.unit_count):
+		for _ in range(version.unit_max):
 			too_expensive_team += '"Armor",'
 		too_expensive_team = too_expensive_team.strip(",")
 
 		# Test that a user cannot exceed the price maximum
 		self.channel.send('{"Command":"ST","Units":[' + too_expensive_team + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
 		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The selected team is 400 over the unit budget."}))
+		self.assertEqual(result, json.dumps({"Success":False,"Error":"The selected team is 1000 over the unit budget."}))
 
 		endTestLog("test2_set_team_price_max_exceeded")
 
@@ -179,7 +179,7 @@ class TestUnit(TestCase):
 		# Setup values
 		version = Version.objects.latest('pk')
 		team = ''
-		for _ in range(version.unit_count):
+		for _ in range(version.unit_min):
 			team += '"Swordsman",'
 		team = team.strip(",")
 		perks = '"Extra Money", "Forest Fighter", "Mountain Fighter"'
@@ -194,7 +194,7 @@ class TestUnit(TestCase):
 
 			# Test that the values were added to the database
 			self.assertEqual(Game_User.objects.filter(user=user).count(), 1)
-			self.assertEqual(Unit.objects.filter(owner=user).count(), 8)
+			self.assertEqual(Unit.objects.filter(owner=user).count(), 1)
 
 		endTestLog("test03_set_team_valid_input")
 
@@ -228,7 +228,7 @@ class TestUnit(TestCase):
 		# Setup values
 		version = Version.objects.latest('pk')
 		team = ''
-		for _ in range(version.unit_count):
+		for _ in range(version.unit_min):
 			team += '"Swordsman",'
 		team = team.strip(",")
 		perks = '"Extra Money", "Forest Fighter", "Mountain Fighter"'
@@ -281,9 +281,6 @@ class TestUnit(TestCase):
 
 		version = Version.objects.latest('pk')
 
-		self.assertEquals(len(Unit.objects.filter(owner=user1, game=None)), version.unit_count)
-		self.assertEquals(len(Unit.objects.filter(owner=user2, game=None)), version.unit_count)
-
 		self.assertTrue(len(Game_User.objects.filter(game=None)) == 2)
 
 		processMatchmakingQueue()
@@ -333,7 +330,7 @@ class TestUnit(TestCase):
 		self.channel.send('{"Command":"PU","Game":"vs. ' + username2 + ' #1","Units":{}}', 1)
 		result = json.loads(self.channel.receive())
 		self.assertEqual(result["Success"], False)
-		self.assertEqual(result["Error"], "Not enough units selected: (8) required, (0) chosen.")
+		self.assertEqual(result["Error"], "Incorrect number of units selected: (8) required, (0) chosen.")
 
 		endTestLog("test07_place_units_bad_json")
 
@@ -362,14 +359,6 @@ class TestUnit(TestCase):
 	def test09_place_units_bad_team_list(self):
 		startTestLog("test09_place_units_bad_team_list")
 		version = Version.objects.latest('pk')
-		invalid_unit_list = '['
-		for i in range(0, version.unit_count):
-			invalid_unit_list += '{"Name":"Archer","X":' + str(i) + ',"Y":0},'
-		invalid_unit_list = invalid_unit_list.strip(",") + "]"
-		invalid_placement_list = '['
-		for i in range(0, version.unit_count):
-			invalid_placement_list += '{"Name":"Archer","X":' + str(i) + ',"Y":8},'
-		invalid_placement_list = invalid_placement_list.strip(",") + "]"
 
 		# Create user and login
 		username = "pu_u1_btl"
@@ -381,6 +370,18 @@ class TestUnit(TestCase):
 			{"username":username2,"password":self.channel.generateValidPassword(),"email":"setTeam2@email.com"}, self.helper_golden_path_set_team_units(), 2))
 
 		processMatchmakingQueue()
+
+		user = Users.objects.filter(username=username).first()
+		unit_count = Unit.objects.filter(owner=user).count()
+
+		invalid_unit_list = '['
+		for i in range(0, unit_count):
+			invalid_unit_list += '{"Name":"Archer","X":' + str(i) + ',"Y":0},'
+		invalid_unit_list = invalid_unit_list.strip(",") + "]"
+		invalid_placement_list = '['
+		for i in range(0, unit_count):
+			invalid_placement_list += '{"Name":"Archer","X":' + str(i) + ',"Y":8},'
+		invalid_placement_list = invalid_placement_list.strip(",") + "]"
 
 		# Invalid list of units
 		self.channel.send('{"Command":"PU","Game":"vs. ' + username2 + ' #1","Units":' + invalid_unit_list + '}', 1)
