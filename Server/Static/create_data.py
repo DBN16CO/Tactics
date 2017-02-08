@@ -33,7 +33,7 @@ def setup_static_db(version):
 	# Save the version data
 	logging.info("Creating Version object...")
 	ver = Version(name=data["Version"]["Name"], price_max=data["Version"]["Price_Max"],
-		unit_count=data["Version"]["Unit_Count"])
+		unit_min=data["Version"]["Unit_Min"], unit_max=data["Version"]["Unit_Max"])
 	ver.save()
 
 	# Save the Ability Data
@@ -130,7 +130,8 @@ def ver_1_0_static_data():
 	data["Version"] = {
 		"Name":"1.0",
 		"Price_Max":2000,
-		"Unit_Count":8,
+		"Unit_Min":1,
+		"Unit_Max":10,
 	}
 
 	# Hero Ability Data
