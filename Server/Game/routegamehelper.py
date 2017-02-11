@@ -322,3 +322,41 @@ def placeUnits(data):
 	error = Game.unithelper.placeUnits(game_user_obj, unit_list, user, version)
 
 	return formJsonResult(error, data)
+
+def endTurn(data):
+	"""
+	Called when the user has completed all of their desired moves for a turn and is ready
+	to pass play over to the opponent
+	Command: ET (End Turn)
+
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+				 be of the following format:\n
+				{\n
+					"Game":"vs. opponent #1"\n
+				}\n
+				
+	:rtype: 	 Dictionary
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {"Success":True\n
+				 }\n
+				 If Unsuccessful:\n
+				 	{"Successful":False,\n
+				 	 "Error":"It is not your turn."}\n
+	"""
+	game_data = Game.unithelper.validateGameStarted(data)
+	if "Error" in game_data:
+		return formJsonResult(game_data["Error"], data)
+
+	game = game_data["Game"]
+	other_user = Game_User.objects.filter(game=game).exclude(user=game_data["User"]).first().user
+
+	# Update the game to be the other user's turn
+	game.user_turn = other_user
+	game.save()
+
+	# Update each of the opposing player's living units so that they can now move
+	Unit.objects.filter(owner=other_user, game=game).exclude(hp__lte=0).update(acted=False)
+
+	return formJsonResult(None, data)

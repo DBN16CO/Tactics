@@ -1603,3 +1603,102 @@ class TestUnit(TestCase):
 
 		endTestLog("test28_take_action_heal_exact_full_success")
 
+	def test29_end_turn_bad_json(self):
+		startTestLog("test29_end_turn_bad_json")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		valid_wait_command = {"Command":"ET", "Game":"vs. second_user #1"}
+
+		# Ensure it is player 1's turn
+		game = game_users.first().game
+		user1 = Users.objects.filter(username=credentials1["username"]).first()
+		game.user_turn = user1
+		game.save()
+
+		# Test a missing game key
+		missing_game_command = copy.deepcopy(valid_wait_command)
+		del missing_game_command["Game"]
+		self.channel.send(json.dumps(missing_game_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Internal Error: Game Key missing.")
+
+		# Test an invalid game key value
+		bad_game_command = copy.deepcopy(valid_wait_command)
+		bad_game_command["Game"] = "fake_game_name" 		# Just bad game name
+		self.channel.send(json.dumps(bad_game_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "No match for game of name fake_game_name.")
+		bad_game_command["Game"] = "vs. first_user #1" 		# Existing, but bad name
+		self.channel.send(json.dumps(bad_game_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "No match for game of name vs. first_user #1.")
+
+		endTestLog("test29_end_turn_bad_json")
+
+	def test30_end_turn_not_turn(self):
+		startTestLog("test30_end_turn_not_turn")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		valid_wait_command = {"Command":"ET", "Game":"vs. second_user #1"}
+
+		# Ensure it is player 2's turn
+		game = game_users.first().game
+		user2 = Users.objects.filter(username=credentials2["username"]).first()
+		game.user_turn = user2
+		game.save()
+		
+		self.channel.send(json.dumps(valid_wait_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == False)
+		self.assertEqual(result["Error"], "Please wait until it is your turn.")
+
+		endTestLog("test30_end_turn_not_turn")
+
+	def test31_end_turn_success(self):
+		startTestLog("test31_end_turn_success")
+
+		# Setup command
+		credentials1 = {"username":"first_user","password":self.channel.generateValidPassword(),"email":"p1@email.com"}
+		credentials2 = {"username":"second_user","password":self.channel.generateValidPassword(),"email":"p2@email.com"}
+		team1 = self.helper_golden_path_set_team_units()
+		team2 = self.helper_golden_path_set_team_units()
+		game_users = self.channel.createUsersAndPlaceUnits(credentials1, team1, credentials2, team2)
+		self.assertTrue(len(game_users) == 2)
+		valid_wait_command = {"Command":"ET", "Game":"vs. second_user #1"}
+
+		# Ensure it is player 1's turn
+		game = game_users.first().game
+		user1 = Users.objects.filter(username=credentials1["username"]).first()
+		game.user_turn = user1
+		game.save()
+
+		# Simulate all units on other player's team having moved
+		user2 = Users.objects.filter(username=credentials2["username"]).first()
+		Unit.objects.filter(owner=user2, game=game).update(acted=True)
+		
+		self.channel.send(json.dumps(valid_wait_command))
+		result = json.loads(self.channel.receive())
+		self.assertTrue(result["Success"] == True)
+
+		game = Game.objects.latest('pk')
+		self.assertEqual(game.user_turn, user2)
+		units = Unit.objects.filter(owner=user2, game=game).exclude(hp__lte=0)
+		for unit in units:
+			self.assertFalse(unit.acted)
+
+		endTestLog("test31_end_turn_success")
