@@ -335,7 +335,7 @@ def endTurn(data):
 				{\n
 					"Game":"vs. opponent #1"\n
 				}\n
-				
+
 	:rtype: 	 Dictionary
 	:return: 	 A JSON object noting the success of the method call:\n
 				 If Successful:\n
