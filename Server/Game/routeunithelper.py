@@ -205,6 +205,11 @@ def takeAction(data):
 	if user_placed_unit_count < expected_min or opponent_placed_unit_count < expected_min:
 		return formJsonResult("Internal Error: Teams were set with the incorrect team size.", data)
 
+	# Now ensure that the proper team is acting
+	if game.user_turn != user:
+		logging.debug("{0} attempting to act when it is {1}'s turn.".format(user.username, game.user_turn.username))
+		return formJsonResult("Please wait until it is your turn.", data)
+
 	# Get the new coordinates for the action
 	if not "X" in data or not "Y" in data:
 		return formJsonResult("Internal Error: New location information incomplete.", data)
@@ -218,6 +223,8 @@ def takeAction(data):
 	unit = Unit.objects.filter(pk=unit_id, game=game_usr.game, owner=user).first()
 	if unit == None:
 		return formJsonResult("Internal Error: Specified unit ID not in game.", data)
+	elif unit.acted:
+		return formJsonResult("That unit has already acted this turn.", data)
 
 	# The valid actions for a user in this version
 	if not "Action" in data:
@@ -225,8 +232,6 @@ def takeAction(data):
 	action = Action.objects.filter(version=version, name=data["Action"]).first()
 	if action == None or Class_Action.objects.filter(version=version, clss=unit.unit_class, action=action).first() == None:
 		return formJsonResult("The selected action is not valid.", data)
-
-	
 
 	# Ensure that the move is valid
 	is_move_valid = Game.unithelper.validateMove(unit, game_usr.game, user, x, y)

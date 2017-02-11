@@ -74,6 +74,7 @@ def placeUnits(game_user, units, user, version):
 		unit.x = placed_units[0]["X"]
 		unit.y = placed_units[0]["Y"]
 		unit.hp = class_max_hp[unit.unit_class.name]
+		unit.acted = False
 
 		# To keep the 0th unit to match with the current unit iteration in set_untis
 		del placed_units[0]
@@ -327,6 +328,7 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 	unit = unit_dict["Unit"]
 	unit.x = unit_dict["NewX"]
 	unit.y = unit_dict["NewY"]
+	unit.acted = True
 
 	# If there is not target
 	if target_dict == None:
