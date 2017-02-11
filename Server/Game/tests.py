@@ -900,7 +900,7 @@ class TestUnit(TestCase):
 		clss = unit.unit_class
 		luck = Stat.objects.filter(name="Luck", version=version).first()
 		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=clss, version=version).first()
-		unit_luck.value = -1
+		unit_luck.value = -5
 		unit_luck.save()
 
 		# Ensure the attacker cannot miss
