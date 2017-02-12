@@ -10,7 +10,6 @@ from Static.log_uploader import upload_logs
 import logging
 from Server import config
 from celery.utils.log import get_task_logger
-from celery.schedules import crontab
 
 logger = get_task_logger(__name__)
 fh = logging.FileHandler('./matchmaking.log', mode='a')
