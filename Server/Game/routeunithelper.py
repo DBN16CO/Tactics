@@ -172,38 +172,13 @@ def takeAction(data):
 				 	- The error message provided should be of an acceptable form such that
 				 	  errors can be directly displayed for the user.
 	"""
-	username = data["session_username"]
-	user = Users.objects.filter(username=username).first()
+	game_data = Game.unithelper.validateGameStarted(data)
+	if "Error" in game_data:
+		return formJsonResult(game_data["Error"], data)
 
-	# Ensure that the game name provided is valid
-	if not "Game" in data:
-		return formJsonResult("Internal Error: Game Key missing.", data)
-	game_name = data["Game"]
-
-	# Ensure that the game name matches with this user
-	game_usr = Game_User.objects.filter(user=user, name=game_name).first()
-	if game_usr == None:
-		return formJsonResult("No match for game of name " + game_name + ".", data)
-
-	version = game_usr.game.version
-
-	# Now verify both players have placed their units
-	game = game_usr.game
-	user_placed_unit_count = Unit.objects.filter(game=game, owner=user).exclude(x=-1).exclude(y=-1).count()
-	user_unplaced_unit_count = Unit.objects.filter(game=game, owner=user, x=-1, y=-1).count()
-	opponent_placed_unit_count = Unit.objects.filter(game=game).exclude(x=-1).exclude(y=-1).exclude(owner=user).count()
-	opponent_unplaced_unit_count = Unit.objects.filter(game=game, x=-1, y=-1).exclude(owner=user).count()
-	expected_min = version.unit_min
-
-	# All units are placed
-	if user_unplaced_unit_count != 0:
-		return formJsonResult("You must place all of your units before taking a turn.")
-	elif opponent_unplaced_unit_count != 0:
-		return formJsonResult("Please wait until your opponent places their units before taking a turn.")
-
-	# Enough units are placed
-	if user_placed_unit_count < expected_min or opponent_placed_unit_count < expected_min:
-		return formJsonResult("Internal Error: Teams were set with the incorrect team size.", data)
+	user = game_data["User"]
+	game = game_data["Game"]
+	version = game_data["Version"]
 
 	# Get the new coordinates for the action
 	if not "X" in data or not "Y" in data:
@@ -215,9 +190,11 @@ def takeAction(data):
 	if not "Unit" in data:
 		return formJsonResult("Internal Error: Unit Key missing.", data)
 	unit_id  = data["Unit"]
-	unit = Unit.objects.filter(pk=unit_id, game=game_usr.game, owner=user).first()
+	unit = Unit.objects.filter(pk=unit_id, game=game, owner=user).first()
 	if unit == None:
 		return formJsonResult("Internal Error: Specified unit ID not in game.", data)
+	elif unit.acted:
+		return formJsonResult("That unit has already acted this turn.", data)
 
 	# The valid actions for a user in this version
 	if not "Action" in data:
@@ -226,10 +203,8 @@ def takeAction(data):
 	if action == None or Class_Action.objects.filter(version=version, clss=unit.unit_class, action=action).first() == None:
 		return formJsonResult("The selected action is not valid.", data)
 
-	
-
 	# Ensure that the move is valid
-	is_move_valid = Game.unithelper.validateMove(unit, game_usr.game, user, x, y)
+	is_move_valid = Game.unithelper.validateMove(unit, game, user, x, y)
 	if "Error" in is_move_valid:
 		return formJsonResult(is_move_valid["Error"], data)
 
@@ -238,7 +213,7 @@ def takeAction(data):
 
 	# If the unit is just moving for their action
 	if action.name == "Wait":
-		if not Game.unithelper.saveActionResults(action, game_usr.game, unit_dict):
+		if not Game.unithelper.saveActionResults(action, game, unit_dict):
 			return formJsonResult("There was a problem executing the action.", data)
 		action_result = {}
 		action_result["Unit"] = unit_dict
@@ -252,17 +227,17 @@ def takeAction(data):
 		target_id = data["Target"]
 		if target_id == unit_id:
 			return formJsonResult("Cannot target self.", data)
-		target = Unit.objects.filter(pk=target_id, game=game_usr.game).first()
+		target = Unit.objects.filter(pk=target_id, game=game).first()
 		if target == None:
 			return formJsonResult("Internal Error: Specified target ID not in game.", data)
 
 		# Process attacking and healing
-		action_result = Game.unithelper.calculateActionResult(action.name, game_usr.game, unit_dict, target)
+		action_result = Game.unithelper.calculateActionResult(action.name, game, unit_dict, target)
 		
 		if "Error" in action_result:
 			return formJsonResult(action_result["Error"], data)
 
-		if not Game.unithelper.saveActionResults(action, game_usr.game, action_result["Unit"], action_result["Target"]):
+		if not Game.unithelper.saveActionResults(action, game, action_result["Unit"], action_result["Target"]):
 			return formJsonResult("There was a problem targeting that unit.", data)
 
 		action_result["Target"].pop("Unit", None)
