@@ -1,18 +1,40 @@
 from __future__ import absolute_import
 
+import os
 import celery
 import datetime
 import random
 from Game.models import Game, Game_Queue, Game_User, Unit
 from Static.models import Version, Map
+from Static.log_uploader import upload_logs
 import logging
 from Server import config
 from celery.utils.log import get_task_logger
+from celery.schedules import crontab
 
 logger = get_task_logger(__name__)
 fh = logging.FileHandler('./matchmaking.log', mode='a')
 logger.addHandler(fh)
 logger.setLevel(logging.DEBUG)
+
+@celery.decorators.periodic_task(run_every=datetime.timedelta(days=1))
+def uploadServerLogs():
+    """
+    Celery task to upload the trace and matchmaking logs to Google drive once a day
+    """
+    try:
+        logger.info("Uploading trace and matchmaking logs to Google Drive...")
+        upload_logs()
+        logger.info("Successfully uploaded trace and matchmaking logs to Google Drive...")
+        logger.info("Deleting local log files")
+        basepath = os.path.dirname(__file__)
+        filepath = os.path.abspath(os.path.join(basepath, "..", "trace.log"))
+        os.remove(filepath)
+        filepath = os.path.abspath(os.path.join(basepath, "..", "matchmaking.log"))
+        os.remove(filepath)
+        logger.info("Finished deleting local log files")
+    except Exception as e:
+        logger.exception(e)
 
 @celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=config.GAME_QUEUE_PROCESS_INTERVAL))
 def processMatchmakingQueue():
