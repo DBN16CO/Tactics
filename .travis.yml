@@ -8,3 +8,6 @@ install:
 
 script:
 - ./TravisScripts/run_tests.sh
+
+after_script:
+- cat ./Server/trace.log
