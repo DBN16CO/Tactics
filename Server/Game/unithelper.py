@@ -74,6 +74,7 @@ def placeUnits(game_user, units, user, version):
 		unit.x = placed_units[0]["X"]
 		unit.y = placed_units[0]["Y"]
 		unit.hp = class_max_hp[unit.unit_class.name]
+		unit.acted = False
 
 		# To keep the 0th unit to match with the current unit iteration in set_untis
 		del placed_units[0]
@@ -327,6 +328,7 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 	unit = unit_dict["Unit"]
 	unit.x = unit_dict["NewX"]
 	unit.y = unit_dict["NewY"]
+	unit.acted = True
 
 	# If there is not target
 	if target_dict == None:
@@ -480,3 +482,58 @@ def validateMove(unit, game, user, newX, newY):
 	# If exited the while loop, target token was not found
 	error = "Target location ({},{}) was out of reach for {} at location ({},{}).".format(newX, newY, class_name, unit.x, unit.y)
 	return {"Error":error}
+
+def validateGameStarted(data):
+	"""
+	Validates that the provided game name maps to a game that exists and has started
+
+	:type data: Dictionary
+	:param data: The provided dictionary of inputs, should include 'Game' and 'session_username'
+
+	:rtype: Dictionary
+	:return: A set of useful results gathered from getting the game, including: Game, user, game_user
+	"""
+	username = data["session_username"]
+	user = Users.objects.filter(username=username).first()
+
+	# Ensure that the game name provided is valid
+	if not "Game" in data:
+		return {"Error":"Internal Error: Game Key missing."}
+	game_name = data["Game"]
+
+	# Ensure that the game name matches with this user
+	game_usr = Game_User.objects.filter(user=user, name=game_name).first()
+	if game_usr == None:
+		return {"Error":"No match for game of name {0}.".format(game_name)}
+
+	version = game_usr.game.version
+
+	# Now verify both players have placed their units
+	game = game_usr.game
+	user_placed_unit_count = Unit.objects.filter(game=game, owner=user).exclude(x=-1).exclude(y=-1).count()
+	user_unplaced_unit_count = Unit.objects.filter(game=game, owner=user, x=-1, y=-1).count()
+	opponent_placed_unit_count = Unit.objects.filter(game=game).exclude(x=-1).exclude(y=-1).exclude(owner=user).count()
+	opponent_unplaced_unit_count = Unit.objects.filter(game=game, x=-1, y=-1).exclude(owner=user).count()
+	expected_min = version.unit_min
+
+	# All units are placed
+	if user_unplaced_unit_count != 0:
+		return {"Error":"You must place all of your units before taking a turn."}
+	elif opponent_unplaced_unit_count != 0:
+		return {"Error":"Please wait until your opponent places their units before taking a turn."}
+
+	# Enough units are placed
+	if user_placed_unit_count < expected_min or opponent_placed_unit_count < expected_min:
+		return {"Error":"Internal Error: Teams were set with the incorrect team size."}
+
+	# Now ensure that the proper team is acting
+	if game.user_turn != user:
+		logging.debug("{0} attempting to act when it is {1}'s turn.".format(user.username, game.user_turn.username))
+		return {"Error":"Please wait until it is your turn."}
+
+	# If it was successful, return the useful infomration collected
+	return {
+		"User":user,
+		"Game":game,
+		"Version":version
+	}

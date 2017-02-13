@@ -42,6 +42,8 @@ def processRequest(message):
 					+-------+------------------+---------+--------------------+--------------------------------+
 					| CU    | Create User      | User    | createUser         | create_user_success            |
 					+-------+------------------+---------+--------------------+--------------------------------+
+					| ET    | End Turn         | Game    | endTurn            | end_turn_success               |
+					+-------+------------------+---------+--------------------+--------------------------------+
 					| FM    | Find Match       | Game    | findGame           | find_game_success              |
 					+-------+------------------+---------+--------------------+--------------------------------+
 					| GUI   | Get User Info    | User    | getUserInfo        | get_user_info_success          |
@@ -145,6 +147,7 @@ def processRequest(message):
 	commands={
 			  "CS":Game.routegamehelper.cancelSearch,
 			  "CU":User.routehelper.createUser,
+			  "ET":Game.routegamehelper.endTurn,
 			  "FM":Game.routegamehelper.findMatch,
 			  "GUI":User.routehelper.getUserInfo,
 			  "IL":Static.routehelper.getAllStaticData,
