@@ -13,7 +13,7 @@ public class MainMenuController : MonoBehaviour {
 		SceneManager.LoadSceneAsync("SetTeam", LoadSceneMode.Single);
 	}
 
-	// Loads active games - called custom because ranked will likely not have to be loaded
+	// Loads active games
 	private void LoadCustomGames() {
 		// Run the QGU command here. For now, just populate dummy games
 		int numGames = 8;
@@ -27,7 +27,7 @@ public class MainMenuController : MonoBehaviour {
 			currGame.transform.SetAsFirstSibling();
 		}
 		// Adjust the size of the scrollable area
-		activeGames.GetComponent<RectTransform>().sizeDelta = new Vector3(1440,300 * numGames);
+		activeGames.GetComponent<RectTransform>().sizeDelta = new Vector3(Screen.width,300 * numGames);
 	}
 
 }

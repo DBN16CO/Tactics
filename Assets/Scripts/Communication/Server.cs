@@ -61,6 +61,7 @@ public static class Server {
 			string _encryptedToken = AES.Encrypt(_loginToken, GenerateAESKey());
 			PlayerPrefs.SetString("session", _encryptedToken);
 			PlayerPrefs.Save();
+			inQueue = false;
 			Debug.Log("user '" + username + "' logged in with token: " + _loginToken);
 		}
 		return success;
@@ -154,6 +155,26 @@ public static class Server {
 		// Error Handling
 		bool success = (bool)response["Success"];
 		Debug.Log("user '" + username + "' created: " + success);
+		return success;
+	}
+
+	// Used to query active games for user
+	public static bool QueryGames() {
+		// Create the request, set the data, and send
+		var request = new Dictionary<string, object>();
+		request["Command"] = "QGU";
+		Communication.SendString(Json.ToString(request));
+		// Wait for the response, then parse
+		string strResponse = null;
+		while(strResponse == null) {
+			strResponse = Communication.RecvString();
+		}
+		var response = Json.ToDict(strResponse);
+		// Error handling
+		bool success = (bool)response["Success"];
+		if(success) {
+			inQueue = true;
+		}
 		return success;
 	}
 
