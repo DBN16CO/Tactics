@@ -264,7 +264,7 @@ def queryGamesUser(data):
 
 def placeUnits(data):
 	"""
-	Called when the game is ready to start and the user is deciding where to place their units. 
+	Called when the game is ready to start and the user is deciding where to place their units.
 	Command: PU (Place Units)
 
 	:type  data: Dictionary
