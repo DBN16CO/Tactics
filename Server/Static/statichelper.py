@@ -332,6 +332,7 @@ def getVersionData(version):
 
 	ver_dict["Name"]       = version.name
 	ver_dict["Price_Max"]  = version.price_max
-	ver_dict["Unit_Count"] = version.unit_count
+	ver_dict["Unit_Min"] = version.unit_min
+	ver_dict["Unit_Max"] = version.unit_max
 
 	return ver_dict
