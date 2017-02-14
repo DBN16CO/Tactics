@@ -11,12 +11,24 @@ public class ActiveCustomGameController : MonoBehaviour {
 	private bool _expanded;				// When detailedview is expanded
 	public bool _collapsing;			// When detailedview is collapsing
 	private float _t;					// Arbitrary measure of time
+	private RectTransform _RT;			// Transform of this gameObject
+	private RectTransform _parentRT;	// Transform of the parent scrollview
 	private RectTransform _detailedViewRT; // Transform of the detailedview
+	private float _maxY;
 	private float _deltaY;				// The amount the detailedview lerped THIS frame
+
+	// Y position of bottom of detailed view, used to keep from lerping below screen
+	public float DetailedGlobalY {
+		get{return Mathf.Round(_RT.anchoredPosition.y - _RT.sizeDelta.y + _detailedViewRT.anchoredPosition.y);}
+	}
+
 
 	// Initialization - set variables & add click listener
 	void Awake () {
 		gameObject.name = gameObject.name.Substring(0, 16);
+		_RT = gameObject.GetComponent<RectTransform>();
+		_parentRT = transform.parent.GetComponent<RectTransform>();
+		_maxY = transform.parent.parent.parent.gameObject.GetComponent<RectTransform>().sizeDelta.y;
 
 		_expanding = false;
 		_expanded = false;
@@ -62,6 +74,11 @@ public class ActiveCustomGameController : MonoBehaviour {
 			_detailedViewRT.anchoredPosition = new Vector3(0,Mathf.Lerp(_detailedViewRT.anchoredPosition.y,Convert.ToInt32(_expanding) * -500,_t));
 			_deltaY = _detailedViewRT.anchoredPosition.y - preY;
 			LerpBelowGames();
+			if(DetailedGlobalY < - _maxY - _parentRT.anchoredPosition.y) {
+				_parentRT.anchoredPosition -= new Vector2(0,_deltaY);
+			}else if(_parentRT.anchoredPosition.y + _maxY > _parentRT.sizeDelta.y) {
+				_parentRT.anchoredPosition -= new Vector2(0,_deltaY);
+			}
 		}
 	}
 
@@ -73,8 +90,7 @@ public class ActiveCustomGameController : MonoBehaviour {
 			RectTransform childRT = transform.parent.GetChild(i).GetComponent<RectTransform>();
 			childRT.anchoredPosition = new Vector2(0,childRT.anchoredPosition.y + _deltaY);
 		}
-		RectTransform parentRT = transform.parent.GetComponent<RectTransform>();
-		parentRT.sizeDelta = new Vector2(1440,parentRT.sizeDelta.y - _deltaY);
+		_parentRT.sizeDelta -= new Vector2(0,_deltaY);
 	}
 
 }
