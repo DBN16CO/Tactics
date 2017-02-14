@@ -19,14 +19,21 @@ class TestHelper(ChannelTestCase):
 	"""
 	Used to set up any unit tests
 	"""
-	def __init__(self):
+	def __init__(self, testName=None):
 		"""
 		Sets up the test config and initializes the Database
 		"""
+		# Logging
+		self.setupConfig()
+		startTestLog(testName)
+
+		# Test Channels
 		self.channel = Channel(u'Test')
 		self.channel2 = Channel(u'Test2')
-		self.setupConfig()
+
+		# Create database, with version 1.0 data
 		self.initStaticData("1.0")
+
 		# Load all of the map data for the most-recent version
 		loadMaps()
 

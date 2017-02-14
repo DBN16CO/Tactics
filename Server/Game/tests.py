@@ -1,14 +1,33 @@
 from django.test import TestCase
 from Game.models import Game_User, Game_Queue, Unit, Game
-from Static.models import Version, Class, Stat, Unit_Stat
+from Static.models import Version, Ability, Class, Leader, Leader_Ability, Perk, Stat, Unit_Stat
 from User.models import Users
 from Communication.testhelper import *
 from Game.tasks import processMatchmakingQueue
 import copy, json
 
-class TestUnit(TestCase):
+class TestGame(TestCase):
 	def setUp(self):
-		self.channel = TestHelper()
+		self.testHelper = TestHelper(self._testMethodName)
+
+		self.version = Version.objects.latest('pk')
+
+		# Credentials for user 1
+		self.credentials = {
+			"username" : "game_user_1",
+			"password" : self.testHelper.generateValidPassword(),
+			"email"    : "userOne@email.com"
+		}
+
+		# Credentials for user 2
+		self.credentials2 = {
+			"username" : "game_user_2",
+			"password" : self.testHelper.generateValidPassword(),
+			"email"    : "userTwo@email.com"
+		}
+
+	def tearDown(self):
+		endTestLog(self._testMethodName)
 
 	def helper_golden_path_set_team_units(self):
 		"""
@@ -32,7 +51,7 @@ class TestUnit(TestCase):
 		while len(units) < version.unit_min:
 			units.append(str(all_units[0].name))
 
-		return json.dumps(units)
+		return units
 
 	def helper_golden_path_place_unit_units(self):
 		"""
@@ -53,252 +72,298 @@ class TestUnit(TestCase):
 
 		return json.dumps(units_dict_list)
 
-	def test01_set_team_bad_json_input(self):
-		startTestLog("test01_set_team_bad_json_input")
+	def helper_execute_failure(self, command, message, channel_num=1):
+		"""
+		This method will execute the provided command (in channel 1), receive the response, 
+		then ensure that the 'Success' returned is FALSE,
+		and that the provided message matches the produced 'Error' message
+		
+		NOTE: The provided command a dictionary that will need to be converted to a string here
+		"""
+		self.testHelper.send(json.dumps(command), channel_num)
+		result = json.loads(self.testHelper.receive(channel_num))
 
-		# Create user and login
-		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"set_team_user","password":self.channel.generateValidPassword(),"email":"setTeam@email.com"}))
+		self.assertFalse(result["Success"])
+		self.assertEqual(result["Error"], message)
 
-		# Setup values
-		version = Version.objects.latest('pk')
-		too_many_units = ''
-		for _ in range(version.unit_max+1):
-			too_many_units += '"Archer",'
-		too_many_units =too_many_units.strip(",")
-		valid_unit_list = ''
-		valid_unit_list = self.helper_golden_path_set_team_units()
-		invalid_unit_name_list = ''
-		invalid_unit_name_str  = ''
-		for _ in range(version.unit_max):
-			invalid_unit_name_list += "fake_unit,"
-			invalid_unit_name_str += '"fake_unit",'
-		invalid_unit_name_list = invalid_unit_name_list.strip(",")
-		invalid_unit_name_str = invalid_unit_name_str.strip(",")
-		invalid_perk_list = ''
-		invalid_perk_str = ''
-		for _ in range(3):
-			invalid_perk_list += "fake_perk,"
-			invalid_perk_str += '"fake_perk",'
-		invalid_perk_list = invalid_perk_list.strip(",")
-		invalid_perk_str = invalid_perk_str.strip(",")
-		valid_perk_list = '"Extra Money", "Forest Fighter", "Mountain Fighter"'
-		too_many_perks = valid_perk_list + ', "Strong Arrows"'
+	def helper_execute_success(self, command, channel_num=1):
+		"""
+		This method will execute the provided command (in channel 1), receive the response,
+		ensure that the 'Success' is returned TRUE,
+		and then return the result for further testing
+		"""
+		self.testHelper.send(json.dumps(command), channel_num)
+		result = json.loads(self.testHelper.receive(channel_num))
 
-		# Test no units
-		self.channel.send('{"Command":"ST","Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The unit information is incomplete."}))
+		self.assertTrue(result["Success"])
+		return result
 
-		# Test no perks
-		self.channel.send('{"Command":"ST","Units":' + valid_unit_list + ',"Leader":"Sniper","Ability":"Extra Range"}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The perk information is incomplete."}))
+class CommonSetupThroughFM(TestGame):
+	"""
+	The functions included within this class are useful for getting the test user up through
+	being put into a matchmaking queue.
 
-		# Test too few units selected
-		self.channel.send('{"Command":"ST","Units":[],"Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"You must select at least "
-			+ str(version.unit_min) + " unit(s), none chosen."}))
+	The classes that inherit this functionality include:\n
+		- TestSetTeam
+		- TestFindMatch
+		- TestMatchmaking
+	"""
+	def setUp(self):
+		super(CommonSetupThroughFM, self).setUp()
 
-		# Test too many units selected
-		self.channel.send('{"Command":"ST","Units":[' + too_many_units + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"Too many units have been selected (11)."}))
+		self.assertTrue(self.testHelper.createUserAndLogin(self.credentials))
+		self.user = Users.objects.filter(username=self.credentials["username"]).first()
+
+		# Generate the expected successful Set Team dictionary
+		self.st_cmd = {
+			"Command" : "ST",
+			"Ability" : "Extra Range",
+			"Leader"  : "Sniper",
+			"Perks"   : [],							# None are required, just the key
+			"Units"   : self.helper_golden_path_set_team_units()
+		}
+
+		self.fm_cmd = {"Command":"FM"}
+		self.cs_cmd = {"Command":"CS"}
+
+class TestSetTeam(CommonSetupThroughFM):
+	"""
+	All tests within this class relate specifically to the command 'ST' (Set team)
+
+	It tests the following:\n
+	- Each of the keys are included in the command: Ability, Leader, Perks, Units (Test 01)\n
+	- The value for each key is a valid input - no 'fake_unit' (Test 01)\n
+	- The ability-leader combination is valid (Test 01)\n
+	- The maximum number of perks has not been exceeded (Test 01)\n
+	- The limit for the minimum number have units has been met (Test 01)\n
+	- The maximum number of units has not been exceeded (Test 01)\n
+	- Creating a team that is over budget fails (Test 02)\n
+	- Cannot select more than one of the same tier perk (Test 03)\n
+	- Successfully calling the command returns 'Success'=True and: (Test 03)\n
+		+ Sets the correct leader and ability to the game_user table\n
+		+ Sets each tier perk correctly in the game_user table\n
+		+ Sets the correct number and correct set of units to the unit table
+	- Recalling the ST command resets the user's team (Test 03)
+
+	"""
+	def test_st_01_bad_json(self):
+		# Test missing ability
+		no_ability_cmd = copy.deepcopy(self.st_cmd)
+		no_ability_cmd.pop("Ability", None)
+		self.helper_execute_failure(no_ability_cmd, "The leader information is incomplete.")
 
 		# Test missing leader
-		self.channel.send('{"Command":"ST","Units":' + valid_unit_list + ',"Ability":"Extra Range","Perks":[]}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The leader information is incomplete."}))
+		no_leader_cmd = copy.deepcopy(self.st_cmd)
+		no_leader_cmd.pop("Leader", None)
+		self.helper_execute_failure(no_leader_cmd, "The leader information is incomplete.")	
 
-		# Test missing ability
-		self.channel.send('{"Command":"ST","Units":' + valid_unit_list + ',"Leader":"Sniper","Perks":[]}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The leader information is incomplete."}))
+		# Test missing perks
+		no_perks_cmd = copy.deepcopy(self.st_cmd)
+		no_perks_cmd.pop("Perks", None)
+		self.helper_execute_failure(no_perks_cmd, "The perk information is incomplete.")
 
-		# Test invalid leader
-		self.channel.send('{"Command":"ST","Units":' + valid_unit_list + ',"Leader":"fake_leader","Ability":"Extra Range","Perks":[]}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The leader information provided is invalid."}))
+		# Test missing units
+		no_units_cmd = copy.deepcopy(self.st_cmd)
+		no_units_cmd.pop("Units", None)
+		self.helper_execute_failure(no_units_cmd, "The unit information is incomplete.")
 
 		# Test invalid ability
-		self.channel.send('{"Command":"ST","Units":' + valid_unit_list + ',"Leader":"Sniper","Ability":"fake_ability","Perks":[]}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The leader information provided is invalid."}))
+		bad_ability_cmd = copy.deepcopy(self.st_cmd)
+		bad_ability_cmd["Ability"] = "fake_ability"
+		self.helper_execute_failure(bad_ability_cmd, "The leader information provided is invalid.")
 
-		# Test invalid ability-leader pair
-		self.channel.send('{"Command":"ST","Units":' + valid_unit_list + ',"Leader":"Sniper","Ability":"Steal","Perks":[]}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The Sniper cannot use the ability Steal."}))
-
-		# Test invaild unit name
-		self.channel.send('{"Command":"ST","Units":[' + invalid_unit_name_str + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The following are not valid unit selections: " + str(invalid_unit_name_list)}))
+		# Test invalid leader
+		bad_leader_cmd = copy.deepcopy(self.st_cmd)
+		bad_leader_cmd["Leader"] = "fake_leader"
+		self.helper_execute_failure(bad_leader_cmd, "The leader information provided is invalid.")
 
 		# Test invaild perk name
-		self.channel.send('{"Command":"ST","Units":' + valid_unit_list + ',"Leader":"Sniper","Ability":"Extra Range","Perks":[' + invalid_perk_str + ']}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The following are not valid perk selections: " + str(invalid_perk_list)}))
+		fake_perk_cmd = copy.deepcopy(self.st_cmd)
+		fake_perk_cmd["Perks"] = ["fake_perk"]
+		self.helper_execute_failure(fake_perk_cmd,
+			"The following are not valid perk selections: fake_perk")
+		
+		# Test invaild unit name
+		fake_units_cmd = copy.deepcopy(self.st_cmd)
+		fake_units_cmd["Units"][0] = "fake_unit0"
+		fake_units_cmd["Units"][1] = "fake_unit1"
+		self.helper_execute_failure(fake_units_cmd,
+			"The following are not valid unit selections: fake_unit0,fake_unit1")
+		
+		# Test invalid ability-leader pair
+		bad_ldr_abil_cmd = copy.deepcopy(self.st_cmd)
+		bad_ldr_abil_cmd["Ability"] = "Steal"
+		self.helper_execute_failure(bad_ldr_abil_cmd, "The Sniper cannot use the ability Steal.")
 
 		# Test too many perks selected
-		self.channel.send('{"Command":"ST","Units":' + valid_unit_list + ',"Leader":"Sniper","Ability":"Extra Range","Perks":[' + too_many_perks + ']}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"Too many perks have been selected (4)."}))
+		extra_perks_cmd = copy.deepcopy(self.st_cmd)
+		extra_perks_cmd["Perks"] = ["Extra Money", "Forest Fighter", "Mountain Fighter","Strong Arrows"]
+		self.helper_execute_failure(extra_perks_cmd, "Too many perks have been selected (4).")
 
-		endTestLog("test01_set_team_bad_json_input")
+		# Test too few units selected
+		empty_units_cmd = copy.deepcopy(self.st_cmd)
+		empty_units_cmd["Units"] = []
+		self.helper_execute_failure(empty_units_cmd,
+			"You must select at least {0} unit(s), none chosen.".format(self.version.unit_min))
 
-	def test02_set_team_price_max_exceeded(self):
-		startTestLog("test02_set_team_price_max_exceeded")
+		# Test too many units selected
+		extra_units_cmd = copy.deepcopy(self.st_cmd)
+		while len(extra_units_cmd["Units"]) <= self.version.unit_max:
+			extra_units_cmd["Units"].append("Archer")
+		self.helper_execute_failure(extra_units_cmd, "Too many units have been selected (11).")
 
-		# Create user and login
-		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"set_team_user","password":self.channel.generateValidPassword(),"email":"setTeam@email.com"}))
-
-		# Setup values
-		version = Version.objects.latest('pk')
-		too_expensive_team = ''
-		for _ in range(version.unit_max):
-			too_expensive_team += '"Armor",'
-		too_expensive_team = too_expensive_team.strip(",")
+	def test_st_02_price_max_exceeded(self):
+		# Create a team full of most expensive unit
+		too_expensive_team = []
+		for _ in range(self.version.unit_max):
+			too_expensive_team.append("Armor")
 
 		# Test that a user cannot exceed the price maximum
-		self.channel.send('{"Command":"ST","Units":[' + too_expensive_team + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[]}')
-		result = self.channel.receive()
-		self.assertEqual(result, json.dumps({"Success":False,"Error":"The selected team is 1000 over the unit budget."}))
+		self.st_cmd["Units"] = too_expensive_team
+		self.helper_execute_failure(self.st_cmd, "The selected team is 1000 over the unit budget.")
 
-		endTestLog("test2_set_team_price_max_exceeded")
+	def test_st_03_multiple_same_tier_perks(self):
+		# Select two tier 1 perks
+		perks = ["Forest Fighter", "Mountain Fighter"]
+		self.st_cmd["Perks"] = perks
 
-	def test03_set_team_valid_input(self):
-		startTestLog("test03_set_team_valid_input")
+		# Test that the expected response was returned
+		self.helper_execute_failure(self.st_cmd,
+			"Cannot select more than one tier 1 perk: Forest Fighter, Mountain Fighter")
 
-		# Create user and login
-		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"set_team_user","password":self.channel.generateValidPassword(),"email":"setTeam@email.com"}))
+	def test_st_04_valid_input(self):
+		# Ensure the perk logic also runs
+		perks = ["Extra Money", "Strong Arrows", "Mountain Fighter"]
+		self.st_cmd["Perks"] = perks
 
-		# Setup values
-		version = Version.objects.latest('pk')
-		team = ''
-		for _ in range(version.unit_min):
-			team += '"Swordsman",'
-		team = team.strip(",")
-		perks = '"Extra Money", "Forest Fighter", "Mountain Fighter"'
-		user = Users.objects.get(username="set_team_user")
+		# Get the static DB values for  inputted team
+		db_ability = Ability.objects.filter(name=self.st_cmd["Ability"],
+			version=self.version).first()
+		db_leader = Leader.objects.filter(name=self.st_cmd["Leader"],
+			version=self.version).first()
+		db_ldr_abil = Leader_Ability.objects.filter(leader=db_leader, ability=db_ability,
+			version=self.version).first()
+		db_t1_perk = Perk.objects.filter(tier=1, version=self.version).first()
+		db_t2_perk = Perk.objects.filter(tier=2, version=self.version).first()
+		db_t3_perk = Perk.objects.filter(tier=3, version=self.version).first()
 
 		# Run command twice to ensure first run's DB entries are properly cleared
 		for _ in range(2):
 			# Test that the expected response was returned
-			self.channel.send('{"Command":"ST","Units":[' + team + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[' + perks + ']}')
-			result = self.channel.receive()
-			self.assertEqual(result, json.dumps({"Success":True,}))
+			self.helper_execute_success(self.st_cmd)
 
 			# Test that the values were added to the database
-			self.assertEqual(Game_User.objects.filter(user=user).count(), 1)
-			self.assertEqual(Unit.objects.filter(owner=user).count(), 1)
+			# Game_User: Ability, Leader, Perks
+			game_user_qs = Game_User.objects.filter(user=self.user)
+			self.assertEqual(game_user_qs.count(), 1)	# If > 1, first run's values not cleared
+			game_user = game_user_qs.first()
+			self.assertEqual(game_user.leader_abil, db_ldr_abil)
+			self.assertEqual(game_user.perk_1.name, db_t1_perk.name)
+			self.assertEqual(game_user.perk_2.name, db_t2_perk.name)
+			self.assertEqual(game_user.perk_3.name, db_t3_perk.name)
 
-		endTestLog("test03_set_team_valid_input")
+			# Units
+			unit_qs = Unit.objects.filter(owner=self.user)
+			self.assertEqual(unit_qs.count(), len(self.st_cmd["Units"]))
+			unit_list = []
+			for unit in unit_qs:
+				unit_list.append(unit.unit_class.name)
+			self.assertEqual(sorted(unit_list), sorted(self.st_cmd["Units"]))
 
-	def test04_find_match_before_set_team(self):
-		startTestLog("test04_find_match_before_set_team")
-		# Create user and login
-		username = "set_team_user"
-		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":username,"password":self.channel.generateValidPassword(),"email":"setTeam@email.com"}))
+class TestFindMatch(CommonSetupThroughFM):
+	"""
+	All tests within this class related specifically to the commands:
+		'FM' (Find Match)
+		'CS' (Cancel Search)
 
-		# Call find match
-		self.channel.send('{"Command":"FM"}')
-		result = json.loads(self.channel.receive())
-		self.assertEqual(result["Success"], False)
-		self.assertEqual(result["Error"], "You must set a team before starting a match.")
+	It tests the following:\n
+	- A user cannot call FM before ST, and: (Test 01)\n
+		+ If they attempt to do so, they will not be added to the game queue\n
+	- Calling FM after setting the team returns success as well as: (Test 02)\n
+		+ Adds that user to the game queue, with their correct channel name
+	- Calling CS after a successful FM returns Success and removes the user from the queue (Test 03)\n
+	- Calling CS when not in queue still returns success (Test 03)
+	"""
+	def test_fm_01_before_set_team(self):
+		self.helper_execute_failure(self.fm_cmd,
+			"You must set a team before starting a match.")
 
 		# Ensure the user was not added to the game queue
-		user = Users.objects.filter(username=username).first()
-		game_queue_obj = Game_Queue.objects.filter(user=user).first()
+		game_queue_obj = Game_Queue.objects.filter(user=self.user).first()
 		self.assertEqual(game_queue_obj, None)
 
-		endTestLog("test04_find_match_before_set_team")
-
-	def test05_find_match_success(self):
-		startTestLog("test05_find_match_success")
-		# Create user and login
-		username = "set_team_user"
-		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":username,"password":self.channel.generateValidPassword(),"email":"setTeam@email.com"}))
-
-		# Setup values
-		version = Version.objects.latest('pk')
-		team = ''
-		for _ in range(version.unit_min):
-			team += '"Swordsman",'
-		team = team.strip(",")
-		perks = '"Extra Money", "Forest Fighter", "Mountain Fighter"'
-		user = Users.objects.get(username="set_team_user")
-		self.channel.send('{"Command":"ST","Units":[' + team + '],"Leader":"Sniper","Ability":"Extra Range","Perks":[' + perks + ']}')
-		self.channel.receive()
-
-		# Call find match
-		self.channel.send('{"Command":"FM"}')
-		result = json.loads(self.channel.receive())
-		self.assertEqual(result["Success"], True)
+	def test_fm_02_find_match_success(self):
+		self.helper_execute_success(self.st_cmd)
+		self.helper_execute_success(self.fm_cmd)
 
 		# Ensure the user was added to the game queue
-		user = Users.objects.filter(username=username).first()
-		game_queue_obj_count = Game_Queue.objects.filter(user=user).count()
-		self.assertEqual(game_queue_obj_count, 1)
-		self.assertEqual(user.game_queue.channel_name, u'Test')
+		game_queue_obj_qs = Game_Queue.objects.filter(user=self.user)
+		self.assertEqual(game_queue_obj_qs.count(), 1)
+		self.assertEqual(game_queue_obj_qs.first().user, self.user)
+		self.assertEqual(game_queue_obj_qs.first().channel_name, u'Test')
 
-		endTestLog("test05_find_match_success")
+	def test_fm_03_cancel_search_success(self):
+		self.helper_execute_success(self.st_cmd)
+		self.helper_execute_success(self.fm_cmd)
 
-	def test05a_cancel_search_success(self):
-		startTestLog("test05a_cancel_search_success")
-
-		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "first_user", "password": self.channel.generateValidPassword(), "email": "fplayer@a.com"}, self.helper_golden_path_set_team_units(), 1))
 		self.assertTrue(Game_Queue.objects.count() == 1)
 
 		# Test Cancel Game Search succeeds
-		result = self.channel.cancelGameSearch()
-		self.assertTrue(result["Success"])
+		self.helper_execute_success(self.cs_cmd)
 		self.assertTrue(Game_Queue.objects.count() == 0)
 
 		# Test Cancel Game Search succeeds even when user isn't in the queue
-		result = self.channel.cancelGameSearch()
-		self.assertTrue(result["Success"])
+		self.helper_execute_success(self.cs_cmd)
 
-		endTestLog("test05a_cancel_search_success")
+class TestMatchmaking(CommonSetupThroughFM):
+	"""
+	All tests within this class relate specifically to the matchmaking logic.
 
-	def test06_matchmaking_queue_success(self):
-		startTestLog("test06_matchmaking_queue_success")
+	Specifically, the following is tested:\n
+	- When two players are matched: (Test 01)\n
+		+ They are each removed from the Game Queue\n
+		+ They are each added as Game Users as a pair\n
+		+ Their Game User name includes the other player's name and the game count between them\n
+		+ A game object was created for them\n
+		+ Each of their units was added to the game\n
+	"""
+	def setUp(self):
+		super(TestMatchmaking, self).setUp()
 
-		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "first_user", "password": self.channel.generateValidPassword(), "email": "fplayer@a.com"}, self.helper_golden_path_set_team_units(), 1))
-		self.assertTrue(Game_Queue.objects.count() == 1)
+		# Finish putting user 1 into the queue
+		self.helper_execute_success(self.st_cmd)
+		self.helper_execute_success(self.fm_cmd)
 
-		user1 = Users.objects.filter(username="first_user").first()
+		# Create user 2 and put him into the queue
+		self.assertTrue(self.testHelper.createUserAndLogin(self.credentials2, 2))
+		self.user2 = Users.objects.filter(username=self.credentials2["username"]).first()
+		self.helper_execute_success(self.st_cmd, 2)
+		self.helper_execute_success(self.fm_cmd, 2)
 
-		self.assertTrue(self.channel.createUserAndJoinQueue({"username": "second_user", "password": self.channel.generateValidPassword(), "email": "splayer@a.com"}, self.helper_golden_path_set_team_units(), 2))
-		self.assertTrue(Game_Queue.objects.count() == 2)
+		# Ensure that there are two players in the queue at this point
+		self.assertTrue(Game_User.objects.filter(game=None).count() == 2)
 
-		user2 = Users.objects.filter(username="second_user").first()
-
-		version = Version.objects.latest('pk')
-
-		self.assertTrue(len(Game_User.objects.filter(game=None)) == 2)
-
+	def test_mm_01_pair_success(self):
 		processMatchmakingQueue()
 
+		# Ensure the Game_User objects were created properly
 		self.assertTrue(len(Game_User.objects.filter(game=None)) == 0)
-		self.assertEquals(Game_User.objects.filter(user=user1).first().name, "vs. second_user #1")
-		self.assertEquals(Game_User.objects.filter(user=user1).first().team, 1)
-		self.assertEquals(Game_User.objects.filter(user=user2).first().name, "vs. first_user #1")
-		self.assertEquals(Game_User.objects.filter(user=user2).first().team, 2)
+		self.assertEquals(Game_User.objects.filter(user=self.user).first().name, "vs. game_user_2 #1")
+		self.assertEquals(Game_User.objects.filter(user=self.user).first().team, 1)
+		self.assertEquals(Game_User.objects.filter(user=self.user2).first().name, "vs. game_user_1 #1")
+		self.assertEquals(Game_User.objects.filter(user=self.user2).first().team, 2)
 
-		self.assertEquals(len(Unit.objects.filter(owner=user1, game=None)), 0)
-		self.assertEquals(len(Unit.objects.filter(owner=user2, game=None)), 0)
+		# Ensure all of each player's units were assigned to the game
+		self.assertEquals(len(Unit.objects.filter(owner=self.user, game=None)), 0)
+		self.assertEquals(len(Unit.objects.filter(owner=self.user2, game=None)), 0)
 
+		# Ensure that a game was created
 		self.assertTrue(Game.objects.count() == 1)
+
+		# Ensure that the Game Queue is now empty
 		self.assertTrue(Game_Queue.objects.count() == 0)
 
-		endTestLog("test06_matchmaking_queue_success")
-
+class TestPlaceUnits(TestGame):
 	def test07_place_units_bad_json(self):
 		startTestLog("test07_place_units_bad_json")
 		valid_unit_list = self.helper_golden_path_set_team_units()

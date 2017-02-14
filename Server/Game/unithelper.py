@@ -132,13 +132,21 @@ def setTeam(leader_ability, perks, units, username, version):
 	game_user = Game_User(user=user, leader_abil=leader_ability)
 
 	# Add each of the perks
-	perk_count = len(perks)
-	if perk_count > 0:
-		game_user.perk_1 = perks[0]
-	if perk_count > 1:
-		game_user.perk_2 = perks[1]
-	if perk_count > 2:
-		game_user.perk_3 = perks[2]
+	tier_mapping = {
+		1:None, 
+		2:None, 
+		3:None
+	}
+	for perk in perks:
+		if tier_mapping[perk.tier] != None:
+			return "Cannot select more than one tier {0} perk: {1}, {2}".format(
+				perk.tier, tier_mapping[perk.tier].name, perk.name)
+
+		tier_mapping[perk.tier] = perk
+
+	game_user.perk_1 = tier_mapping[1]
+	game_user.perk_2 = tier_mapping[2]
+	game_user.perk_3 = tier_mapping[3]
 
 	game_user.save()
 
