@@ -14,12 +14,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
-from django.contrib import admin
+from django.contrib.staticfiles.views import serve
+from django.conf import settings
 from config import *
+from Admin.views import AdminView
 import logging
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls)
+    url(r'^admin/', AdminView.as_view()),
+    url(r'^%s(?P<path>.*)$' % settings.STATIC_URL.lstrip('/'), serve,
+        {'show_indexes': True, 'insecure': True}),
 ]
 
 startup()
