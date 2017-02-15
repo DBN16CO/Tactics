@@ -1,5 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Admin Page</h1>
+{% if not admin %}
+<div class="centered">
+    <div class="well">
+        <form method="POST" name="admin-login">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" name="username" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" name="password" class="form-control" required/>
+            </div>
+
+            <input type="hidden" name="form-type" value="login" />
+            <input type="submit" name="submit" class="btn btn-primary" />
+        </form>
+    </div>
+</div>
+{% else %}
+<h1>Logged in</h1>
+{% endif %}
 {% endblock %}
