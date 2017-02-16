@@ -21,6 +21,65 @@
     </div>
 </div>
 {% else %}
-<h1>Logged in</h1>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <div class="navbar-brand">Tactics Admin Console</div>
+        </div>
+        <ul class="nav navbar-nav" id="nav-links">
+            <li class="divider-vertical"></li>
+            <li class="divider-vertical"></li>
+        	<li class="active"><a href="javascript:void(0);" id="home-toggle">Home</a></li>
+            <li><a href="javascript:void(0);" id="users-toggle">Users</a></li>
+            <li><a href="javascript:void(0);" id="logs-toggle">Logs</a></li>
+            <li><a href="javascript:void(0);" id="games-toggle">Games</a></li>
+            <li><a href="javascript:void(0);" id="maps-toggle">Maps</a></li>
+            <li><a href="javascript:void(0);" id="classes-toggle">Classes</a></li>
+            <li><a href="javascript:void(0);" id="leaders-toggle">Leaders/Abilities</a></li>
+            <li><a href="javascript:void(0);" id="perks-toggle">Perks</a></li>
+        </ul>
+        <div class="navbar-right">
+            <p class="navbar-text">Signed in as {{ admin }}</p>
+            <a href="/admin?logout=true" class="btn btn-success navbar-btn">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div id="content-containers">
+
+{% block home-block %}
+{% include 'home.html' %}
+{% endblock %}
+
+{% block users-block %}
+{% include 'users.html' %}
+{% endblock %}
+
+{% block logs-block %}
+{% include 'logs.html' %}
+{% endblock %}
+
+{% block games-block %}
+{% include 'games.html' %}
+{% endblock %}
+
+{% block maps-block %}
+{% include 'maps.html' %}
+{% endblock %}
+
+{% block classes-block %}
+{% include 'classes.html' %}
+{% endblock %}
+
+{% block leaders-block %}
+{% include 'leaders.html' %}
+{% endblock %}
+
+{% block perks-block %}
+{% include 'perks.html' %}
+{% endblock %}
+
+</div>
+
 {% endif %}
 {% endblock %}

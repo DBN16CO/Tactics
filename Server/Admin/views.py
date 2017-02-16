@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic.base import TemplateView
 from django.template.context_processors import csrf
 from admin_utils import *
@@ -12,6 +12,10 @@ class AdminView(TemplateView):
 		session = request.session
 		context = self.get_context_data(**kwargs)
 		context.update(csrf(request))
+
+		if 'logout' in request.GET:
+			del session['admin']
+			return redirect('/admin')
 
 		if 'admin' in session:
 			context['admin'] = session['admin']
