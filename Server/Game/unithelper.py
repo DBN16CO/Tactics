@@ -41,6 +41,11 @@ def placeUnits(game_user, units, user, version):
 	if len(units) != len(set_units):
 		return "Must place (" + str(len(set_units)) + ") units, not (" + str(len(units)) + ")."
 
+	# Ensure all unit dictionaries have a name key
+	for unit in units:
+		if not "Name" in unit:
+			return "Internal Error: Name of unit missing."
+
 	# Loop over every object in the query set and update (without saving yet) the X, Y, and health
 	placed_units = sorted(units, key=lambda k: k['Name'])
 	class_max_hp = {}
@@ -235,7 +240,7 @@ def calculateActionResult(action, game, unit_dict, target):
 		luck_val = max(0, ((unit_luck - tgt_luck) * 5 ) + 5)
 
 		# If attack misses, skip this section for dealing damage to target
-		if randint(0, 99) > agil_val:
+		if randint(0, 99) >= agil_val:
 			# If critting, double attack amount
 			if randint(0, 99) < luck_val:
 				logging.debug("The unit had a critical hit on the target!")
@@ -259,7 +264,7 @@ def calculateActionResult(action, game, unit_dict, target):
 		action = Action.objects.filter(version=version, name="Attack").first()
 		canAttack = not Class_Action.objects.filter(version=version, clss=tgt_clss, action=action).first() == None
 
-		if distance <= tgt_atk_rng and tgt_hp_left > 0 and randint(0, 99) > agil_val and canAttack:
+		if distance <= tgt_atk_rng and tgt_hp_left > 0 and randint(0, 99) >= agil_val and canAttack:
 			logging.debug("Target within range to counter attack.")
 
 			attackType = tgt_clss.attack_type

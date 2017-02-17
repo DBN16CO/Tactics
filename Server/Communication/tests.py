@@ -1,37 +1,26 @@
-from django.test import TestCase
-from router import *
 from testhelper import *
+from router import *
 import json
 
-class TestCommunication(TestCase):
-	def setUp(self):
-		"""
-		Sets up all Communication tests
-		"""
-		self.channel = TestHelper()
-
-	def test1_ping_server(self):
-		"""
-		Tests that the ping-pong logic works
-		"""
-		startTestLog("test1_ping_server")
-
-		self.channel.send('{"PING":"PING"}')
-		result = self.channel.receive()
+class TestCommunication(CommonTestHelper):
+	"""
+	Tests the following:
+	- Pinging the server returns pong (Test 01)\n
+	- Sending in a fake command returns an error message (Test 02)\n
+	- Sending in a request with no command returns a message (Test 03)
+	"""
+	def test_cm_01_ping_server(self):
+		self.testHelper.send('{"PING":"PING"}')
+		result = self.testHelper.receive()
 		self.assertEqual(result, json.dumps({"PONG":"PONG"}))
 
-		endTestLog("test1_ping_server")
-
-	def test2_internal_error(self):
-		startTestLog("test2_internal_error")
-
+	def test_cm_02_internal_error(self):
 		# Create user and login
-		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"bad_cmd_usr","password":self.channel.generateValidPassword(),"email":"bcu@email.com"}))
+		self.assertTrue(self.testHelper.createUserAndLogin(
+			{"username":"bad_cmd_usr","password":self.testHelper.generateValidPassword(),"email":"bcu@email.com"}))
 
-		self.channel.send('{"Command":"fake_command"}')
-		result = json.loads(self.channel.receive())
-		self.assertTrue(result["Success"] == False)
-		self.assertEqual(result["Error"], "Internal Server Error.")
+		cmd = {"Command":"fake_command"}
+		self.helper_execute_failure(cmd, "Internal Server Error.")
 
-		endTestLog("test2_internal_error")
+	def test_cm_03_missing_command(self):
+		self.helper_execute_failure({}, "The command information is incomplete.")

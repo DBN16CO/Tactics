@@ -93,14 +93,14 @@ def processRequest(message):
 			})
 		return
 
-	try:
-		cmd = data["Command"]
-	except Exception, e:
-		logging.exception(e)
+	if not "Command" in data:
+		logging.debug("Missing Command Key: {0}".format(data))
 		message.reply_channel.send({
 			'text': json.dumps({"Success":False, "Error":"The command information is incomplete."})
 		})
 		return
+
+	cmd = data["Command"]		
 	logging.debug("Received command: " + str(cmd))
 
 	# Obtain username if user is authenticated
