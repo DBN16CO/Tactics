@@ -7,6 +7,7 @@
 import json
 import logging
 
+from channels import Group
 from User.models import Users
 from Static.models import Version
 import Game.routeunithelper
@@ -21,9 +22,13 @@ import Communication.routehelper
 from channels.sessions import channel_session
 
 def connect(message):
+	Group("activeUsers").add(message.reply_channel)
 	message.reply_channel.send({
 		"accept": True
 	})
+
+def disconnect(message):
+	Group("activeUsers").discard(message.reply_channel)
 
 @channel_session
 def processRequest(message):
