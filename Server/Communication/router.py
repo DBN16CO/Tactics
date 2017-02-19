@@ -6,10 +6,13 @@
 """
 import json
 import logging
+import threading
+import time
 
 from channels import Group
 from User.models import Users
 from Static.models import Version
+from Admin import admin_utils
 import Game.routeunithelper
 import Game.routegamehelper
 import Game.unithelper
@@ -76,6 +79,9 @@ def processRequest(message):
 	:rtype: Dictionary
 	:return: A response to the incoming request from the front end
 	"""
+	# Start timing the request
+	start_time = time.time()
+
 	# Get the request
 	request = message.content['bytes']
 	logging.debug("Parsing incoming json request: ")
@@ -180,3 +186,7 @@ def processRequest(message):
 	message.reply_channel.send({
 		'text': json.dumps(response)
 	})
+
+	end_time = time.time()
+	t = threading.Thread(target=admin_utils.archive_request_duration, args=(start_time, end_time, cmd))
+	t.start()
