@@ -80,7 +80,7 @@ def processRequest(message):
 	:return: A response to the incoming request from the front end
 	"""
 	# Start timing the request
-	start_time = time.time()
+	start_time = time.clock()
 
 	# Get the request
 	request = message.content['bytes']
@@ -187,6 +187,6 @@ def processRequest(message):
 		'text': json.dumps(response)
 	})
 
-	end_time = time.time()
+	end_time = time.clock()
 	t = threading.Thread(target=admin_utils.archive_request_duration, args=(start_time, end_time, cmd))
 	t.start()

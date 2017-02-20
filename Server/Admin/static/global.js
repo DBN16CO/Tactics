@@ -12,4 +12,5 @@ $(document).ready(function(){
 	});
 
 	$("li.active").trigger('click');
+	$("#perf-table").DataTable();
 });

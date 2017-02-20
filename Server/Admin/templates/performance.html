@@ -1,0 +1,56 @@
+{% block performance-block %}
+<div class="container" id="performance-container" style="padding-top: 70px">
+	<h1>Performance</h1>
+
+	<br />
+
+	<div class="row">
+		<div class="col-xs-3">
+			<div class="well" style="padding: 3px;">
+				<h5 align="center">Average Response Time</h4>
+				<h3 align="center">{{ average_request_time }}</h2>
+			</div>
+		</div>
+
+		<div class="col-xs-3">
+			<div class="well" style="padding: 3px;">
+				<h5 align="center">Fastest Command</h4>
+				<h3 align="center">{{ fast_cmd }} ({{ fast_time }})</h2>
+			</div>
+		</div>
+
+		<div class="col-xs-3">
+			<div class="well" style="padding: 3px;">
+				<h5 align="center">Slowest Command</h4>
+				<h3 align="center">{{ slow_cmd }} ({{ slow_time }})</h2>
+			</div>
+		</div>
+
+		<div class="col-xs-3">
+			<div class="well" style="padding: 3px;">
+				<h5 align="center">Total Number of Requests</h4>
+				<h3 align="center">{{ total_num_requests }}</h2>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<table id="perf-table" class="stripe">
+			<thead>
+				<th>Command</th>
+				<th>Average</th>
+				<th>Fastest</th>
+				<th>Slowest</th>
+			</thead>
+			<tbody>
+				<tr>
+					<td>IL</td>
+					<td>1.0000000</td>
+					<td>1.0000000</td>
+					<td>1.0000000</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+{% endblock %}

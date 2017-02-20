@@ -30,13 +30,13 @@
             <li class="divider-vertical"></li>
             <li class="divider-vertical"></li>
         	<li class="active"><a href="javascript:void(0);" id="home-toggle">Home</a></li>
+            <li><a href="javascript:void(0);" id="performance-toggle">Performance</a></li>
             <li><a href="javascript:void(0);" id="users-toggle">Users</a></li>
             <li><a href="javascript:void(0);" id="logs-toggle">Logs</a></li>
             <li><a href="javascript:void(0);" id="games-toggle">Games</a></li>
             <li><a href="javascript:void(0);" id="maps-toggle">Maps</a></li>
             <li><a href="javascript:void(0);" id="classes-toggle">Classes</a></li>
-            <li><a href="javascript:void(0);" id="leaders-toggle">Leaders/Abilities</a></li>
-            <li><a href="javascript:void(0);" id="perks-toggle">Perks</a></li>
+            <li><a href="javascript:void(0);" id="leaders-toggle">Leaders/Perks</a></li>
         </ul>
         <div class="navbar-right">
             <p class="navbar-text">Signed in as {{ admin }}</p>
@@ -49,6 +49,10 @@
 
 {% block home-block %}
 {% include 'home.html' %}
+{% endblock %}
+
+{% block performance-block %}
+{% include 'performance.html' %}
 {% endblock %}
 
 {% block users-block %}
@@ -73,10 +77,6 @@
 
 {% block leaders-block %}
 {% include 'leaders.html' %}
-{% endblock %}
-
-{% block perks-block %}
-{% include 'perks.html' %}
 {% endblock %}
 
 </div>
