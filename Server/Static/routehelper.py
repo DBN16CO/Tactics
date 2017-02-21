@@ -6,8 +6,6 @@ Outputs - they will pass back a formatted JSON response object
 which will detail the success or failure of the command
 as well as any other necessary information regarding the command.
 """
-import logging
-from Static.models import Version
 import Static.statichelper
 
 def getAllStaticData(data):

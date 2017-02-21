@@ -67,7 +67,6 @@ def processRequest(message):
 		- To find the documentation on the command, go to ../<App>/routehelper.<Method Name>\n
 		- For an example input and output JSON, go to ../<App>/tests.testN_<Successful Test>
 
-	
 	:rtype: Dictionary
 	:return: A response to the incoming request from the front end
 	"""
@@ -100,7 +99,7 @@ def processRequest(message):
 		})
 		return
 
-	cmd = data["Command"]		
+	cmd = data["Command"]
 	logging.debug("Received command: " + str(cmd))
 
 	# Obtain username if user is authenticated
@@ -159,7 +158,7 @@ def processRequest(message):
 		"FM":Game.routegamehelper.findMatch,
 		"GUI":User.routehelper.getUserInfo,
 		"IL":Static.routehelper.getAllStaticData,
-		"LGN":User.routehelper.login,	
+		"LGN":User.routehelper.login,
 		"PA":Communication.routehelper.pingAuthentication,
 		"PU":Game.routegamehelper.placeUnits,
 		"QGU":Game.routegamehelper.queryGamesUser,

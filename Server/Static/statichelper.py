@@ -432,7 +432,7 @@ def getTerrainData(version):
 	# Get all the terrains for that version
 	all_ver_terrain = Terrain.objects.filter(version=version)
 	logging.debug("There are {0} objects in terrain for version {1}.".format(len(all_ver_terrain), version.name))
-	
+
 	terrain_dict = {}
 
 	# Add all the terrains

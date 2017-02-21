@@ -129,8 +129,8 @@ def setTeam(leader_ability, perks, units, username, version):
 
 	# Add each of the perks
 	tier_mapping = {
-		1:None, 
-		2:None, 
+		1:None,
+		2:None,
 		3:None
 	}
 	for perk in perks:

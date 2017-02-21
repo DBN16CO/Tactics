@@ -5,13 +5,13 @@ from django.db import models
 # Create your models here.
 class Game(models.Model):
 	game_round   = models.IntegerField(default=0)
-	user_turn    = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING) 
+	user_turn    = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
 	map_path     = models.ForeignKey('Static.Map',    on_delete=models.DO_NOTHING)
 	created      = models.DateTimeField(auto_now_add=True)
 	last_move    = models.DateTimeField(auto_now=True)
 	finished     = models.BooleanField(default=False)
 	version      = models.ForeignKey('Static.Version',on_delete=models.DO_NOTHING)
-	
+
 class Game_Queue(models.Model):
 	user         = models.OneToOneField('User.Users', on_delete=models.DO_NOTHING)
 	channel_name = models.CharField(max_length=100, unique=True)

@@ -153,7 +153,7 @@ def createUser(username, password, email):
 
 	# Validate that the password meets the password policy
 	verify_password_with_policy(password)
-	
+
 	# Validate that the email is a valid email address
 	verify_valid_email(email)
 

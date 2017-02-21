@@ -16,8 +16,8 @@ class Ability(models.Model):
 
 	class Meta:
 		unique_together = ('name', 'version')
-	
-class Action(models.Model):	
+
+class Action(models.Model):
 	name         = models.CharField(max_length=16)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 	description  = models.CharField(max_length=100)
@@ -25,7 +25,7 @@ class Action(models.Model):
 	class Meta:
 		unique_together = ('name', 'version')
 
-class Class(models.Model):	
+class Class(models.Model):
 	name         = models.CharField(max_length=16)
 	attack_type  = models.CharField(max_length=25)   # Physical or Magical?
 	description  = models.CharField(max_length=100)
@@ -40,7 +40,7 @@ class Class_Action(models.Model):
 	action       = models.ForeignKey(Action,       on_delete=models.DO_NOTHING)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
-class Leader(models.Model):	
+class Leader(models.Model):
 	name         = models.CharField(max_length=16)
 	description  = models.CharField(max_length=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
@@ -66,7 +66,7 @@ class Perk(models.Model):
 		unique_together = ('name', 'version')
 
 class Map(models.Model):
-	name         = models.CharField(max_length=16)	
+	name         = models.CharField(max_length=16)
 	file_path    = models.CharField(max_length=128)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 

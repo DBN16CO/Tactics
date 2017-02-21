@@ -11,9 +11,8 @@ import logging
 import Game.unithelper
 import Static.statichelper
 from Communication.routehelper import formJsonResult
+from Game.models import Unit
 from Static.models import Version
-from Game.models import Game_User, Unit
-from User.models import Users
 
 def setTeam(data):
 	"""
@@ -115,7 +114,7 @@ def setTeam(data):
 				error = "Too many perks have been selected ({0}).".format(len(perks))
 			else:
 				error = Game.unithelper.setTeam(leader_ability, perks, units, username, version)
-					
+
 	return formJsonResult(error, data)
 
 def takeAction(data):
