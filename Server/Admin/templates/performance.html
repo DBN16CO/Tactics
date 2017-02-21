@@ -41,14 +41,18 @@
 				<th>Average</th>
 				<th>Fastest</th>
 				<th>Slowest</th>
+				<th>Total</th>
 			</thead>
 			<tbody>
+				{% for cmd in commands %}
 				<tr>
-					<td>IL</td>
-					<td>1.0000000</td>
-					<td>1.0000000</td>
-					<td>1.0000000</td>
+					<td>{{ cmd.name }}</td>
+					<td>{{ cmd.average }}</td>
+					<td>{{ cmd.fastest }}</td>
+					<td>{{ cmd.slowest }}</td>
+					<td>{{ cmd.total }}</td>
 				</tr>
+				{% endfor %}
 			</tbody>
 		</table>
 	</div>

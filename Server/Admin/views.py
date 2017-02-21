@@ -24,6 +24,7 @@ class AdminView(TemplateView):
 			used_disk_amount, total_disk_size = get_local_disk_usage()
 			slow_cmd, slow_time = get_slowest_command()
 			fast_cmd, fast_time = get_fastest_command()
+			commands = get_all_command_perf_data()
 
 			context['num_users_connected'] = get_num_active_users()
 			context['uptime'] = str(get_server_uptime())
@@ -36,6 +37,7 @@ class AdminView(TemplateView):
 			context['slow_time'] = str(slow_time) + " ms"
 			context['fast_cmd'] = fast_cmd
 			context['fast_time'] = str(fast_time) + " ms"
+			context['commands'] = commands
 
 		return self.render_to_response(context)
 

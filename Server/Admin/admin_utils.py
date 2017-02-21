@@ -94,6 +94,23 @@ def get_fastest_command():
 	else:
 		return "<No Requests>", "-"
 
+def get_all_command_perf_data():
+	request_duration = ServerStats.objects.filter(name='request_duration')
+	if request_duration:
+		request_duration = request_duration[0]
+		data = json.loads(request_duration.value)
+		commands = []
+		for cmd in data['commands']:
+			total = data['commands'][cmd]['average_time']['total']
+			average = data['commands'][cmd]['average_time']['value']
+			fastest = data['commands'][cmd]['fastest_time']
+			slowest = data['commands'][cmd]['slowest_time']
+			commands.append({"name": cmd, "total": total, "average": average, "fastest": fastest, "slowest": slowest})
+
+		return commands
+	else:
+		return []
+
 def archive_request_duration(start_time, end_time, command):
 	request_duration = ServerStats.objects.filter(name='request_duration')
 	if request_duration:
@@ -110,13 +127,14 @@ def archive_request_duration(start_time, end_time, command):
 		# Calculate the new average and total
 		new_total = total + 1
 		new_average = ((average * total) + request_time) / new_total
-		data['average']['value'] = str(new_average)
-		data['average']['total'] = str(new_total)
+		data['average']['value'] = new_average
+		data['average']['total'] = new_total
 
 		if not command in data['commands']:
 			data["commands"][command] = {}
 			data["commands"][command]['fastest_time'] = request_time
 			data["commands"][command]['slowest_time'] = request_time
+			data["commands"][command]['average_time'] = {"value": request_time, "total": 1}
 		else:
 			fastest_time = float(data["commands"][command]['fastest_time'])
 			slowest_time = float(data["commands"][command]['slowest_time'])
@@ -124,6 +142,14 @@ def archive_request_duration(start_time, end_time, command):
 				data["commands"][command]['fastest_time'] = request_time
 			elif request_time > slowest_time:
 				data["commands"][command]['slowest_time'] = request_time
+
+			average_time = float(data["commands"][command]['average_time']['value'])
+			total = int(data["commands"][command]['average_time']['total'])
+			new_total = total + 1
+			new_average = ((average_time * total) + request_time) / new_total
+			data["commands"][command]['average_time']['total'] = new_total
+			data["commands"][command]['average_time']['value'] = new_average
+
 
 		# Update the stats data
 		request_duration.value = json.dumps(data)
@@ -135,7 +161,7 @@ def archive_request_duration(start_time, end_time, command):
 
 		data = {
 			"average": {"value": str(request_time), "total": 1},
-			"commands": {command: {"fastest_time": request_time, "slowest_time": request_time}}
+			"commands": {command: {"fastest_time": request_time, "slowest_time": request_time, "average_time": {"value": request_time, "total": 1}}}
 		}
 
 		request_duration.value = json.dumps(data)
