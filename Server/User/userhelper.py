@@ -166,6 +166,6 @@ def createUser(username, password, email):
 	# Create the user
 	newUser = Users(username=username, password=encryptPass, email=email)
 	newUser.save()
-	
+
 	# Return the user
 	return newUser

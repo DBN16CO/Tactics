@@ -130,7 +130,6 @@ def processRequest(message):
 			logging.error("Database update to remove the user's login token failed: {0}".format(e))
 			response = {"Success": False, "Error": "Internal Server Error during logout"}
 
-		
 		message.reply_channel.send({
 			'text': json.dumps(response)
 		})

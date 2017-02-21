@@ -230,7 +230,7 @@ def takeAction(data):
 
 		# Process attacking and healing
 		action_result = Game.unithelper.calculateActionResult(data["Action"], game, unit_dict, target)
-		
+
 		if "Error" in action_result:
 			return formJsonResult(action_result["Error"], data)
 
