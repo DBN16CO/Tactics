@@ -7,7 +7,141 @@
 
 """
 import logging
-from Static.models import Ability, Action, Class, Class_Action, Leader_Ability, Map, Perk, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
+from Static.models import Version, Ability, Action, Class, Class_Action, Leader_Ability, Map, Perk, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
+
+static_data = {}
+
+def getAllStaticData(version=None):
+	"""
+	Gets the static data object by loading all static data from the database.
+	If the static data already exists, simply pull out the part for the version requested.
+
+	:rtype: Dictionary
+	:return: An object loaded with all static data, in simplified version:\n
+			{\n
+				"Version"   : <getVersionData results>,\n
+				"Abilities" : <getAbilityData results>,\n
+				"Actions"   : <getActionData results>,\n
+				"Classes"   : <getClassData results>,\n
+				"Leaders"   : <getLeaderData results>,\n
+				"Maps"      : <getMapData results>,\n
+				"Perks"     : <getPerkData results>,\n
+				"Stats"     : <getStatData results>,\n
+				"Terrain"   : <getTerrainData results>\n
+			}
+	"""
+	if version == None:
+		version = Version.objects.latest('pk')
+
+	if not version.name in static_data:
+		static_data[version.name] = loadAllStaticData(version)
+
+		if "Error" in static_data[version.name]:
+			logging.info("Reloading Static data failed.")
+			return static_data.pop(version.name, None)
+
+	return static_data[version.name]
+
+def loadAllStaticData(version=None):
+	"""
+	Loads all static data by calling all of the remaining functions of this class
+
+	:type version: Version
+	:param version: The version for which the data needs to be loaded
+
+	:rtype: Dictionary
+	:return: An object loaded with all static data, in simplified version:\n
+			{\n
+				"Version"   : <getVersionData results>,\n
+				"Abilities" : <getAbilityData results>,\n
+				"Actions"   : <getActionData results>,\n
+				"Classes"   : <getClassData results>,\n
+				"Leaders"   : <getLeaderData results>,\n
+				"Maps"      : <getMapData results>,\n
+				"Perks"     : <getPerkData results>,\n
+				"Stats"     : <getStatData results>,\n
+				"Terrain"   : <getTerrainData results>\n
+			}
+	"""
+	if version == None:
+		version = Version.objects.latest('pk')
+
+	error_list = []
+
+	# Get the selected version's info, or most current if none provided
+	logging.debug("Loading Version data...")
+	version_info = getVersionData(version)
+	logging.debug("Using latest version: " + str(version.name))
+
+	# Get all of the Abilities
+	logging.debug("Loading Ability data...")
+	abilities = getAbilityData(version)
+	if abilities == None or len(abilities) == 0:
+		error_list.append("Abilities")
+
+	# Get all of the actions
+	logging.debug("Loading Action data...")
+	actions = getActionData(version)
+	if actions == None or len(actions) == 0:
+		error_list.append("Actions")
+
+	# Get all of the classes
+	logging.debug("Loading Class data...")
+	classes = getClassData(version)
+	if classes == None or len(classes) == 0:
+		error_list.append("Classes")
+
+	# Get all of the Leaders
+	logging.debug("Loading Leader data...")
+	leaders = getLeaderData(version)
+	if leaders == None or len(leaders) == 0:
+		error_list.append("Leaders")
+
+	# Get all of the maps
+	logging.debug("Loading Map data...")
+	maps = getMapData(version)
+	if maps == None or len(maps) == 0:
+		error_list.append("Maps")
+
+	# Get all of the perks
+	logging.debug("Loading Perk data...")
+	perks = getPerkData(version)
+	if perks == None or len(perks) == 0:
+		error_list.append("Perks")
+
+	# Get all of the stat information
+	logging.debug("Loading Stat data...")
+	stats = getStatData(version)
+	if stats == None or len(stats) == 0:
+		error_list.append("Stats")
+
+	# Get all of the terrain information
+	logging.debug("Loading Terrain data...")
+	terrain = getTerrainData(version)
+	if terrain == None or len(terrain) == 0:
+		error_list.append("Terrain")
+
+	if len(error_list) == 0:
+		# Get all of the terrain info
+		data = {
+			"Version"  : version_info,
+			"Abilities": abilities,
+			"Actions"  : actions,
+			"Classes"  : classes,
+			"Leaders"  : leaders,
+			"Maps"     : maps,
+			"Perks"    : perks,
+			"Stats"    : stats,
+			"Terrain"  : terrain
+		}
+	else:
+		error = "The following tables could not be loaded: "
+		for err in error_list:
+			error += err + ", "
+		error = error.strip(" ").strip(",")
+		return {"Error": error}
+
+	return data
 
 def getAbilityData(version):
 	"""
@@ -25,7 +159,7 @@ def getAbilityData(version):
 	"""
 	# Get all the classes for that version
 	all_ver_abil = Ability.objects.filter(version=version)
-	logging.debug("There are " + str(len(all_ver_abil)) + " objects in ability for version " + str(version.name) + ".")
+	logging.debug("There are {0} objects in ability for version {1}.".format(len(all_ver_abil), version.name))
 
 	abil_dict = {}
 
@@ -52,7 +186,7 @@ def getActionData(version):
 	"""
 	# Gets all action objects for specified version
 	all_ver_actions = Action.objects.filter(version=version)
-	logging.debug("There are " + str(len(all_ver_actions)) + " objects in action for version " + str(version.name) + ".")
+	logging.debug("There are {0} objects in action for version {1}.".format(len(all_ver_actions), version.name))
 	action_dict = {}
 
 	# Add each action name to the list
@@ -88,13 +222,14 @@ def getClassData(version):
 	"""
 	# Gets all class objects for specified version
 	all_ver_classes = Class.objects.filter(version=version)
-	logging.debug("There are " + str(len(all_ver_classes)) + " objects in class for version " + str(version.name) + ".")
+	logging.debug("There are {0} objects in class for version {1}.".format(len(all_ver_classes), version.name))
 
 	class_dict = {}
 
 	# Add the name and descrption to the dictionary
 	for clss in all_ver_classes:
 		class_dict[clss.name] = {}
+		class_dict[clss.name]["Object"]      = clss
 		class_dict[clss.name]["AttackType"]  = clss.attack_type
 		class_dict[clss.name]["Description"] = clss.description
 		class_dict[clss.name]["Price"]       = clss.price
@@ -110,20 +245,16 @@ def getClassData(version):
 		# Add The Stat information
 		class_dict[clss.name]["Stats"] = {}
 		all_ver_clss_stat = Unit_Stat.objects.filter(version=version, unit=clss)
-		logging.debug("There are " + str(len(all_ver_clss_stat)) + " objects in Unit_Stat for class " 
-			+ str(clss.name) + " version " + str(version.name) + ".")
+		logging.debug("There are {0} objects in Unit_Stat for class {1} version {2}.".format(len(all_ver_clss_stat), clss.name, version.name))
 		for unt_stt in all_ver_clss_stat:
 			class_dict[clss.name]["Stats"][unt_stt.stat.name] = unt_stt.value
 
 		# Add The Terrain information
 		class_dict[clss.name]["Terrain"] = {}
 		all_ver_clss_ter_mov = Terrain_Unit_Movement.objects.filter(version=version, unit=clss)
-		logging.debug("There are " + str(len(all_ver_clss_ter_mov)) + " objects in Terrain_Unit_Movement for class " 
-			+ str(clss.name) + " version " + str(version.name) + ".")
+		logging.debug("There are {0} objects in Terrain_Unit_Movement for class	{1} version {2}.".format(len(all_ver_clss_ter_mov), clss.name, version.name))
 		for unt_ter_mov in all_ver_clss_ter_mov:
 			class_dict[clss.name]["Terrain"][unt_ter_mov.terrain.shortname] = unt_ter_mov.move
-
-
 
 	return class_dict
 
@@ -138,7 +269,7 @@ def getLeaderData(version):
 	:return: Returns a dictionary of the following form:\n
 			 {\n
 			 	"Assassin":{\n
-					"Abilities":["Steal","Agility Aura"],\n
+					"Abilities":{"Steal":<steal obj>,"Agility Aura":<agility obj>},\n
 					"Descripton":"He kills things real good.".\n
 				}\n
 				"General":{\n
@@ -149,7 +280,7 @@ def getLeaderData(version):
 	"""
 	# Get all the leader objects for the specified version
 	all_ver_leader_abils = Leader_Ability.objects.filter(version=version)
-	logging.debug("There are " + str(len(all_ver_leader_abils)) + " objects in leader for version " + str(version.name) + ".")
+	logging.debug("There are {0} objects in leader for version {1}.".format(len(all_ver_leader_abils), version.name))
 	leader_dict = {}
 
 	# For each leader object
@@ -157,11 +288,11 @@ def getLeaderData(version):
 		# Add the leader to the dictionary if it doesn't exist, including the description
 		if not ldr_abil.leader.name in leader_dict:
 			leader_dict[ldr_abil.leader.name] = {}
-			leader_dict[ldr_abil.leader.name]["Abilities"] = []
+			leader_dict[ldr_abil.leader.name]["Abilities"] = {}
 			leader_dict[ldr_abil.leader.name]["Description"] = ldr_abil.leader.description
 
 		# Add the specific hero's ability
-		leader_dict[ldr_abil.leader.name]["Abilities"].append(ldr_abil.ability.name)
+		leader_dict[ldr_abil.leader.name]["Abilities"][ldr_abil.ability.name] = ldr_abil
 
 	return leader_dict
 
@@ -186,7 +317,7 @@ def getMapData(version):
 	"""
 	# Get all map names and file paths for that version
 	all_ver_maps = Map.objects.filter(version=version)
-	logging.debug("There are " + str(len(all_ver_maps)) + " objects in map for version " + str(version.name) + ".")
+	logging.debug("There are {0} objects in map for version {1}.".format(len(all_ver_maps), version.name))
 	map_dict = {}
 
 	# For each map object in the database
@@ -232,13 +363,14 @@ def getPerkData(version):
 	"""
 	# Get all the perk objects for the current version
 	all_ver_perks = Perk.objects.filter(version=version)
-	logging.debug("There are " + str(len(all_ver_perks)) + " objects in perk for version " + str(version.name) + ".")
+	logging.debug("There are {0} objects in perk for version {1}.".format(len(all_ver_perks), version.name))
 
 	perk_dict = {}
 
 	# Add each action name to the list
 	for perk in all_ver_perks:
 		perk_dict[perk.name] = {}
+		perk_dict[perk.name]["Object"] = perk
 		perk_dict[perk.name]["Description"] = perk.description
 		perk_dict[perk.name]["Tier"] = perk.tier
 
@@ -264,7 +396,7 @@ def getStatData(version):
 	"""
 	# Get all the stats for that version
 	all_ver_stat = Stat.objects.filter(version=version)
-	logging.debug("There are " + str(len(all_ver_stat)) + " objects in stat for version " + str(version.name) + ".")
+	logging.debug("There are {0} objects in stat for version {1}.".format(len(all_ver_stat), version.name))
 
 	stat_dict = {}
 
@@ -299,7 +431,7 @@ def getTerrainData(version):
 	"""
 	# Get all the terrains for that version
 	all_ver_terrain = Terrain.objects.filter(version=version)
-	logging.debug("There are " + str(len(all_ver_terrain)) + " objects in terrain for version " + str(version.name) + ".")
+	logging.debug("There are {0} objects in terrain for version {1}.".format(len(all_ver_terrain), version.name))
 	
 	terrain_dict = {}
 

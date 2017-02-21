@@ -15,6 +15,7 @@ from Static.models import Map
 import Static.create_data
 from Game.tasks import processMatchmakingQueue
 from Server import config
+import Static.statichelper
 
 class TestHelper(ChannelTestCase):
 	"""
@@ -54,7 +55,7 @@ class TestHelper(ChannelTestCase):
 			chn = self.channel2
 
 		chn.send({u'bytes': payload, u'reply_channel': chn.name})
-		logging.debug("Chn.name="+chn.name)
+		logging.debug("Chn.name={0}".format(chn.name))
 		message = self.get_next_message(chn.name, require=True)
 		processRequest(message)
 
@@ -134,12 +135,12 @@ class TestHelper(ChannelTestCase):
 
 		result = self.createTestUser(request, channel_num)
 		if result["Success"] == False:
-			logging.error("Creating the test user resulted in failure:\n\t" + result["Error"])
+			logging.error("Creating the test user resulted in failure:\n\t{0}".format(result["Error"]))
 			return False
 
 		result = self.login(request, channel_num)
 		if result["Success"] == False:
-			logging.error("Logging in test user resulted in failure:\n\t" + result["Error"])
+			logging.error("Logging in test user resulted in failure:\n\t{0}".format(result["Error"]))
 	
 		return result["Success"]
 
@@ -159,15 +160,13 @@ def startTestLog(testName):
 	Provides all header messages to the log for any test
 	"""
 	logging.debug("")
-	logging.debug("==========  Starting Test: " + str(testName) + " ==========")
+	logging.debug("============  Starting Test: {0} ============".format(testName))
 
 def endTestLog(testName):
 	"""
 	Provides all footer messages to the log for any test
-
-	Note: Will not run if any test fails at some point
 	"""
-	logging.debug("========== Finishing Test: " + str(testName) + " ==========")
+	logging.debug("============ Finishing Test: {0} ============".format(testName))
 
 class CommonTestHelper(TestCase):
 	"""
@@ -175,6 +174,9 @@ class CommonTestHelper(TestCase):
 	"""
 	def setUp(self):
 		self.testHelper = TestHelper(self._testMethodName)
+
+		# Clear the cached static DB data since IDs change between tests
+		Static.statichelper.static_data = {}
 
 	def tearDown(self):
 		endTestLog(self._testMethodName)

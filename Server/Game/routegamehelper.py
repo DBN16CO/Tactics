@@ -256,8 +256,7 @@ def queryGamesUser(data):
 				response["Games"].append(game_response)
 
 	except Exception, e:
-		logging.error("Exception in query games for user:")
-		logging.exception(e)
+		logging.error("Exception in query games for user: \n{0}".format(e))
 		return formJsonResult("Internal Server Error")
 
 	return response

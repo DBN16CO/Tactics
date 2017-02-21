@@ -6,4 +6,5 @@ omit =
   *models.py
   *apps.py*
   *views.py*
+  *log_uploader.py*
   Static/management/commands/*

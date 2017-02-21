@@ -4,6 +4,7 @@ from User.models import Users
 from Communication.testhelper import *
 from Game.tasks import processMatchmakingQueue
 import copy, json, math
+import Static.statichelper
 
 class TestGame(Communication.testhelper.CommonTestHelper):
 	def setUp(self):
@@ -123,8 +124,10 @@ class TestSetTeam(TestGame):
 		+ Sets the correct leader and ability to the game_user table\n
 		+ Sets each tier perk correctly in the game_user table\n
 		+ Sets the correct number and correct set of units to the unit table
-	- Recalling the ST command resets the user's team (Test 03)
-
+	- Recalling the ST command resets the user's team (Test 03)\n
+	- Successfully calling the function returns a success and updates the DB properly (Test 04)\n
+	- Rerunning ST replaces the DB with the new team (Test 05)\n
+	- Rerunning ST with an error does not alter the DB (Test 05)\n
 	"""
 	def test_st_01_bad_json(self):
 		# Test missing ability
@@ -150,7 +153,8 @@ class TestSetTeam(TestGame):
 		# Test invalid ability
 		bad_ability_cmd = copy.deepcopy(self.st_cmd)
 		bad_ability_cmd["Ability"] = "fake_ability"
-		self.helper_execute_failure(bad_ability_cmd, "The leader information provided is invalid.")
+		self.helper_execute_failure(bad_ability_cmd,
+			"The {0} cannot use the ability {1}.".format(bad_ability_cmd["Leader"], bad_ability_cmd["Ability"]))
 
 		# Test invalid leader
 		bad_leader_cmd = copy.deepcopy(self.st_cmd)
@@ -216,7 +220,10 @@ class TestSetTeam(TestGame):
 		perks = ["Extra Money", "Strong Arrows", "Mountain Fighter"]
 		self.st_cmd["Perks"] = perks
 
-		# Get the static DB values for  inputted team
+		# Test that the expected response was returned
+		self.helper_execute_success(self.st_cmd)
+
+		# Get the static DB values for inputted team
 		db_ability = Ability.objects.filter(name=self.st_cmd["Ability"],
 			version=self.version).first()
 		db_leader = Leader.objects.filter(name=self.st_cmd["Leader"],
@@ -227,28 +234,56 @@ class TestSetTeam(TestGame):
 		db_t2_perk = Perk.objects.filter(tier=2, version=self.version).first()
 		db_t3_perk = Perk.objects.filter(tier=3, version=self.version).first()
 
-		# Run command twice to ensure first run's DB entries are properly cleared
-		for _ in range(2):
-			# Test that the expected response was returned
-			self.helper_execute_success(self.st_cmd)
+		# Test that the values were added to the database
+		# Game_User: Ability, Leader, Perks
+		game_user = Game_User.objects.filter(user=self.user).first()
 
-			# Test that the values were added to the database
-			# Game_User: Ability, Leader, Perks
-			game_user_qs = Game_User.objects.filter(user=self.user)
-			self.assertEqual(game_user_qs.count(), 1)	# If > 1, first run's values not cleared
-			game_user = game_user_qs.first()
-			self.assertEqual(game_user.leader_abil, db_ldr_abil)
-			self.assertEqual(game_user.perk_1.name, db_t1_perk.name)
-			self.assertEqual(game_user.perk_2.name, db_t2_perk.name)
-			self.assertEqual(game_user.perk_3.name, db_t3_perk.name)
+		self.assertEqual(game_user.perk_1.name, db_t1_perk.name)
+		self.assertEqual(game_user.perk_2.name, db_t2_perk.name)
+		self.assertEqual(game_user.perk_3.name, db_t3_perk.name)
+		self.assertEqual(game_user.leader_abil, db_ldr_abil)
 
-			# Units
-			unit_qs = Unit.objects.filter(owner=self.user)
-			self.assertEqual(unit_qs.count(), len(self.st_cmd["Units"]))
-			unit_list = []
-			for unit in unit_qs:
-				unit_list.append(unit.unit_class.name)
-			self.assertEqual(sorted(unit_list), sorted(self.st_cmd["Units"]))
+		# Units
+		unit_qs = Unit.objects.filter(owner=self.user)
+		self.assertEqual(unit_qs.count(), len(self.st_cmd["Units"]))
+		unit_list = []
+		for unit in unit_qs:
+			unit_list.append(unit.unit_class.name)
+		self.assertEqual(sorted(unit_list), sorted(self.st_cmd["Units"]))
+
+	def test_st_05_repeat_command(self):
+		# Call command once, should succeed
+		self.helper_execute_success(self.st_cmd)
+
+		# Change the units submitted
+		new_unit_list = []
+		for _ in range(0, self.version.unit_min):
+			new_unit_list.append("Archer")
+		self.st_cmd["Units"] = new_unit_list
+
+		# Rerun command, should only have archer now
+		self.helper_execute_success(self.st_cmd)
+
+		unit_qs = Unit.objects.filter(owner=self.user)
+
+		self.assertEqual(unit_qs.count(), len(new_unit_list))
+		for unit in unit_qs:
+			self.assertEqual(unit.unit_class.name, "Archer")
+
+		# Rerun command, but with a bad unit name, should not have new units
+		bad_unit_list = []
+		for _ in range(0, self.version.unit_min):
+			bad_unit_list.append("Mage")
+		bad_unit_list.append("fake_unit")
+		self.st_cmd["Units"] = bad_unit_list
+
+		self.helper_execute_failure(self.st_cmd, "The following are not valid unit selections: fake_unit")
+
+		unit_qs = Unit.objects.filter(owner=self.user)
+
+		self.assertEqual(unit_qs.count(), len(new_unit_list))
+		for unit in unit_qs:
+			self.assertEqual(unit.unit_class.name, "Archer")
 
 class TestFindMatch(TestGame):
 	"""
@@ -306,6 +341,8 @@ class TestMatchmaking(TestGame):
 		+ Their Game User name includes the other player's name and the game count between them\n
 		+ A game object was created for them\n
 		+ Each of their units was added to the game\n
+	- When one player is in the queue, nothing happens (Test 02)\n
+	- When two players are matched more than once, the counter increases properly (Test 03)\n
 	"""
 	def setUp(self):
 		super(TestMatchmaking, self).setUp()
@@ -332,6 +369,52 @@ class TestMatchmaking(TestGame):
 		# Ensure that the Game Queue is now empty
 		self.assertTrue(Game_Queue.objects.count() == 0)
 
+	def test_mm_02_one_user_test(self):
+		# Remove both users from the queue
+		Game_Queue.objects.filter().delete()
+
+		self.helper_execute_success(self.st_cmd)
+		self.helper_execute_success(self.fm_cmd)
+
+		processMatchmakingQueue()
+
+		# Ensure no game users were created
+		self.assertTrue(Game_User.objects.exclude(game=None).count() == 0)
+
+		# Ensure the user was not removed from queue
+		self.assertTrue(Game_Queue.objects.count() == 1)
+
+	def test_mm_03_two_games_matched(self):
+		processMatchmakingQueue()
+
+		# Get both players in the queue again and match again
+		self.helper_execute_success(self.st_cmd)
+		self.helper_execute_success(self.fm_cmd)
+		self.helper_execute_success(self.st_cmd, 2)
+		self.helper_execute_success(self.fm_cmd, 2)
+		processMatchmakingQueue()
+
+		# Ensure the Game_User objects were created properly
+		self.assertTrue(len(Game_User.objects.filter(game=None)) == 0)
+		self.assertEquals(Game_User.objects.filter(user=self.user, name="vs. game_user_2 #1").count(), 1)
+		self.assertEquals(Game_User.objects.filter(user=self.user, name="vs. game_user_2 #1").first().team, 1)
+		self.assertEquals(Game_User.objects.filter(user=self.user, name="vs. game_user_2 #2").count(), 1)
+		self.assertEquals(Game_User.objects.filter(user=self.user, name="vs. game_user_2 #2").first().team, 1)
+		self.assertEquals(Game_User.objects.filter(user=self.user2, name="vs. game_user_1 #1").count(), 1)
+		self.assertEquals(Game_User.objects.filter(user=self.user2, name="vs. game_user_1 #1").first().team, 2)
+		self.assertEquals(Game_User.objects.filter(user=self.user2, name="vs. game_user_1 #2").count(), 1)
+		self.assertEquals(Game_User.objects.filter(user=self.user2, name="vs. game_user_1 #2").first().team, 2)
+
+		# Ensure all of each player's units were assigned to the game
+		self.assertEquals(len(Unit.objects.filter(owner=self.user, game=None)), 0)
+		self.assertEquals(len(Unit.objects.filter(owner=self.user2, game=None)), 0)
+
+		# Ensure that both games were created
+		self.assertTrue(Game.objects.count() == 2)
+
+		# Ensure that the Game Queue is now empty
+		self.assertTrue(Game_Queue.objects.count() == 0)
+
 class TestPlaceUnits(TestGame):
 	"""
 	All tests within this class relate specifically to the command 'PU' (Place Units)
@@ -352,7 +435,7 @@ class TestPlaceUnits(TestGame):
 		+ X and Y location updated\n
 		+ Health updated\n
 		+ Able to act\n
-	- Placing units before matched with an opponent returns an error (Test 03)
+	- Placing units before matched with an opponent returns an error (Test 03)\n
 	"""
 	def setUp(self):
 		super(TestPlaceUnits, self).setUp()
@@ -454,13 +537,30 @@ class TestQueryGames(TestGame):
 	All tests within this class relate specifically to the command 'QGU' (Query Games for User)
 
 	Specifically the following is tested:\n
-	- Calling the command with one game with a single opponent returns successfully:\n
-		+ One game dictionary is returned with the proper game name
+	- Calling the command with one game with a single opponent returns successfully: (Test 01)\n
+		+ One game dictionary is returned with the proper game name\n
+	- Calling QGU when a set team that is not a matched game does not return an extra game (Test 02)\n
 	"""
 	def test_qgu_01_one_game_one_opponent(self):
 		self.get_both_users_in_queue()
 		processMatchmakingQueue()
 		self.game = Game.objects.latest('pk')
+
+		qgu_cmd = {"Command":"QGU"}
+
+		result = self.helper_execute_success(qgu_cmd)
+
+		self.assertTrue(len(result["Games"]) == 1)
+		self.assertEquals(result["Games"][0]["Name"], Game_User.objects.filter(user=self.user).first().name)
+		self.assertEquals(result["Games"][0]["Round"], Game.objects.filter().first().game_round)
+
+	def test_qgu_02_set_team_not_matched(self):
+		self.get_both_users_in_queue()
+		processMatchmakingQueue()
+		self.game = Game.objects.latest('pk')
+
+		# Also set team for player 1 but don't pair with an opponent
+		self.helper_execute_success(self.st_cmd)
 
 		qgu_cmd = {"Command":"QGU"}
 
@@ -516,7 +616,8 @@ class TestTakeAction(TestGame):
 	- Healing will not bring the target above full health (Test 17)\n
 	- Can heal the partial, but not full HP, if HP is low (Test 18)\n
 	- Can heal exactly to full HP (Test 19)\n
-	- Cannot take an action if it is not your turn (Test 20)
+	- Cannot take an action if it is not your turn (Test 20)\n
+	- Both a magical and physical attacker can successfully deal damage (Test 21)\n
 	"""
 	def setUp(self):
 		super(TestTakeAction, self).setUp()
@@ -726,18 +827,18 @@ class TestTakeAction(TestGame):
 		# Possible HP remaining values for Unit
 		data["Unit"] = {}
 		data["Unit"]["Max"] = u_hp
-		data["Unit"]["Normal"] = max(0, u_hp - (math.ceil((t_str - u_def) / 2)) if t_atk_type == "Physical"
+		data["Unit"]["Normal"] = max(0, u_hp - max(0, math.ceil((t_str - u_def) / 2)) if t_atk_type == "Physical"
 			else math.ceil((t_int - u_res) / 2))
-		data["Unit"]["Crit"] = max(0, u_hp - (math.ceil(((2 * t_str) - u_def) / 2)) if t_atk_type == "Physical"
+		data["Unit"]["Crit"] = max(0, u_hp - max(0, math.ceil(((2 * t_str) - u_def) / 2)) if t_atk_type == "Physical"
 			else math.ceil(((2 * t_int) - u_res) / 2))
 		data["Unit"]["Miss"] = u_hp
 
 		# Possible HP remaining values for Target
 		data["Tgt"] = {}
 		data["Tgt"]["Max"] = t_hp
-		data["Tgt"]["Normal"] = max(0, t_hp - (u_str - t_def if u_atk_type == "Physical"
+		data["Tgt"]["Normal"] = max(0, t_hp - max(0, u_str - t_def if u_atk_type == "Physical"
 			else u_int - t_res))
-		data["Tgt"]["Crit"] = max(0, t_hp - ((2 * u_str) - t_def if u_atk_type == "Physical"
+		data["Tgt"]["Crit"] = max(0, t_hp - max(0, (2 * u_str) - t_def if u_atk_type == "Physical"
 			else (2 * u_int) - t_res))
 		data["Tgt"]["Miss"] = t_hp
 
@@ -751,6 +852,8 @@ class TestTakeAction(TestGame):
 		Takes in the class object of a unit whose luck and agility values are to be
 		updated to the values provided
 		"""
+		Static.statichelper.static_data = {}
+
 		luck = Stat.objects.filter(name="Luck", version=self.version).first()
 		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=unit_class,
 			version=self.version).first()
@@ -1264,6 +1367,44 @@ class TestTakeAction(TestGame):
 		self.game.save()
 
 		self.helper_execute_failure(self.no_tgt_cmd, "Please wait until it is your turn.")
+
+	def test_ta_21_magical_counterattack(self):
+		# Ensure the attacker never hits or crits
+		self.set_luck_and_agil(self.attacker.unit_class, -100, -100)
+
+		# Make the attacker near death
+		self.attacker.hp = 1
+		self.attacker.save()
+
+		# Make the target the magical 'Mage'
+		mage_class = Class.objects.filter(name="Mage", version=self.version).first()
+		mage_unit  = Unit.objects.filter(unit_class=mage_class, owner=self.user2).first()
+		self.atk_cmd["Target"] = mage_unit.id
+
+		# Move unit near target
+		self.atk_cmd = self.move_unit_near_target(self.atk_cmd, self.attacker, mage_unit)
+
+		# Call command, ensure movement was successful
+		result = self.helper_execute_success(self.atk_cmd)
+
+		# Get updated units
+		unit = Unit.objects.filter(pk=self.atk_cmd["Unit"]).first()
+		tgt = Unit.objects.filter(pk=self.atk_cmd["Target"]).first()
+
+		# Get all possible attack results
+		attack_data = self.get_expected_attack_result(unit.unit_class, tgt.unit_class)
+
+		# Ensure that the previous health for each unit is correct
+		self.assertEqual(result["Unit"]["HP"], 1)
+		self.assertEqual(result["Target"]["HP"], attack_data["Tgt"]["Max"])
+
+		# Ensure database was updated properly
+		self.assertEqual(unit.hp, 0)
+		self.assertEqual(tgt.hp, attack_data["Tgt"]["Max"])
+
+		# Ensure returned JSON is correct
+		self.assertEqual(result["Unit"]["NewHP"], 0)
+		self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Max"])
 
 class TestEndTurn(TestGame):
 	"""

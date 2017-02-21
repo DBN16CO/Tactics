@@ -48,7 +48,7 @@ def get_credentials():
             credentials = tools.run_flow(flow, store, flags)
         else: # Needed only for compatibility with Python 2.6
             credentials = tools.run(flow, store)
-        print('Storing credentials to ' + credential_path)
+        print('Storing credentials to {0}'.format(credential_path))
     return credentials
 
 def upload_logs():
@@ -83,7 +83,7 @@ def upload_logs():
     file = service.files().create(body=file_metadata,
                                     media_body=media,
                                     fields='id').execute()
-    print("File ID: %s" % file.get('id'))
+    print("File ID: {0}".format(file.get('id')))
 
 if __name__ == '__main__':
     upload_logs()
