@@ -88,7 +88,6 @@ def placeUnits(game_user, units, user, version):
 	for unit in set_units:
 		unit.save()
 
-
 def setTeam(leader_ability, perks, units, username, version):
 	"""
 	Validates an inputted team a user has provided and then updates
@@ -261,7 +260,7 @@ def calculateActionResult(action, game, unit_dict, target):
 				amount  = stat_info["Classes"][tgt_clss.name]["Stats"]["Intelligence"]
 				prevent = stat_info["Classes"][clss.name]["Stats"]["Resistance"]
 
-			luck_val = max(1, (((tgt_luck - unit_luck) * 5 ) + 5) / 2)
+			luck_val = max(0, (((tgt_luck - unit_luck) * 5 ) + 5) / 2)
 
 			# If critting, double attack amount
 			if randint(0, 99) < luck_val:

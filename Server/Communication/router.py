@@ -148,7 +148,6 @@ def processRequest(message):
 		if not version_name in Game.maphelper.maps:
 			Game.maphelper.loadMaps(version_name)
 
-
 	# Start processing the request
 	commands={
 		"CS":Game.routegamehelper.cancelSearch,
@@ -172,7 +171,7 @@ def processRequest(message):
 			'text': json.dumps(response)
 		})
 		return
-	
+
 	try:
 		response = commands[cmd](data)
 	except Exception, e:
@@ -184,7 +183,7 @@ def processRequest(message):
 	# If the requested command was to create a new user or login to an existing user, set the channel session
 	if "Success" in response and response['Success'] and (cmd == 'LGN' or cmd == 'CU'):
 		message.channel_session['user'] = response.pop('Username')
-	
+
 	# Reply back
 	message.reply_channel.send({
 		'text': json.dumps(response)

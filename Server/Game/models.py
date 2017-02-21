@@ -35,7 +35,7 @@ class Game_User(models.Model):
 class Unit(models.Model):
 	unit_class   = models.ForeignKey('Static.Class',  on_delete=models.DO_NOTHING)
 	acted        = models.BooleanField(default=False)
-	hp           = models.FloatField(default=0)
+	hp           = models.IntegerField(default=0)
 	x            = models.IntegerField(default=-1)
 	y            = models.IntegerField(default=-1)
 	target       = models.ForeignKey('self',          on_delete=models.DO_NOTHING, null=True, default=None)

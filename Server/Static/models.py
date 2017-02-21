@@ -84,7 +84,7 @@ class Stat(models.Model):
 class Unit_Stat(models.Model):
 	stat 		 = models.ForeignKey(Stat,		   on_delete=models.DO_NOTHING)
 	unit         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
-	value        = models.FloatField(default=0)
+	value        = models.IntegerField(default=0)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
@@ -102,7 +102,7 @@ class Terrain(models.Model):
 class Terrain_Unit_Movement(models.Model):
 	terrain 	 = models.ForeignKey(Terrain,	   on_delete=models.DO_NOTHING)
 	unit         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
-	move         = models.FloatField(default=1.0)
+	move         = models.IntegerField(default=1)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
