@@ -22,21 +22,19 @@ class AdminView(TemplateView):
 
 			send_keepalive_ping()
 			used_disk_amount, total_disk_size = get_local_disk_usage()
-			slow_cmd, slow_time = get_slowest_command()
-			fast_cmd, fast_time = get_fastest_command()
-			commands = get_all_command_perf_data()
+			commands, average, fastest, slowest = get_all_command_perf_data()
 
 			context['num_users_connected'] = get_num_active_users()
 			context['uptime'] = str(get_server_uptime())
 			context['used_disk_amount'] = str(used_disk_amount)
 			context['total_disk_size'] = str(total_disk_size)
 			context['db_row_count'] = str(get_total_db_rows())
-			context['average_request_time'] = str(get_average_request_time()) + " ms"
-			context['total_num_requests'] = get_total_num_requests()
-			context['slow_cmd'] = slow_cmd
-			context['slow_time'] = str(slow_time) + " ms"
-			context['fast_cmd'] = fast_cmd
-			context['fast_time'] = str(fast_time) + " ms"
+			context['average_request_time'] = str(average["value"]) + " ms"
+			context['total_num_requests'] = average["total"]
+			context['slow_cmd'] = slowest["name"]
+			context['slow_time'] = str(slowest["value"]) + " ms"
+			context['fast_cmd'] = fastest["name"]
+			context['fast_time'] = str(fastest["value"]) + " ms"
 			context['commands'] = commands
 
 		return self.render_to_response(context)
