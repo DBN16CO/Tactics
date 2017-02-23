@@ -10,6 +10,9 @@ LOGIN_TOKEN_EXPIRATION = 14
 # How often celery workers execute the matchmaking logic (in seconds)
 GAME_QUEUE_PROCESS_INTERVAL = 5
 
+# How often celery workers upload logs to google drive (in seconds)
+UPLOAD_LOGS_INTERVAL = 86400
+
 # Password policy configuration
 # Note: the requirements lists contain a boolean (whether or not to actively require that particular requirement) and also the valid list
 PASSWORD_POLICY = {

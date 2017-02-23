@@ -16,7 +16,7 @@ fh = logging.FileHandler('./matchmaking.log', mode='a')
 logger.addHandler(fh)
 logger.setLevel(logging.DEBUG)
 
-@celery.decorators.periodic_task(run_every=datetime.timedelta(days=1))
+@celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=config.UPLOAD_LOGS_INTERVAL))
 def uploadServerLogs():
     """
     Celery task to upload the trace and matchmaking logs to Google drive once a day

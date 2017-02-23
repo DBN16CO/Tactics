@@ -33,48 +33,46 @@ def processRequest(message):
 	:type message: Channel Object
 	:param message: The message being received from the front end
 
-					The following commands have been implemented:
+		The following commands have been implemented:
 
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| Abrev | Command Name     | App     | Method Name        | Successful Test                |
-					+=======+==================+=========+====================+================================+
-					| CS    | Cancel Search    | Game    | cancelSearch       | cancel_search_success          |
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| CU    | Create User      | User    | createUser         | create_user_success            |
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| ET    | End Turn         | Game    | endTurn            | end_turn_success               |
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| FM    | Find Match       | Game    | findGame           | find_game_success              |
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| GUI   | Get User Info    | User    | getUserInfo        | get_user_info_success          |
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| IL    | Iniitial Load    | Static  | getAllStaticData   | initial_load_v1_0              |
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| LGN   | Login            | User    | login              | login_success_token            |
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| PA    | Ping Auth        | Comm    | pingAuthentication |                                |
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| PU    | Place Units      | Game    | placeUnits         | place_units_success            |
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| QGU   | Query Games User | Game    | queryGamesUser     | test11_query_games_user_success|
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| ST    | Set Team         | Game    | setTeam            | set_team_valid_input           |
-					+-------+------------------+---------+--------------------+--------------------------------+
-					| TA    | Take Action      | Game    | takeAction         | take_action_valid_move_success |
-					+-------+------------------+---------+--------------------+--------------------------------+
+		+-------+------------------+---------+--------------------+----------------------+
+		| Abrev | Command Name     | App     | Method Name        | Test Class           |
+		+=======+==================+=========+====================+======================+
+		| CS    | Cancel Search    | Game    | cancelSearch       | TestFindMatch        |
+		+-------+------------------+---------+--------------------+----------------------+
+		| CU    | Create User      | User    | createUser         | TestCreateUser       |
+		+-------+------------------+---------+--------------------+----------------------+
+		| ET    | End Turn         | Game    | endTurn            | TestEndTurn          |
+		+-------+------------------+---------+--------------------+----------------------+
+		| FM    | Find Match       | Game    | findGame           | TestFindMatch        |
+		+-------+------------------+---------+--------------------+----------------------+
+		| GUI   | Get User Info    | User    | getUserInfo        | TestLoginLogout      |
+		+-------+------------------+---------+--------------------+----------------------+
+		| IL    | Iniitial Load    | Static  | getAllStaticData   | TestStatic           |
+		+-------+------------------+---------+--------------------+----------------------+
+		| LGN   | Login            | User    | login              | TestLoginLogout      |
+		+-------+------------------+---------+--------------------+----------------------+
+		| PA    | Ping Auth        | Comm    | pingAuthentication |                      |
+		+-------+------------------+---------+--------------------+----------------------+
+		| PU    | Place Units      | Game    | placeUnits         | TestPlaceUnits       |
+		+-------+------------------+---------+--------------------+----------------------+
+		| QGU   | Query Games User | Game    | queryGamesUser     | TestQueryGames       |
+		+-------+------------------+---------+--------------------+----------------------+
+		| ST    | Set Team         | Game    | setTeam            | TestSetTeam          |
+		+-------+------------------+---------+--------------------+----------------------+
+		| TA    | Take Action      | Game    | takeAction         | TestTakeAction       |
+		+-------+------------------+---------+--------------------+----------------------+
 
-					Notes about table above:\n
-					- To find the documentation on the command, go to ../<App>/routehelper.<Method Name>\n
-					- For an example input and output JSON, go to ../<App>/tests.testN_<Successful Test>
+		Notes about table above:\n
+		- To find the documentation on the command, go to ../<App>/routehelper.<Method Name>\n
+		- For an example input and output JSON, go to ../<App>/tests.testN_<Successful Test>
 
-	
 	:rtype: Dictionary
 	:return: A response to the incoming request from the front end
 	"""
 	# Get the request
 	request = message.content['bytes']
-	logging.debug("Parsing incoming json request: ")
-	logging.debug(str(request))
+	logging.debug("Parsing incoming json request: \n{0}".format(request))
 
 	# Parse the Json
 	try:
@@ -93,6 +91,14 @@ def processRequest(message):
 			})
 		return
 
+	if not "Command" in data:
+		logging.debug("Missing Command Key: {0}".format(data))
+		message.reply_channel.send({
+			'text': json.dumps({"Success":False,
+				"Error":"The command information is incomplete."})
+		})
+		return
+
 	cmd = data["Command"]
 	logging.debug("Received command: " + str(cmd))
 
@@ -105,7 +111,8 @@ def processRequest(message):
 	if not user:
 		if cmd != 'LGN' and cmd != 'CU':
 			message.reply_channel.send({
-			'text': json.dumps({"Success": False, "Error": "User is not authenticated, please login."})
+			'text': json.dumps({"Success": False,
+				"Error": "User is not authenticated, please login."})
 			})
 			return
 	else:
@@ -120,10 +127,9 @@ def processRequest(message):
 			dbUser.save()
 			response = {"Success": True}
 		except Exception, e:
-			logging.error("Database update to remove the user's login token failed: " + str(e))
+			logging.error("Database update to remove the user's login token failed: {0}".format(e))
 			response = {"Success": False, "Error": "Internal Server Error during logout"}
 
-		
 		message.reply_channel.send({
 			'text': json.dumps(response)
 		})
@@ -142,27 +148,34 @@ def processRequest(message):
 		if not version_name in Game.maphelper.maps:
 			Game.maphelper.loadMaps(version_name)
 
-
 	# Start processing the request
 	commands={
-			  "CS":Game.routegamehelper.cancelSearch,
-			  "CU":User.routehelper.createUser,
-			  "ET":Game.routegamehelper.endTurn,
-			  "FM":Game.routegamehelper.findMatch,
-			  "GUI":User.routehelper.getUserInfo,
-			  "IL":Static.routehelper.getAllStaticData,
-			  "LGN":User.routehelper.login,	
-			  "PA":Communication.routehelper.pingAuthentication,
-			  "PU":Game.routegamehelper.placeUnits,
-			  "QGU":Game.routegamehelper.queryGamesUser,
-			  "ST":Game.routeunithelper.setTeam,
-			  "TA":Game.routeunithelper.takeAction,
+		"CS":Game.routegamehelper.cancelSearch,
+		"CU":User.routehelper.createUser,
+		"ET":Game.routegamehelper.endTurn,
+		"FM":Game.routegamehelper.findMatch,
+		"GUI":User.routehelper.getUserInfo,
+		"IL":Static.routehelper.getAllStaticData,
+		"LGN":User.routehelper.login,
+		"PA":Communication.routehelper.pingAuthentication,
+		"PU":Game.routegamehelper.placeUnits,
+		"QGU":Game.routegamehelper.queryGamesUser,
+		"ST":Game.routeunithelper.setTeam,
+		"TA":Game.routeunithelper.takeAction,
 	}
-	
+
+	# Ensure that the command exists in the list of valid commands
+	if not cmd in commands:
+		response = {"Success":False, "Error": "Invalid command."}
+		message.reply_channel.send({
+			'text': json.dumps(response)
+		})
+		return
+
 	try:
 		response = commands[cmd](data)
 	except Exception, e:
-		logging.error("Failed to execute command " + str(cmd))
+		logging.error("Failed to execute command: {0}".format(cmd))
 		logging.debug(data)
 		logging.exception(e)
 		response = {"Success": False, "Error": "Internal Server Error."}
@@ -170,7 +183,7 @@ def processRequest(message):
 	# If the requested command was to create a new user or login to an existing user, set the channel session
 	if "Success" in response and response['Success'] and (cmd == 'LGN' or cmd == 'CU'):
 		message.channel_session['user'] = response.pop('Username')
-	
+
 	# Reply back
 	message.reply_channel.send({
 		'text': json.dumps(response)

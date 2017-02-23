@@ -72,7 +72,8 @@ def loadMaps(version_name=''):
 
 					# Ensure the correct number of objects is found
 					if len(split_token) < 2:
-						logging.error("A problem occurred while parsing the map (" + map_name + ") at: X=" + str(x) + " Y=" + str(y) + " for version " + version_name + ".")
+						logging.error("A problem occurred while parsing the map ({0}) at: \
+							X={1} Y={2} for version: {3}.".format(map_name, x, y, version_name))
 						continue
 
 					# The components of the token

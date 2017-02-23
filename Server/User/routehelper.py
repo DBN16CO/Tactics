@@ -40,7 +40,6 @@ def login(data):
 				 	  errors can be directly displayed for the user.
 	"""
 	username = None
-	pw = None
 	token = None
 	user = None
 
@@ -150,7 +149,7 @@ def getUserInfo(data):
 
 	:rtype: Dictionary
 	:return: A JSON object containing all of the user's information and preferences
-			 
+
 			 {\n
 			  "Success":True,\n
 			  "Username":"<username>",\n

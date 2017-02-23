@@ -240,24 +240,23 @@ def queryGamesUser(data):
 
 				# Store information about your perks
 				game_response["Your_Perks"] = [
-					{"Name": game_user.perk_1.name, "Tier": game_user.perk_1.tier},
-					{"Name": game_user.perk_2.name, "Tier": game_user.perk_2.tier},
-					{"Name": game_user.perk_3.name, "Tier": game_user.perk_3.tier}
+					{"Name": None if game_user.perk_1 == None else game_user.perk_1.name, "Tier":1},
+					{"Name": None if game_user.perk_2 == None else game_user.perk_2.name, "Tier":2},
+					{"Name": None if game_user.perk_3 == None else game_user.perk_3.name, "Tier":3}
 				]
 
 				# Store information about the enemy's perks
 				game_response["Enemy_Perks"] = [
-					{"Name": opp_game_user.perk_1.name, "Tier": opp_game_user.perk_1.tier},
-					{"Name": opp_game_user.perk_2.name, "Tier": opp_game_user.perk_2.tier},
-					{"Name": opp_game_user.perk_3.name, "Tier": opp_game_user.perk_3.tier}
+					{"Name": None if opp_game_user.perk_1 == None else opp_game_user.perk_1.name, "Tier":1},
+					{"Name": None if opp_game_user.perk_1 == None else opp_game_user.perk_2.name, "Tier":2},
+					{"Name": None if opp_game_user.perk_1 == None else opp_game_user.perk_3.name, "Tier":3}
 				]
 
 				# Add the game object to the list of the user's games
 				response["Games"].append(game_response)
 
 	except Exception, e:
-		logging.error("Exception in query games for user:")
-		logging.exception(e)
+		logging.error("Exception in query games for user: \n{0}".format(e))
 		return formJsonResult("Internal Server Error")
 
 	return response
