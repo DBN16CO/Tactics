@@ -1,5 +1,4 @@
 import json
-import time
 import datetime
 import subprocess
 from models import ServerStats, AdminUsers
