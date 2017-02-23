@@ -1,7 +1,6 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.views.generic.base import TemplateView
 from django.template.context_processors import csrf
-from models import ServerStats
 from admin_utils import *
 
 
@@ -44,7 +43,7 @@ class AdminView(TemplateView):
 		context = self.get_context_data(**kwargs)
 		
 		form_type = request.POST['form-type']
-
+		
 		if form_type == 'login':
 			username = request.POST['username']
 			password = request.POST['password']
