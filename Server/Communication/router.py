@@ -8,6 +8,7 @@ import json
 import logging
 import threading
 import time
+import os
 
 from channels import Group
 from User.models import Users
@@ -78,8 +79,10 @@ def processRequest(message):
 	:rtype: Dictionary
 	:return: A response to the incoming request from the front end
 	"""
+
 	# Start timing the request
-	start_time = time.clock()
+	if not "TEST_ENV" in os.environ:
+		start_time = time.clock()
 
 	# Get the request
 	request = message.content['bytes']
@@ -200,6 +203,7 @@ def processRequest(message):
 		'text': json.dumps(response)
 	})
 
-	end_time = time.clock()
-	t = threading.Thread(target=admin_utils.archive_request_duration, args=(start_time, end_time, cmd))
-	t.start()
+	if not "TEST_ENV" in os.environ:
+		end_time = time.clock()
+		t = threading.Thread(target=admin_utils.archive_request_duration, args=(start_time, end_time, cmd))
+		t.start()
