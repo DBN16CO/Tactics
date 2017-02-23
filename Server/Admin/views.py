@@ -41,9 +41,9 @@ class AdminView(TemplateView):
 	def post(self, request, *args, **kwargs):
 		session = request.session
 		context = self.get_context_data(**kwargs)
-		
+
 		form_type = request.POST['form-type']
-		
+
 		if form_type == 'login':
 			username = request.POST['username']
 			password = request.POST['password']

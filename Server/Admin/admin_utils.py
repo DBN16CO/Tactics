@@ -67,7 +67,6 @@ def get_all_command_perf_data():
 	if request_duration:
 		request_duration = request_duration[0]
 		data = json.loads(request_duration.value)
-		
 		commands = []
 		average_data = {"value": data["average"]["value"], "total": data["average"]["total"]}
 		fastest_data = {"value": float("inf"), "name": None}
