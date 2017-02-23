@@ -190,9 +190,12 @@ def processRequest(message):
 		response = commands[cmd](data)
 	except Exception, e:
 		logging.error("Failed to execute command: {0}".format(cmd))
-		logging.debug(data)
 		logging.exception(e)
 		response = {"Success": False, "Error": "Internal Server Error."}
+		message.reply_channel.send({
+			'text': json.dumps(response)
+		})
+		return
 
 	# If the requested command was to create a new user or login to an existing user, set the channel session
 	if "Success" in response and response['Success'] and (cmd == 'LGN' or cmd == 'CU'):
