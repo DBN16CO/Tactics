@@ -11,9 +11,9 @@ import logging, math
 from random import randint
 
 from Game.models import Game, Game_User, Unit
-from Static.models import Action, Class, Class_Action, Stat, Unit_Stat
 from User.models import Users
 import Game.maphelper
+import Static.statichelper
 
 def placeUnits(game_user, units, user, version):
 	"""
@@ -35,11 +35,18 @@ def placeUnits(game_user, units, user, version):
 	:rtype: String
 	:return: An error message if any part of the process were to fail.
 	"""
+	stat_info = Static.statichelper.getAllStaticData(version)
+
 	set_units = Unit.objects.filter(owner=user, game=game_user.game).order_by("unit_class__name")
 
 	# Ensure that the list of units matches the number from the set team
 	if len(units) != len(set_units):
-		return "Must place (" + str(len(set_units)) + ") units, not (" + str(len(units)) + ")."
+		return "Must place ({0}) units, not ({1}).".format(len(set_units), len(units))
+
+	# Ensure all unit dictionaries have a name key
+	for unit in units:
+		if not "Name" in unit:
+			return "Internal Error: Name of unit missing."
 
 	# Loop over every object in the query set and update (without saving yet) the X, Y, and health
 	placed_units = sorted(units, key=lambda k: k['Name'])
@@ -66,13 +73,11 @@ def placeUnits(game_user, units, user, version):
 
 		# Momentarily store class HP maxes, in case the unit is selected more than once
 		if not unit.unit_class.name in class_max_hp:
-			class_obj = Class.objects.filter(name=unit.unit_class.name, version=version).first()
-			unit_hp_max = Stat.objects.filter(name="HP", version=version).first()
-			class_max_hp[unit.unit_class.name] = Unit_Stat.objects.filter(unit=class_obj, stat=unit_hp_max, version=version).first().value
+			class_max_hp[unit.unit_class.name] = stat_info["Classes"][unit.unit_class.name]["Stats"]["HP"]
 
 		# Update the DB with the unit placement
-		unit.x = placed_units[0]["X"]
-		unit.y = placed_units[0]["Y"]
+		unit.x  = placed_units[0]["X"]
+		unit.y  = placed_units[0]["Y"]
 		unit.hp = class_max_hp[unit.unit_class.name]
 		unit.acted = False
 
@@ -82,7 +87,6 @@ def placeUnits(game_user, units, user, version):
 	# Save all of the updated units
 	for unit in set_units:
 		unit.save()
-
 
 def setTeam(leader_ability, perks, units, username, version):
 	"""
@@ -117,28 +121,36 @@ def setTeam(leader_ability, perks, units, username, version):
 	for unit in units:
 		money_spent += unit.price
 	if money_spent > price_max:
-		return "The selected team is " + str(money_spent - price_max) + " over the unit budget."
+		return "The selected team is {0} over the unit budget.".format(money_spent - price_max)
 
 	# Get the user object from the username
 	user = Users.objects.get(username=username)
 
+	# Add each of the perks
+	tier_mapping = {
+		1:None,
+		2:None,
+		3:None
+	}
+	for perk in perks:
+		if tier_mapping[perk.tier] != None:
+			return "Cannot select more than one tier {0} perk: {1}, {2}".format(
+				perk.tier, tier_mapping[perk.tier].name, perk.name)
+
+		tier_mapping[perk.tier] = perk
+
 	# Ensure the user has not already set a team, if so, clear it
 	if Game_User.objects.filter(game=None, user=user).first() != None:
-		logging.info(username + " has resubmitted their team information, clearing existing data.")
+		logging.info("{0} has resubmitted their team information, clearing existing data.".format(username))
 		Game_User.objects.filter(game=None, user=user).delete()
 		Unit.objects.filter(owner=user, game=None).delete()
 
 	# Create a game user object for the leader and perk information
 	game_user = Game_User(user=user, leader_abil=leader_ability)
 
-	# Add each of the perks
-	perk_count = len(perks)
-	if perk_count > 0:
-		game_user.perk_1 = perks[0]
-	if perk_count > 1:
-		game_user.perk_2 = perks[1]
-	if perk_count > 2:
-		game_user.perk_3 = perks[2]
+	game_user.perk_1 = tier_mapping[1]
+	game_user.perk_2 = tier_mapping[2]
+	game_user.perk_3 = tier_mapping[3]
 
 	game_user.save()
 
@@ -168,44 +180,32 @@ def calculateActionResult(action, game, unit_dict, target):
 	:rtype: Dictionary
 	:return: The result of the action, will have a "Unit" and "Target" dictionary
 	"""
-	version = game.version
-	clss = unit_dict["Unit"].unit_class
-	tgt_clss = target.unit_class
-	hp = Stat.objects.filter(name="HP", version=version).first()
-
-	# Get attack range
-	attack_range_stat = Stat.objects.filter(name="Attack Range", version=version)
-	atk_rng = Unit_Stat.objects.filter(stat=attack_range_stat, unit=clss,
-		version=version).first().value
+	version   = game.version
+	clss      = unit_dict["Unit"].unit_class
+	tgt_clss  = target.unit_class
+	stat_info = Static.statichelper.getAllStaticData(version)
 
 	# Is the target close enough?
+	atk_rng  = stat_info["Classes"][clss.name]["Stats"]["Attack Range"]
 	distance = abs(unit_dict["NewX"] - target.x) + abs(unit_dict["NewY"] - target.y)
 	logging.debug("Attempting action on target {} away (Range={}).".format(distance, atk_rng))
 	if distance > atk_rng:
 		return {"Error":"Must be within {} range.  Target is {} away.".format(int(atk_rng), distance)}
 
 	# Set the previous HP for each unit
-	tgt_prev_hp = target.hp
-	tgt_hp_left = tgt_prev_hp
+	tgt_prev_hp  = target.hp
+	tgt_hp_left  = tgt_prev_hp
 	unit_prev_hp = unit_dict["Unit"].hp
 	unit_hp_left = unit_prev_hp
-
-	# Get stat objects
-	agility = Stat.objects.filter(name="Agility", version=version).first()
-	intel = Stat.objects.filter(name="Intelligence", version=version).first()
-	strength = Stat.objects.filter(name="Strength", version=version).first()
-	luck = Stat.objects.filter(name="Luck", version=version).first()
-	defense = Stat.objects.filter(name="Defense", version=version).first()
-	resist = Stat.objects.filter(name="Resistance", version=version).first()
 
 	# Determine attack or heal amount and the amount prevented by the target
 	attackType = clss.attack_type
 	if attackType == "Physical":
-		amount = Unit_Stat.objects.filter(stat=strength, unit=clss, version=version).first().value
-		prevent = Unit_Stat.objects.filter(stat=defense, unit=tgt_clss, version=version).first().value
+		amount  = stat_info["Classes"][clss.name]["Stats"]["Strength"]
+		prevent = stat_info["Classes"][tgt_clss.name]["Stats"]["Defense"]
 	elif attackType == "Magical":
-		amount = Unit_Stat.objects.filter(stat=intel, unit=clss, version=version).first().value
-		prevent = Unit_Stat.objects.filter(stat=resist, unit=tgt_clss, version=version).first().value
+		amount  = stat_info["Classes"][clss.name]["Stats"]["Intelligence"]
+		prevent = stat_info["Classes"][tgt_clss.name]["Stats"]["Resistance"]
 
 	# Process unit's action upon target
 	if action == "Attack":
@@ -217,17 +217,17 @@ def calculateActionResult(action, game, unit_dict, target):
 			return {"Error":"You cannot attack dead units."}
 
 		# Check for a missed attack
-		unit_agil = Unit_Stat.objects.filter(stat=agility, unit=clss, version=version).first().value
-		tgt_agil = Unit_Stat.objects.filter(stat=agility, unit=tgt_clss, version=version).first().value
-		agil_val = max(0, ((tgt_agil - unit_agil) * 5 ) + 5)
+		unit_agil = stat_info["Classes"][clss.name]["Stats"]["Agility"]
+		tgt_agil  = stat_info["Classes"][tgt_clss.name]["Stats"]["Agility"]
+		agil_val  = max(0, ((tgt_agil - unit_agil) * 5 ) + 5)
 
 		# Check for a critical hit
-		unit_luck = Unit_Stat.objects.filter(stat=luck, unit=clss, version=version).first().value
-		tgt_luck = Unit_Stat.objects.filter(stat=luck, unit=tgt_clss, version=version).first().value
-		luck_val = max(0, ((unit_luck - tgt_luck) * 5 ) + 5)
+		unit_luck = stat_info["Classes"][clss.name]["Stats"]["Luck"]
+		tgt_luck  = stat_info["Classes"][tgt_clss.name]["Stats"]["Luck"]
+		luck_val  = max(0, ((unit_luck - tgt_luck) * 5 ) + 5)
 
 		# If attack misses, skip this section for dealing damage to target
-		if randint(0, 99) > agil_val:
+		if randint(0, 99) >= agil_val:
 			# If critting, double attack amount
 			if randint(0, 99) < luck_val:
 				logging.debug("The unit had a critical hit on the target!")
@@ -240,29 +240,27 @@ def calculateActionResult(action, game, unit_dict, target):
 
 		# Determine if there will be a counter attack
 		# 1. Is the target within range?
-		tgt_atk_rng = Unit_Stat.objects.filter(stat=attack_range_stat, unit=tgt_clss,
-		version=version).first().value
+		tgt_atk_rng = stat_info["Classes"][tgt_clss.name]["Stats"]["Attack Range"]
 		logging.debug("Attempting counter attack on unit {} away (Range={}).".format(distance, tgt_atk_rng))
 
 		# 2. Did the target's counter miss?
 		agil_val = max(0, ((unit_agil - tgt_agil) * 5 ) + 5)
 
 		# 3. Can the target even attack?
-		action = Action.objects.filter(version=version, name="Attack").first()
-		canAttack = not Class_Action.objects.filter(version=version, clss=tgt_clss, action=action).first() == None
+		canAttack = stat_info["Classes"][tgt_clss.name]["Actions"]["Attack"]
 
-		if distance <= tgt_atk_rng and tgt_hp_left > 0 and randint(0, 99) > agil_val and canAttack:
+		if distance <= tgt_atk_rng and tgt_hp_left > 0 and randint(0, 99) >= agil_val and canAttack:
 			logging.debug("Target within range to counter attack.")
 
 			attackType = tgt_clss.attack_type
 			if attackType == "Physical":
-				amount = Unit_Stat.objects.filter(stat=strength, unit=tgt_clss, version=version).first().value
-				prevent = Unit_Stat.objects.filter(stat=defense, unit=clss, version=version).first().value
+				amount  = stat_info["Classes"][tgt_clss.name]["Stats"]["Strength"]
+				prevent = stat_info["Classes"][clss.name]["Stats"]["Defense"]
 			elif attackType == "Magical":
-				amount = Unit_Stat.objects.filter(stat=intel, unit=tgt_clss, version=version).first().value
-				prevent = Unit_Stat.objects.filter(stat=resist, unit=clss, version=version).first().value
+				amount  = stat_info["Classes"][tgt_clss.name]["Stats"]["Intelligence"]
+				prevent = stat_info["Classes"][clss.name]["Stats"]["Resistance"]
 
-			luck_val = max(1, (((tgt_luck - unit_luck) * 5 ) + 5) / 2)
+			luck_val = max(0, (((tgt_luck - unit_luck) * 5 ) + 5) / 2)
 
 			# If critting, double attack amount
 			if randint(0, 99) < luck_val:
@@ -280,7 +278,7 @@ def calculateActionResult(action, game, unit_dict, target):
 			return {"Error":"That unit cannot heal itself."}
 
 		# Ensure the target is not already at full health
-		tgt_hp_max = Unit_Stat.objects.filter(stat=hp, unit=tgt_clss, version=version).first().value
+		tgt_hp_max = stat_info["Classes"][tgt_clss.name]["Stats"]["HP"]
 		if tgt_hp_max == tgt_prev_hp:
 			return {"Error":"Target already has full Health."}
 		elif tgt_prev_hp == 0:
@@ -296,7 +294,7 @@ def calculateActionResult(action, game, unit_dict, target):
 	response["Unit"]["NewHP"] = unit_hp_left
 	response["Target"] = {"Unit":target,"ID":target.id, "HP":tgt_prev_hp, "NewHP":tgt_hp_left}
 
-	logging.debug("Result: %s", response)
+	logging.debug("Result: {0}".format(response))
 
 	return response
 
@@ -304,7 +302,7 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 	"""
 	Updates the game with the provided action
 
-	:type action: Action object
+	:type action: String
 	:param action: The action taken
 
 	:type game: Game object
@@ -325,7 +323,7 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 	:rtype: Boolean
 	:return: True if the update was successful, False otherwise
 	"""
-	unit = unit_dict["Unit"]
+	unit   = unit_dict["Unit"]
 	unit.x = unit_dict["NewX"]
 	unit.y = unit_dict["NewY"]
 	unit.acted = True
@@ -338,16 +336,14 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 
 	# Information specific to having a target
 	unit.target = target_dict["Unit"]
-	unit.hp = unit_dict["NewHP"]
+	unit.hp     = unit_dict["NewHP"]
 	if unit.hp <= 0:
 		logging.debug("The attacking unit was KILLED by a counterattack.")
-		unit.dead = True
 
-	target = target_dict["Unit"]
+	target    = target_dict["Unit"]
 	target.hp = target_dict["NewHP"]
 	if target.hp <= 0:
 		logging.debug("The target was KILLED!")
-		target.dead = True
 
 	# Save the result
 	unit.save()
@@ -397,16 +393,17 @@ def validateMove(unit, game, user, newX, newY):
 		else:
 			error = "Internal Error: Two units located on same token ({},{}).".format(x, y)
 			return {"Error":error}
-	logging.debug("Unit Locations %s", unit_locations)
+	logging.debug("Unit Locations {0}".format(unit_locations))
 
 	# Determine how far this unit can move
 	version = game.version
-	move_range = Unit_Stat.objects.filter(unit=unit.unit_class, version=version, stat=Stat.objects.filter(version=version, name="Move").first()).first().value
-	logging.debug("Attempting to move %s from location (%d,%d) to location (%d,%d).", unit.unit_class.name, unit.x, unit.y, newX, newY)
+	stat_info = Static.statichelper.getAllStaticData(version)
+	move_range = stat_info["Classes"][unit.unit_class.name]["Stats"]["Move"]
+	logging.debug("Attempting to move {0} from location ({1},{2}) to location ({3},{4}).".format(unit.unit_class.name, unit.x, unit.y, newX, newY))
 
 	# Helper variables for next section of code
-	map_data = Game.maphelper.maps[version.name][game.map_path.name]
-	move_data = Game.maphelper.movement_dict
+	map_data   = Game.maphelper.maps[version.name][game.map_path.name]
+	move_data  = Game.maphelper.movement_dict
 	class_name = unit.unit_class.name
 
 	# Using BFS: Create a queue of valid tokens, if the queue is ever empty, the movement target was invalid
@@ -428,7 +425,7 @@ def validateMove(unit, game, user, newX, newY):
 		token = valid_move_queue.pop(0)
 		x = token["X"]
 		y = token["Y"]
-		logging.debug("Checking location (%d,%d).", x, y)
+		logging.debug("Checking location ({0},{1}).".format(x, y))
 
 		# Ensure this token is not already occupied, if occupied by:
 		if x in unit_locations and y in unit_locations[x]:
@@ -440,7 +437,7 @@ def validateMove(unit, game, user, newX, newY):
 					return {"Error":error}
 
 				# Otherwise, just continue to the next token
-				logging.debug("Location (%d,%d) occupied by enemy unit, skipping.", x, y)
+				logging.debug("Location ({0},{1}) occupied by enemy unit, skipping.".format(x, y))
 				continue
 			# Ally, do not check that this is end token, cannot end here
 			else:
@@ -451,7 +448,7 @@ def validateMove(unit, game, user, newX, newY):
 		else:
 			# Is this the target token
 			if x == newX and y == newY:
-				logging.debug("SUCCESS! Can move to (%d,%d).", x, y)
+				logging.debug("SUCCESS! Can move to ({0},{1}).".format(x, y))
 				return {"Success":True}
 
 		# Calculate if the unit can move to adjacent tokens, and if so add to queue,
@@ -480,7 +477,7 @@ def validateMove(unit, game, user, newX, newY):
 					valid_move_queue.append({"X":deltX,"Y":deltY,"Remaining":rem_mvmt})
 
 	# If exited the while loop, target token was not found
-	error = "Target location ({},{}) was out of reach for {} at location ({},{}).".format(newX, newY, class_name, unit.x, unit.y)
+	error = "Target location ({0},{1}) was out of reach for {2} at location ({3},{4}).".format(newX, newY, class_name, unit.x, unit.y)
 	return {"Error":error}
 
 def validateGameStarted(data):

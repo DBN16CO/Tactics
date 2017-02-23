@@ -1,37 +1,55 @@
-from django.test import TestCase
-from router import *
 from testhelper import *
+from router import *
 import json
+import Game.maphelper
+from Static.models import Version
 
-class TestCommunication(TestCase):
-	def setUp(self):
-		"""
-		Sets up all Communication tests
-		"""
-		self.channel = TestHelper()
-
-	def test1_ping_server(self):
-		"""
-		Tests that the ping-pong logic works
-		"""
-		startTestLog("test1_ping_server")
-
-		self.channel.send('{"PING":"PING"}')
-		result = self.channel.receive()
+class TestCommunication(CommonTestHelper):
+	"""
+	Tests the following:
+	- Pinging the server returns pong (Test 01)\n
+	- Sending in a fake command returns an error message (Test 02)\n
+	- Sending in a request with no command returns a message (Test 03)
+	- Sending a command with invlid JSON will return an error message (Test 04)\n
+	- Sending a command without being authenticated will return an error message (Test 05)\n
+	- When the map data is empty for a version it is reloaded successfully (Test 06)\n
+	"""
+	def test_cm_01_ping_server(self):
+		self.testHelper.send('{"PING":"PING"}')
+		result = self.testHelper.receive()
 		self.assertEqual(result, json.dumps({"PONG":"PONG"}))
 
-		endTestLog("test1_ping_server")
-
-	def test2_internal_error(self):
-		startTestLog("test2_internal_error")
-
+	def test_cm_02_internal_error(self):
 		# Create user and login
-		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"bad_cmd_usr","password":self.channel.generateValidPassword(),"email":"bcu@email.com"}))
+		self.assertTrue(self.testHelper.createUserAndLogin(
+			{"username":"bad_cmd_usr","password":self.testHelper.generateValidPassword(),"email":"bcu@email.com"}))
 
-		self.channel.send('{"Command":"fake_command"}')
-		result = json.loads(self.channel.receive())
-		self.assertTrue(result["Success"] == False)
-		self.assertEqual(result["Error"], "Internal Server Error.")
+		cmd = {"Command":"fake_command"}
+		self.helper_execute_failure(cmd, "Invalid command.")
 
-		endTestLog("test2_internal_error")
+	def test_cm_03_missing_command(self):
+		self.helper_execute_failure({}, "The command information is incomplete.")
+
+	def test_cm_04_invalid_json(self):
+		self.testHelper.send({}, 1)
+		result = json.loads(self.testHelper.receive(1))
+
+		self.assertFalse(result["Success"])
+		self.assertEqual(result["Error"], "Input JSON invalid.")
+
+	def test_cm_05_unauthenthicated_access(self):
+		self.helper_execute_failure({"Command":"AAA"}, "User is not authenticated, please login.")
+
+	def test_cm_06_reload_static_maps(self):
+		Game.maphelper.maps = {}
+
+		self.assertTrue(self.testHelper.createUserAndLogin(
+			{"username":"bad_cmd_usr","password":self.testHelper.generateValidPassword(),"email":"bcu@email.com"}))
+
+		# Run a command that reloads the map object
+		self.helper_execute_failure({"Command":"TA"}, "Internal Error: Game Key missing.")
+
+		version = Version.objects.latest('pk')
+
+		# Ensure that the map object was reloaded
+		self.assertTrue(version.name in Game.maphelper.maps)

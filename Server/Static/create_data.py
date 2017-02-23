@@ -156,10 +156,10 @@ def ver_1_0_static_data():
 			"Description":"Ranged unit with low armor.  Good at defeating Fliers.",
 			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
-				"HP":10.0, "Move": 6.0, "Agility": 8.5, "Intelligence": 4.0, "Strength": 7.0, "Luck": 7.0, "Defense":3, "Resistance":6, "Attack Range":2,
+				"HP":10, "Move": 6, "Agility": 8, "Intelligence": 4, "Strength": 7, "Luck": 7, "Defense":3, "Resistance":6, "Attack Range":2,
 			},
 			"Terrain": {
-				"G": 1.0, "F": 2.0, "W":99.0, "M": 4.0, "R": 1.0,
+				"G": 1, "F": 2, "W":99, "M": 4, "R": 1,
 			},
 			"Price":150,
 		},
@@ -168,10 +168,10 @@ def ver_1_0_static_data():
 			"Description":"Standard melee unit with average stats.",
 			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
-				"HP":15.0, "Move": 5.0, "Agility": 6.0, "Intelligence": 3.0, "Strength": 6.0, "Luck": 5.0, "Defense":5, "Resistance":4, "Attack Range":1,
+				"HP":15, "Move": 5, "Agility": 6, "Intelligence": 3, "Strength": 6, "Luck": 5, "Defense":5, "Resistance":4, "Attack Range":1,
 			},
 			"Terrain": {
-				"G": 1.0, "F": 3.0, "W":99.0, "M": 4.0, "R": 1.0,
+				"G": 1, "F": 3, "W":99, "M": 4, "R": 1,
 			},
 			"Price":100,
 		},
@@ -180,10 +180,10 @@ def ver_1_0_static_data():
 			"Description":"Magical ranged attacker with low defense.  Good at defeating armored units.",
 			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
-				"HP":10.0, "Move": 5.0, "Agility": 5.0, "Intelligence":10.5, "Strength": 1.0, "Luck": 7.0, "Defense":2, "Resistance":8, "Attack Range":2,
+				"HP":10, "Move": 5, "Agility": 5, "Intelligence":10, "Strength": 1, "Luck": 7, "Defense":2, "Resistance":8, "Attack Range":2,
 			},
 			"Terrain": {
-				"G": 1.0, "F": 2.0, "W":99.0, "M": 3.0, "R": 1.0,
+				"G": 1, "F": 2, "W":99, "M": 3, "R": 1,
 			},
 			"Price":150,
 		},
@@ -192,10 +192,10 @@ def ver_1_0_static_data():
 			"Description":"Magical ranged healing unit with low defense.  Restores weak units so they can return to battle.",
 			"Actions":{"Attack":False,"Heal":True,"Wait":True},
 			"Stats": {
-				"HP":5.0, "Move": 5.0, "Agility": 5.0, "Intelligence":10, "Strength": 1.0, "Luck": 5.0, "Defense":2, "Resistance":9, "Attack Range":2,
+				"HP":5, "Move": 5, "Agility": 5, "Intelligence":10, "Strength": 1, "Luck": 5, "Defense":2, "Resistance":9, "Attack Range":2,
 			},
 			"Terrain": {
-				"G": 1.0, "F": 2.0, "W":99.0, "M": 3.0, "R": 1.0,
+				"G": 1, "F": 2, "W":99, "M": 3, "R": 1,
 			},
 			"Price":200,
 		},
@@ -204,10 +204,10 @@ def ver_1_0_static_data():
 			"Description":"Fast evasive melee unit.  Has low defense but high attack potential.",
 			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
-				"HP":10.0, "Move": 6.0, "Agility":10.5, "Intelligence": 4.0, "Strength": 3.0, "Luck":11.0, "Defense":4, "Resistance":7, "Attack Range":1,
+				"HP":10, "Move": 6, "Agility":10, "Intelligence": 4, "Strength": 3, "Luck":11, "Defense":4, "Resistance":7, "Attack Range":1,
 			},
 			"Terrain": {
-				"G": 1.0, "F": 1.0, "W":99.0, "M": 2.0, "R": 0.5,
+				"G": 1, "F": 1, "W":99, "M": 2, "R": 1,
 			},
 			"Price":200,
 		},
@@ -216,10 +216,10 @@ def ver_1_0_static_data():
 			"Description":"Melee unit with very high physical defense, but low magical resistance.",
 			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
-				"HP":20.5, "Move": 4.0, "Agility": 3.0, "Intelligence": 1.0, "Strength": 8.0, "Luck": 2.0, "Defense":8, "Resistance":1, "Attack Range":1,
+				"HP":20, "Move": 4, "Agility": 3, "Intelligence": 1, "Strength": 8, "Luck": 2, "Defense":8, "Resistance":1, "Attack Range":1,
 			},
 			"Terrain": {
-				"G": 1.0, "F": 3.0, "W":99.0, "M":99.0, "R": 1.0,
+				"G": 1, "F": 3, "W":99, "M":99, "R": 1,
 			},
 			"Price":300,
 		},
@@ -228,10 +228,10 @@ def ver_1_0_static_data():
 			"Description":"Mounted melee unit with high mobility.",
 			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
-				"HP":20.0, "Move": 7.0, "Agility": 8.0, "Intelligence": 3.0, "Strength": 6.0, "Luck": 6.0, "Defense":5, "Resistance":4, "Attack Range":1,
+				"HP":20, "Move": 7, "Agility": 8, "Intelligence": 3, "Strength": 6, "Luck": 6, "Defense":5, "Resistance":4, "Attack Range":1,
 			},
 			"Terrain": {
-				"G": 1.0, "F": 3.0, "W":99.0, "M":99.0, "R": 0.5,
+				"G": 1, "F": 3, "W":99, "M":99, "R": 1,
 			},
 			"Price":250,
 		},
@@ -240,10 +240,10 @@ def ver_1_0_static_data():
 			"Description":"Flying melee unit, can move over any tile.  Low defense, especially to archers.",
 			"Actions":{"Attack":True,"Heal":False,"Wait":True},
 			"Stats": {
-				"HP":10.0, "Move": 8.0, "Agility": 8.0, "Intelligence": 5.0, "Strength": 4.0, "Luck": 8.0, "Defense":3, "Resistance":6, "Attack Range":1,
+				"HP":10, "Move": 8, "Agility": 8, "Intelligence": 5, "Strength": 4, "Luck": 8, "Defense":3, "Resistance":6, "Attack Range":1,
 			},
 			"Terrain": {
-				"G": 1.0, "F": 1.0, "W": 1.0, "M": 1.0, "R": 1.0,
+				"G": 1, "F": 1, "W": 1, "M": 1, "R": 1,
 			},
 			"Price":200,
 		},

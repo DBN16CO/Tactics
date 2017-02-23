@@ -3,22 +3,17 @@ from Communication.testhelper import *
 from Static.create_data import *
 import json
 
-class TestStatic(TestCase):
-	def setUp(self):
-		self.channel = TestHelper()
-
-	def test1_bad_db_setup(self):
+class TestStatic(CommonTestHelper):
+	def test_db_01_bad_db_setup(self):
 		result = setup_static_db("bad version")
 		self.assertFalse(result)
 
-	def test2_initial_load_v1_0(self):
-		startTestLog("test2_initial_load_v1_0")
-		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"init_user","password":self.channel.generateValidPassword(),"email":"initUser@email.com"}))
+	def test_il_02_v1_0(self):
+		self.assertTrue(self.testHelper.createUserAndLogin(
+			{"username":"init_user","password":self.testHelper.generateValidPassword(),"email":"initUser@email.com"}))
 
-		self.channel.send('{"Command":"IL"}')
-		result = self.channel.receive()
-		logging.debug(result)
+		self.testHelper.send('{"Command":"IL"}')
+		result = self.testHelper.receive()
 
 		expected_data = ver_1_0_static_data()
 
@@ -26,7 +21,6 @@ class TestStatic(TestCase):
 
 		data = json.loads(result)
 		expected_data = json.loads(json.dumps(expected_data))
-		logging.debug(data)
 
 		# Version Check - do the dictionaries match?
 		self.assertEqual(data["Version"], expected_data["Version"])
@@ -41,7 +35,11 @@ class TestStatic(TestCase):
 		self.assertEqual(data["Abilities"], expected_data["Abilities"])
 
 		# Leader Check - Ensure leader keys match, their values are not null, and ability lists, sorted, match
-		self.assertEqual(data["Leaders"], expected_data["Leaders"])
+		for leader in data["Leaders"]:
+			self.assertEqual(data["Leaders"][leader]["Description"],
+				expected_data["Leaders"][leader]["Description"])
+			abil_set = set(data["Leaders"][leader]["Abilities"]).intersection(expected_data["Leaders"][leader]["Abilities"])
+			self.assertEqual(abil_set, set(data["Leaders"][leader]["Abilities"]))
 
 		# Map Check - Ensure that each map name exists as a key, and its data is not null
 		self.assertEqual(sorted(data["Maps"]), sorted(expected_data["Maps"]))
@@ -68,20 +66,15 @@ class TestStatic(TestCase):
 		# Verify the success
 		self.assertEqual(data["Success"], True)
 
-		endTestLog("test2_initial_load_v1_0")
-
-	def test3_incomplete_version(self):
-		startTestLog("test3_incomplete_version")
-		self.assertTrue(self.channel.createUserAndLogin(
-			{"username":"init_user","password":self.channel.generateValidPassword(),"email":"initUser@email.com"}))
+	def test_il_03_incomplete_version(self):
+		self.assertTrue(self.testHelper.createUserAndLogin(
+			{"username":"init_user","password":self.testHelper.generateValidPassword(),"email":"initUser@email.com"}))
 
 		bad_ver = Version(name="bad version")
 		bad_ver.save()
 
-		self.channel.send('{"Command":"IL"}')
-		result = self.channel.receive()
+		self.testHelper.send('{"Command":"IL"}')
+		result = self.testHelper.receive()
 		logging.debug(result)
 
 		self.assertEqual(result, json.dumps({"Success": False, "Error": "The following tables could not be loaded: Abilities, Actions, Classes, Leaders, Maps, Perks, Stats, Terrain"}))
-
-		endTestLog("test3_incomplete_version")
