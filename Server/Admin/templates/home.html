@@ -1,0 +1,79 @@
+{% block home-block %}
+<div class="container" id="home-container" style="padding-top: 70px">
+	<h1>Home</h1>
+
+	<br />
+
+	<div class="row">
+		<div class="col-xs-4">
+			<div class="well" style="padding: 3px;">
+				<h4 align="center"> Users Connected (approx.)</h4>
+				<h2 align="center">{{ num_users_connected }}</h2>
+			</div>
+		</div>
+
+		<div class="col-xs-4">
+			<div class="well" style="padding: 3px;">
+				<h4 align="center">Server Uptime</h4>
+				<h2 align="center">{{ uptime }}</h2>
+			</div>
+		</div>
+
+		<div class="col-xs-4">
+			<div class="well" style="padding: 3px;">
+				<h4 align="center">Server Disk Usage</h4>
+				<h2 align="center">{{ used_disk_amount }} / {{ total_disk_size }}</h2>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-xs-4">
+			<div class="well" style="padding: 3px;">
+				<h4 align="center">Database Row Count</h4>
+				<h2 align="center">{{ db_row_count }}</h2>
+			</div>
+		</div>
+
+		<div class="col-xs-4">
+			<div class="well" style="padding: 3px;">
+				<h4 align="center">Placeholder Statistic</h4>
+				<h2 align="center">(Statistic)</h2>
+			</div>
+		</div>
+
+		<div class="col-xs-4">
+			<div class="well" style="padding: 3px;">
+				<h4 align="center">Placeholder Statistic</h4>
+				<h2 align="center">(Statistic)</h2>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-xs-4">
+			<div class="well" style="padding: 3px;">
+				<h4 align="center">Placeholder Statistic</h4>
+				<h2 align="center">(Statistic)</h2>
+			</div>
+		</div>
+
+		<div class="col-xs-4">
+			<div class="well" style="padding: 3px;">
+				<h4 align="center">Placeholder Statistic</h4>
+				<h2 align="center">(Statistic)</h2>
+			</div>
+		</div>
+
+		<div class="col-xs-4">
+			<div class="well" style="padding: 3px;">
+				<h4 align="center">Placeholder Statistic</h4>
+				<h2 align="center">(Statistic)</h2>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+
+{% endblock %}

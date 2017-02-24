@@ -1,5 +1,6 @@
 import logging
 import string
+import datetime
 
 # Log Level
 DEFAULT_LOG_LEVEL = logging.DEBUG
@@ -25,6 +26,8 @@ PASSWORD_POLICY = {
 		'Symbol': [False, ['~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '?', '.', '/', '"', ',']]
 	}
 }
+
+START_DATETIME = datetime.datetime.now()
 
 def startup():
 	"""

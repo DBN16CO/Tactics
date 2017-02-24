@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if not admin %}
+<div class="centered">
+    <div class="well">
+        <form method="POST" name="admin-login">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" name="username" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" name="password" class="form-control" required/>
+            </div>
+
+            <input type="hidden" name="form-type" value="login" />
+            <input type="submit" name="submit" class="btn btn-primary" />
+        </form>
+    </div>
+</div>
+{% else %}
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <div class="navbar-brand">Tactics Admin Console</div>
+        </div>
+        <ul class="nav navbar-nav" id="nav-links">
+            <li class="divider-vertical"></li>
+            <li class="divider-vertical"></li>
+        	<li class="active"><a href="javascript:void(0);" id="home-toggle">Home</a></li>
+            <li><a href="javascript:void(0);" id="performance-toggle">Performance</a></li>
+            <li><a href="javascript:void(0);" id="users-toggle">Users</a></li>
+            <li><a href="javascript:void(0);" id="logs-toggle">Logs</a></li>
+            <li><a href="javascript:void(0);" id="games-toggle">Games</a></li>
+            <li><a href="javascript:void(0);" id="maps-toggle">Maps</a></li>
+            <li><a href="javascript:void(0);" id="classes-toggle">Classes</a></li>
+            <li><a href="javascript:void(0);" id="leaders-toggle">Leaders/Perks</a></li>
+        </ul>
+        <div class="navbar-right">
+            <p class="navbar-text">Signed in as {{ admin }}</p>
+            <a href="/admin?logout=true" class="btn btn-success navbar-btn">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div id="content-containers">
+
+{% block home-block %}
+{% include 'home.html' %}
+{% endblock %}
+
+{% block performance-block %}
+{% include 'performance.html' %}
+{% endblock %}
+
+{% block users-block %}
+{% include 'users.html' %}
+{% endblock %}
+
+{% block logs-block %}
+{% include 'logs.html' %}
+{% endblock %}
+
+{% block games-block %}
+{% include 'games.html' %}
+{% endblock %}
+
+{% block maps-block %}
+{% include 'maps.html' %}
+{% endblock %}
+
+{% block classes-block %}
+{% include 'classes.html' %}
+{% endblock %}
+
+{% block leaders-block %}
+{% include 'leaders.html' %}
+{% endblock %}
+
+</div>
+
+{% endif %}
+{% endblock %}

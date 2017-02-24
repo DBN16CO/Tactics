@@ -4,6 +4,7 @@
 
 .. moduleauthor:: Drew, Brennan, and Nick
 """
+import os
 from channels import Channel
 from channels.tests import ChannelTestCase
 from django.test import TestCase
@@ -28,6 +29,9 @@ class TestHelper(ChannelTestCase):
 		# Logging
 		self.setupConfig()
 		startTestLog(testName)
+
+		# Set the test environment variable
+		os.environ['TEST_ENV'] = "TEST_ENV"
 
 		# Test Channels
 		self.channel = Channel(u'Test')

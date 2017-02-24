@@ -6,9 +6,14 @@
 """
 import json
 import logging
+import threading
+import time
+import os
 
+from channels import Group
 from User.models import Users
 from Static.models import Version
+from Admin import admin_utils
 import Game.routeunithelper
 import Game.routegamehelper
 import Game.unithelper
@@ -21,9 +26,13 @@ import Communication.routehelper
 from channels.sessions import channel_session
 
 def connect(message):
+	Group("activeUsers").add(message.reply_channel)
 	message.reply_channel.send({
 		"accept": True
 	})
+
+def disconnect(message):
+	Group("activeUsers").discard(message.reply_channel)
 
 @channel_session
 def processRequest(message):
@@ -70,6 +79,11 @@ def processRequest(message):
 	:rtype: Dictionary
 	:return: A response to the incoming request from the front end
 	"""
+
+	# Start timing the request
+	if not "TEST_ENV" in os.environ:
+		start_time = time.clock()
+
 	# Get the request
 	request = message.content['bytes']
 	logging.debug("Parsing incoming json request: \n{0}".format(request))
@@ -176,9 +190,12 @@ def processRequest(message):
 		response = commands[cmd](data)
 	except Exception, e:
 		logging.error("Failed to execute command: {0}".format(cmd))
-		logging.debug(data)
 		logging.exception(e)
 		response = {"Success": False, "Error": "Internal Server Error."}
+		message.reply_channel.send({
+			'text': json.dumps(response)
+		})
+		return
 
 	# If the requested command was to create a new user or login to an existing user, set the channel session
 	if "Success" in response and response['Success'] and (cmd == 'LGN' or cmd == 'CU'):
@@ -188,3 +205,8 @@ def processRequest(message):
 	message.reply_channel.send({
 		'text': json.dumps(response)
 	})
+
+	if not "TEST_ENV" in os.environ:
+		end_time = time.clock()
+		t = threading.Thread(target=admin_utils.archive_request_duration, args=(start_time, end_time, cmd))
+		t.start()
