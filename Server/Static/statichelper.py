@@ -6,10 +6,11 @@
 .. moduleauthor:: Drew, Brennan, and Nick
 
 """
-import logging
+import copy, logging
 from Static.models import Version, Ability, Action, Class, Class_Action, Leader_Ability, Map, Perk, Stat, Unit_Stat, Terrain, Terrain_Unit_Movement
 
 static_data = {}
+static_data_il = {}
 
 def getAllStaticData(version=None):
 	"""
@@ -41,6 +42,50 @@ def getAllStaticData(version=None):
 			return static_data.pop(version.name, None)
 
 	return static_data[version.name]
+
+def getAllStaticDataIL(version=None):
+	"""
+	Gets the static data object by loading all static data from the database.
+	If the static data already exists, simply pull out the part for the version requested.
+	Different from 'getAllStaticData' in that all of the model objects have been removed
+	from the dictionary.
+
+	:rtype: Dictionary
+	:return: An object loaded with all static data, in simplified version:\n
+			{\n
+				"Version"   : <getVersionData results>,\n
+				"Abilities" : <getAbilityData results>,\n
+				"Actions"   : <getActionData results>,\n
+				"Classes"   : <getClassData results>,\n
+				"Leaders"   : <getLeaderData results>,\n
+				"Maps"      : <getMapData results>,\n
+				"Perks"     : <getPerkData results>,\n
+				"Stats"     : <getStatData results>,\n
+				"Terrain"   : <getTerrainData results>\n
+			}
+	"""
+	if version == None:
+		version = Version.objects.latest('pk')
+
+	if not version.name in static_data_il:
+		response = copy.deepcopy(getAllStaticData(version))
+
+		if "Error" in response:
+			logging.info("Reloading Static data failed.")
+			return response
+
+		for clss in response["Classes"]:
+			response["Classes"][clss].pop("Object", None)
+
+		for perk in response["Perks"]:
+			response["Perks"][perk].pop("Object", None)
+
+		for leader in response["Leaders"]:
+			response["Leaders"][leader]["Abilities"] = response["Leaders"][leader]["Abilities"].keys()
+
+		static_data_il[version.name] = response
+
+	return static_data_il[version.name]
 
 def loadAllStaticData(version=None):
 	"""

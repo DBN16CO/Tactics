@@ -91,19 +91,8 @@ def getAllStaticData(data):
 	"""
 
 	#TODO Determine if user needs other version's static data
-	response = Static.statichelper.getAllStaticData()
+	response = Static.statichelper.getAllStaticDataIL()
 
 	response["Success"] = True if not "Error" in response else False
-
-	# If the data loaded properly, remove any DB objects in the dictionary
-	if response["Success"]:
-		for clss in response["Classes"]:
-			response["Classes"][clss].pop("Object", None)
-
-		for perk in response["Perks"]:
-			response["Perks"][perk].pop("Object", None)
-
-		for leader in response["Leaders"]:
-			response["Leaders"][leader]["Abilities"] = response["Leaders"][leader]["Abilities"].keys()
 
 	return response
