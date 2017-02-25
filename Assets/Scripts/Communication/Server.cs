@@ -21,6 +21,10 @@ public static class Server {
 		//Communication.Connect(new Uri("ws://tactics-production.herokuapp.com/"));
 	}
 
+	public static void Disconnect() {
+		Communication.Close();
+	}
+
 	public static bool InitialLoad() {
 		// Create the request, set data to pass, and send it
 		var request = new Dictionary<string, object>();

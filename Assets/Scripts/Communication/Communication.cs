@@ -73,14 +73,17 @@ public static class Communication{
 
 	public static byte[] Recv()
 	{
-		if (m_Messages.Count == 0)
+		if (m_Messages.Count == 0) {
 			return null;
+		}
 		return m_Messages.Dequeue();
 	}
 
 	public static void Close()
 	{
-		m_Socket.Close();
+		if (m_Socket != null){
+			m_Socket.Close();
+		}
 	}
 
 	public static string error
