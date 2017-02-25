@@ -14,9 +14,9 @@ public static class Server {
 
 	public static void Connect() {
 		// Local host -----------
-		//Communication.Connect(new Uri("ws://localhost:8000"));
+		Communication.Connect(new Uri("ws://localhost:8000"));
 		// Raspberry Pi ---------
-		Communication.Connect(new Uri("ws://tactics-dev.ddns.net:8443"));
+		//Communication.Connect(new Uri("ws://tactics-dev.ddns.net:8443"));
 		// Heroku ---------------
 		//Communication.Connect(new Uri("ws://tactics-production.herokuapp.com/"));
 	}
@@ -32,10 +32,19 @@ public static class Server {
 		Communication.SendString(Json.ToString(request));
 		// Wait for the response, then parse
 		string strResponse = null;
+		Dictionary<string, object> response = null;
 		while(strResponse == null) {
 			strResponse = Communication.RecvString();
+			if (strResponse != null){
+				response = Json.ToDict(strResponse);
+				if (IsUnauthenticated(response)){
+					RetryLogin();
+					strResponse = null;
+					response = null;
+					Communication.SendString(Json.ToString(request));
+				}
+			}
 		}
-		var response = Json.ToDict(strResponse);
 		bool success = (bool)response["Success"];
 		if(success) {
 			//Debug.Log(strResponse);
@@ -68,6 +77,19 @@ public static class Server {
 			Debug.Log("user '" + username + "' logged in with token: " + _loginToken);
 		}
 		return success;
+	}
+
+	private static bool IsUnauthenticated(Dictionary<string, object> response){
+		bool success = (bool)response["Success"];
+		if (!success){
+			string error = response["Error"].ToString();
+			if (error.Contains("User is not authenticated")){
+				Debug.Log("User is not authenticated, retry logging in.");
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	// Used to login to server with cached session token
@@ -105,10 +127,19 @@ public static class Server {
 		Communication.SendString(Json.ToString(request));
 		// Wait for the response, then parse
 		string strResponse = null;
+		Dictionary<string, object> response = null;
 		while(strResponse == null) {
 			strResponse = Communication.RecvString();
+			if (strResponse != null){
+				response = Json.ToDict(strResponse);
+				if (IsUnauthenticated(response)){
+					RetryLogin();
+					strResponse = null;
+					response = null;
+					Communication.SendString(Json.ToString(request));
+				}
+			}
 		}
-		var response = Json.ToDict(strResponse);
 		// Error Handling
 		bool success = (bool)response["Success"];
 		if(success) {
@@ -169,10 +200,19 @@ public static class Server {
 		Communication.SendString(Json.ToString(request));
 		// Wait for the response, then parse
 		string strResponse = null;
+		Dictionary<string, object> response = null;
 		while(strResponse == null) {
 			strResponse = Communication.RecvString();
+			if (strResponse != null){
+				response = Json.ToDict(strResponse);
+				if (IsUnauthenticated(response)){
+					RetryLogin();
+					strResponse = null;
+					response = null;
+					Communication.SendString(Json.ToString(request));
+				}
+			}
 		}
-		var response = Json.ToDict(strResponse);
 		// Error handling
 		bool success = (bool)response["Success"];
 		return success;
@@ -190,10 +230,19 @@ public static class Server {
 		Communication.SendString(Json.ToString(request));
 		// Wait for the response, then parse
 		string strResponse = null;
+		Dictionary<string, object> response = null;
 		while(strResponse == null) {
 			strResponse = Communication.RecvString();
+			if (strResponse != null){
+				response = Json.ToDict(strResponse);
+				if (IsUnauthenticated(response)){
+					RetryLogin();
+					strResponse = null;
+					response = null;
+					Communication.SendString(Json.ToString(request));
+				}
+			}
 		}
-		var response = Json.ToDict(strResponse);
 		// Error handling
 		bool success = (bool)response["Success"];
 		return success;
@@ -207,10 +256,19 @@ public static class Server {
 		Communication.SendString(Json.ToString(request));
 		// Wait for the response, then parse
 		string strResponse = null;
+		Dictionary<string, object> response = null;
 		while(strResponse == null) {
 			strResponse = Communication.RecvString();
+			if (strResponse != null){
+				response = Json.ToDict(strResponse);
+				if (IsUnauthenticated(response)){
+					RetryLogin();
+					strResponse = null;
+					response = null;
+					Communication.SendString(Json.ToString(request));
+				}
+			}
 		}
-		var response = Json.ToDict(strResponse);
 		// Error handling
 		bool success = (bool)response["Success"];
 		return success;
@@ -224,10 +282,19 @@ public static class Server {
 		Communication.SendString(Json.ToString(request));
 		// Wait for the response, then parse
 		string strResponse = null;
+		Dictionary<string, object> response = null;
 		while(strResponse == null) {
 			strResponse = Communication.RecvString();
+			if (strResponse != null){
+				response = Json.ToDict(strResponse);
+				if (IsUnauthenticated(response)){
+					RetryLogin();
+					strResponse = null;
+					response = null;
+					Communication.SendString(Json.ToString(request));
+				}
+			}
 		}
-		var response = Json.ToDict(strResponse);
 		// Error handling
 		bool success = (bool)response["Success"];
 		return success;

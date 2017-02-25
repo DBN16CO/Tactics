@@ -48,6 +48,11 @@ public class SetTeamController : MonoBehaviour {
 		FundsRemaining = _maxFunds;
 	}
 
+	// Runs when the app is closed - attempt to close the websocket cleanly
+	void OnApplicationQuit() {
+		Server.Disconnect();
+	}
+
 	// Adds a leader to the screen
 	private void AddLeader(int i, LeaderData leaderData) {
 		// Instantiate GameObject, reposition based on index, assign specific game data, and resize scrollable area

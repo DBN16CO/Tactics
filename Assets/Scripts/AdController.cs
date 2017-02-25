@@ -11,6 +11,11 @@ public class AdController : MonoBehaviour {
 		btn.onClick.AddListener(TaskOnClick);
 	}
 
+	// Runs when the app is closed - attempt to close the websocket cleanly
+	void OnApplicationQuit() {
+		Server.Disconnect();
+	}
+
 	void TaskOnClick(){
 		Application.OpenURL("https://pbs.twimg.com/profile_images/2932495059/f664298aa5c7554496fc503909b94466_400x400.jpeg");
 	}

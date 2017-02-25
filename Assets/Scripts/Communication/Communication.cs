@@ -15,6 +15,7 @@ public static class Communication{
 	static Queue<byte[]> m_Messages = new Queue<byte[]>();
 	static bool m_IsConnected = false;
 	static string m_Error = null;
+	static int retry = 0;
 
 	private static Uri mUrl;
 
@@ -46,9 +47,41 @@ public static class Communication{
 			throw new ArgumentException("Unsupported protocol: " + protocol);
 
 		m_Socket = new WebSocketSharp.WebSocket(mUrl.ToString());
-		m_Socket.OnMessage += (sender, e) => m_Messages.Enqueue (e.RawData);
-		m_Socket.OnOpen += (sender, e) => m_IsConnected = true;
-		m_Socket.OnError += (sender, e) => m_Error = e.Message;
+
+		//Logic to be done when we receive a message through the websocket
+		m_Socket.OnMessage += (sender, e) => {
+			m_Messages.Enqueue (e.RawData);
+		};
+
+		//Logic to be done when we successfully connect to the server through the websocket
+		m_Socket.OnOpen += (sender, e) => {
+			retry = 0;
+			m_IsConnected = true;
+		};
+
+		//Logic to be done when we hit an error with the websocket connection
+		m_Socket.OnError += (sender, e) => {
+			m_Error = e.Message;
+			Debug.Log("Close Reason: " + e.Message);
+			if (retry < 5) {
+				Debug.Log("Retrying connection: " + retry);
+			    retry++;
+			    Thread.Sleep (5000);
+			    Close();
+			    Connect(url);
+			  }
+			  else {
+			    Debug.Log("Failed to reconnect");
+			  }
+		};
+
+		//Logic to be done when the websocket is closed
+		m_Socket.OnClose += (sender, e) => {
+			Debug.Log("Websocket closed.");
+
+    		
+		};
+
 		m_Socket.ConnectAsync();
 
 		while (!m_IsConnected && m_Error == null) {
@@ -83,6 +116,7 @@ public static class Communication{
 	{
 		if (m_Socket != null){
 			m_Socket.Close();
+			m_Socket = null;
 		}
 	}
 
