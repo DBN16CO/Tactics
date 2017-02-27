@@ -7,6 +7,7 @@ install:
 - ./TravisScripts/install.sh
 
 script:
+- ./TravisScripts/build.sh
 - ./TravisScripts/run_tests.sh
 
 after_script:
