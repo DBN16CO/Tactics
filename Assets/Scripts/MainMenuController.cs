@@ -9,6 +9,11 @@ public class MainMenuController : MonoBehaviour {
 		LoadCustomGames();
 	}
 
+	// Runs when the app is closed - attempt to close the websocket cleanly
+	void OnApplicationQuit() {
+		Server.Disconnect();
+	}
+
 	public void LoadSetTeam() {
 		SceneManager.LoadSceneAsync("SetTeam", LoadSceneMode.Single);
 	}

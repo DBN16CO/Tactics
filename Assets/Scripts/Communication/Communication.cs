@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Collections;
 using UnityEngine;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 public static class Communication{
 
 	static WebSocketSharp.WebSocket m_Socket;
 	static Queue<byte[]> m_Messages = new Queue<byte[]>();
-	static bool m_IsConnected = false;
-	static string m_Error = null;
+	static bool m_IsConnected;
+	static string m_Error;
+	static int retry;
 
 	private static Uri mUrl;
 
@@ -26,9 +22,10 @@ public static class Communication{
 	public static string RecvString()
 	{
 		byte[] retval = Recv();
-		if (retval == null)
+		if (retval == null){
 			return null;
-		return Encoding.UTF8.GetString (retval);
+		}
+		return Encoding.UTF8.GetString(retval);
 	}
 
 	public static bool Connect(Uri url)
@@ -46,24 +43,56 @@ public static class Communication{
 			throw new ArgumentException("Unsupported protocol: " + protocol);
 
 		m_Socket = new WebSocketSharp.WebSocket(mUrl.ToString());
-		m_Socket.OnMessage += (sender, e) => m_Messages.Enqueue (e.RawData);
-		m_Socket.OnOpen += (sender, e) => m_IsConnected = true;
-		m_Socket.OnError += (sender, e) => m_Error = e.Message;
+
+		//Logic to be done when we receive a message through the websocket
+		m_Socket.OnMessage += (sender, e) => {
+			m_Messages.Enqueue (e.RawData);
+		};
+
+		//Logic to be done when we successfully connect to the server through the websocket
+		m_Socket.OnOpen += (sender, e) => {
+			retry = 0;
+			m_IsConnected = true;
+		};
+
+		//Logic to be done when we hit an error with the websocket connection
+		m_Socket.OnError += (sender, e) => {
+			m_Error = e.Message;
+			m_IsConnected = false;
+			Debug.Log("Error Reason: " + e.Message);
+			if (retry < 5) {
+				Debug.Log("Retrying connection: " + retry);
+				retry++;
+				Thread.Sleep (2000);
+				Close();
+				Connect(url);
+			}
+			else {
+				Debug.Log("Failed to reconnect");
+			}
+		};
+
+		//Logic to be done when the websocket is closed
+		m_Socket.OnClose += (sender, e) => {
+			m_IsConnected = false;
+			Debug.Log("Websocket closed.");
+		};
+
 		m_Socket.ConnectAsync();
 
-		while (!m_IsConnected && m_Error == null) {
+		int retryCount = 0;
+		const int maxRetries = 10;
+		while (!m_IsConnected && m_Error == null && retryCount < maxRetries) {
 			//Debug.Log ("Waiting for connection...");
-			Thread.Sleep (1000);
+			Thread.Sleep (500);
+			retryCount++;
 		}
 
-		if (m_IsConnected) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return m_IsConnected;
+	}
 
-
+	public static bool IsConnected(){
+		return m_Socket != null && m_Socket.IsAlive && m_IsConnected;
 	}
 
 	public static void Send(byte[] buffer)
@@ -73,17 +102,21 @@ public static class Communication{
 
 	public static byte[] Recv()
 	{
-		if (m_Messages.Count == 0)
+		if (m_Messages.Count == 0) {
 			return null;
+		}
 		return m_Messages.Dequeue();
 	}
 
 	public static void Close()
 	{
-		m_Socket.Close();
+		if (m_Socket != null){
+			m_Socket.Close();
+			m_Socket = null;
+		}
 	}
 
-	public static string error
+	public static string Error
 	{
 		get {
 			return m_Error;

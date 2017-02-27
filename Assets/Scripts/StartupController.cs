@@ -33,6 +33,11 @@ public class StartupController : MonoBehaviour {
 		}
 	}
 
+	// Runs when the app is closed - attempt to close the websocket cleanly
+	void OnApplicationQuit() {
+		Server.Disconnect();
+	}
+
 	// Runs every frame, lerps objects if _expanding or _collapsing
 	void Update() {
 		if(_t >= 1f) {
