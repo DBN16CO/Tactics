@@ -5,8 +5,8 @@ rvm:
 - 2.1.2
 install:
 - brew services start postgresql
-- brew install redis-server
-- brew services start redis-server
+- brew install redis
+- brew services start redis
 - ./TravisScripts/install.sh
 
 script:
