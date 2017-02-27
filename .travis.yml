@@ -3,10 +3,11 @@ sudo: required
 osx_image: xcode61
 rvm:
 - 2.1.2
-services:
-- postgresql
-- redis-server
 install:
+- brew install postgresql
+- brew services start postgresql
+- brew install redis-server
+- brew services start redis-server
 - ./TravisScripts/install.sh
 
 script:
