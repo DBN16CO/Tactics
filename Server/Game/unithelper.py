@@ -209,7 +209,7 @@ def calculateActionResult(action, game, unit_dict, target):
 
 	# Process unit's action upon target
 	if action == "Attack":
-		logging.debug("{}[{}] attacking {}".format(clss.name,unit_dict["Unit"].id, target.id))
+		logging.debug("{0}[{1}] attacking {2}.".format(clss.name,unit_dict["Unit"].id, target.id))
 
 		if unit_dict["Unit"].owner == target.owner:
 			return {"Error":"Cannot attack your own units!"}
@@ -272,6 +272,8 @@ def calculateActionResult(action, game, unit_dict, target):
 			logging.debug("MISSED! Or out of range to counter.")
 
 	elif action == "Heal":
+		logging.debug("{0}[{1}] healing {2}.".format(clss.name,unit_dict["Unit"].id, target.id))
+
 		if unit_dict["Unit"].owner != target.owner:
 			return {"Error":"Cannot heal the enemy units!"}
 		elif unit_dict["Unit"].id == target.id:
