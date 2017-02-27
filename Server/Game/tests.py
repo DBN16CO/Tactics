@@ -662,7 +662,7 @@ class TestTakeAction(TestGame):
 			unit_class=self.attacker.unit_class).exclude(unit_class=self.healer.unit_class).first()
 
 		# Find a reliable, nearby ally
-		self.nearest_ally_x = self.attacker.x - 1 if self.attacker.x != 0 else 1
+		self.nearest_ally_x = self.attacker.x - 1 if self.attacker.x != 0 else self.attacker.x + 1
 		self.nearest_ally = Unit.objects.filter(owner=self.user, game=self.game,
 			x=self.nearest_ally_x).first()
 
