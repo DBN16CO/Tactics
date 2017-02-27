@@ -1,5 +1,6 @@
 language: python
 sudo: required
+osx_image: xcode61
 services:
 - postgresql
 - redis-server
