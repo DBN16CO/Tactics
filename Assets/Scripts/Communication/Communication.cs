@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Collections;
 using UnityEngine;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 public static class Communication{
 
 	static WebSocketSharp.WebSocket m_Socket;
 	static Queue<byte[]> m_Messages = new Queue<byte[]>();
-	static bool m_IsConnected = false;
-	static string m_Error = null;
-	static int retry = 0;
+	static bool m_IsConnected;
+	static string m_Error;
+	static int retry;
 
 	private static Uri mUrl;
 
@@ -27,9 +22,10 @@ public static class Communication{
 	public static string RecvString()
 	{
 		byte[] retval = Recv();
-		if (retval == null)
+		if (retval == null){
 			return null;
-		return Encoding.UTF8.GetString (retval);
+		}
+		return Encoding.UTF8.GetString(retval);
 	}
 
 	public static bool Connect(Uri url)
@@ -85,21 +81,14 @@ public static class Communication{
 		m_Socket.ConnectAsync();
 
 		int retryCount = 0;
-		int maxRetries = 10;
+		const int maxRetries = 10;
 		while (!m_IsConnected && m_Error == null && retryCount < maxRetries) {
 			//Debug.Log ("Waiting for connection...");
 			Thread.Sleep (1000);
 			retryCount++;
 		}
 
-		if (m_IsConnected) {
-			return true;
-		}
-		else {
-			return false;
-		}
-
-
+		return m_IsConnected;
 	}
 
 	public static bool IsConnected(){
@@ -127,7 +116,7 @@ public static class Communication{
 		}
 	}
 
-	public static string error
+	public static string Error
 	{
 		get {
 			return m_Error;
