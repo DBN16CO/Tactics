@@ -12,16 +12,13 @@ using System.Text.RegularExpressions;
 public static class Server {
 
 	public static bool inQueue;
-	private static string url = "ws://localhost:8000";
+	private static string url = "ws://tactics-dev.ddns.net:8443"
+	//private static string url = "ws://localhost:8000";
+	//private static string url = ""ws://tactics-production.herokuapp.com/""
 
 
 	public static void Connect() {
-		// Local host -----------
 		Communication.Connect(new Uri(url));
-		// Raspberry Pi ---------
-		//Communication.Connect(new Uri("ws://tactics-dev.ddns.net:8443"));
-		// Heroku ---------------
-		//Communication.Connect(new Uri("ws://tactics-production.herokuapp.com/"));
 	}
 
 	public static void Disconnect() {
@@ -50,7 +47,7 @@ public static class Server {
 		Dictionary<string, object> response = null;
 
 		int retryCount = 0;
-		int maxRetries = 5;
+		const int maxRetries = 5;
 		while(strResponse == null && retryCount < maxRetries) {
 			strResponse = Communication.RecvString();
 			if (strResponse != null){
@@ -72,7 +69,7 @@ public static class Server {
 
 		bool success = (bool)response["Success"];
 		if(!success) {
-			Debug.Log("Request (" + request["Command"].ToString() + ") Failed");
+			Debug.Log("Request (" + request["Command"] + ") Failed");
 		}
 
 		return response;

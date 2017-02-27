@@ -62,14 +62,14 @@ public static class Communication{
 			Debug.Log("Error Reason: " + e.Message);
 			if (retry < 5) {
 				Debug.Log("Retrying connection: " + retry);
-			    retry++;
-			    Thread.Sleep (5000);
-			    Close();
-			    Connect(url);
-			  }
-			  else {
-			    Debug.Log("Failed to reconnect");
-			  }
+				retry++;
+				Thread.Sleep (5000);
+				Close();
+				Connect(url);
+			}
+			else {
+				Debug.Log("Failed to reconnect");
+			}
 		};
 
 		//Logic to be done when the websocket is closed
