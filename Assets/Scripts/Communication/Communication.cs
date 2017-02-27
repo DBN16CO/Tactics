@@ -62,7 +62,8 @@ public static class Communication{
 		//Logic to be done when we hit an error with the websocket connection
 		m_Socket.OnError += (sender, e) => {
 			m_Error = e.Message;
-			Debug.Log("Close Reason: " + e.Message);
+			m_IsConnected = false;
+			Debug.Log("Error Reason: " + e.Message);
 			if (retry < 5) {
 				Debug.Log("Retrying connection: " + retry);
 			    retry++;
@@ -77,16 +78,18 @@ public static class Communication{
 
 		//Logic to be done when the websocket is closed
 		m_Socket.OnClose += (sender, e) => {
+			m_IsConnected = false;
 			Debug.Log("Websocket closed.");
-
-    		
 		};
 
 		m_Socket.ConnectAsync();
 
-		while (!m_IsConnected && m_Error == null) {
+		int retryCount = 0;
+		int maxRetries = 10;
+		while (!m_IsConnected && m_Error == null && retryCount < maxRetries) {
 			//Debug.Log ("Waiting for connection...");
 			Thread.Sleep (1000);
+			retryCount++;
 		}
 
 		if (m_IsConnected) {
@@ -97,6 +100,10 @@ public static class Communication{
 		}
 
 
+	}
+
+	public static bool IsConnected(){
+		return m_Socket != null && m_Socket.IsAlive && m_IsConnected;
 	}
 
 	public static void Send(byte[] buffer)
