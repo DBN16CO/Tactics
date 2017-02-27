@@ -63,7 +63,7 @@ public static class Communication{
 			if (retry < 5) {
 				Debug.Log("Retrying connection: " + retry);
 				retry++;
-				Thread.Sleep (5000);
+				Thread.Sleep (2000);
 				Close();
 				Connect(url);
 			}
@@ -84,7 +84,7 @@ public static class Communication{
 		const int maxRetries = 10;
 		while (!m_IsConnected && m_Error == null && retryCount < maxRetries) {
 			//Debug.Log ("Waiting for connection...");
-			Thread.Sleep (1000);
+			Thread.Sleep (500);
 			retryCount++;
 		}
 

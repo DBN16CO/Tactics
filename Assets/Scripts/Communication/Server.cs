@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 public static class Server {
 
 	public static bool inQueue;
-	private static string url = "ws://tactics-dev.ddns.net:8443"
+	private static string url = "ws://tactics-dev.ddns.net:8443";
 	//private static string url = "ws://localhost:8000";
 	//private static string url = ""ws://tactics-production.herokuapp.com/""
 
@@ -47,7 +47,7 @@ public static class Server {
 		Dictionary<string, object> response = null;
 
 		int retryCount = 0;
-		const int maxRetries = 5;
+		const int maxRetries = 20;
 		while(strResponse == null && retryCount < maxRetries) {
 			strResponse = Communication.RecvString();
 			if (strResponse != null){
@@ -63,8 +63,12 @@ public static class Server {
 
 			if (strResponse == null){
 				retryCount++;
-				Thread.Sleep(1000);
+				Thread.Sleep(100);
 			}
+		}
+
+		if (response == null){
+			return null;
 		}
 
 		bool success = (bool)response["Success"];
@@ -79,6 +83,10 @@ public static class Server {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "IL";
 		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
+		}
 
 		bool success = (bool)response["Success"];
 		if(success) {
@@ -96,6 +104,10 @@ public static class Server {
 		request["pw"]		= pw;
 
 		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
+		}
 
 		bool success = (bool)response["Success"];
 		if(success) {
@@ -155,6 +167,10 @@ public static class Server {
 		request["Command"] = "GUI";
 		Dictionary<string, object> response = SendCommand(request);
 
+		if (response == null){
+			return false;
+		}
+
 		bool success = (bool)response["Success"];
 		if(success) {
 			GameData.SetPlayerData(response);
@@ -169,6 +185,10 @@ public static class Server {
 		request["Command"] = "LGO";
 
 		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
+		}
 
 		bool success = (bool)response["Success"];
 		if (success){
@@ -189,6 +209,10 @@ public static class Server {
 		request["email"]	= email;
 
 		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
+		}
 
 		bool success = (bool)response["Success"];
 		Debug.Log("user '" + username + "' created: " + success);
@@ -218,6 +242,10 @@ public static class Server {
 
 		Dictionary<string, object> response = SendCommand(request);
 
+		if (response == null){
+			return false;
+		}
+
 		bool success = (bool)response["Success"];
 
 		return success;
@@ -239,6 +267,10 @@ public static class Server {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "CS";
 		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
+		}
 
 		bool success = (bool)response["Success"];
 
