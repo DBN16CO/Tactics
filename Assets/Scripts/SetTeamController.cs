@@ -44,7 +44,7 @@ public class SetTeamController : MonoBehaviour {
 		leader = null;
 		units = new List<string>();
 		perks = new List<GameObject>(3) {null,null,null};
-		_maxFunds = GameData.Match.maxFunds;
+		_maxFunds = GameData.Version.maxFunds;
 		FundsRemaining = _maxFunds;
 	}
 
@@ -103,13 +103,13 @@ public class SetTeamController : MonoBehaviour {
 				}
 			}
 			if(Server.SetTeam(strLeader, ability, units, strPerks)) {
-				/*if(!Server.FindMatch()) {
+				if(!Server.FindMatch()) {
 					Debug.Log("Couldn't add to game queue - are you already in queue?");
-				}*/
+				}
 				Debug.Log("Team set successfully");
 				SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 			}else {
-				Debug.Log("Server error");
+				Debug.Log("Server error setting team");
 			}
 		}else{
 			Debug.Log("Invalid team");

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public class MainMenuController : MonoBehaviour {
 
@@ -20,13 +21,17 @@ public class MainMenuController : MonoBehaviour {
 
 	// Loads active games
 	private void LoadCustomGames() {
-		// Run the QGU command here. For now, just populate dummy games
-		int numGames = 8;
+		//int numGames = 8; // Uncomment this for dummy games
+
+		if(!(bool)Server.QueryGames()["Success"]) {
+			Debug.Log("Query Games failed");
+		}
 		Transform activeGames = GameObject.Find("ActiveCustomGamesContent").transform;
 		// For each game brought back, instantiate prefab and set position
-		for(int i = 0; i < numGames; i++) {
+		int numGames = GameData.GetMatches().Count;
+		for(int i = 0; i < numGames ; i++) {
 			GameObject currGame = Instantiate(Resources.Load("Prefabs/ActiveCustomGame"), Vector3.zero, Quaternion.identity, activeGames) as GameObject;
-			currGame.GetComponent<ActiveCustomGameController>().SetDetailedProperties(i);
+			currGame.GetComponent<ActiveCustomGameController>().SetDetailedProperties(GameData.GetMatch(i));
 
 			currGame.GetComponent<RectTransform>().anchoredPosition = new Vector3(0,-300 * i);
 			currGame.transform.SetAsFirstSibling();

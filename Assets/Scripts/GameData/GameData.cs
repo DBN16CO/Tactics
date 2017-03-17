@@ -7,8 +7,10 @@ public static class GameData {
 
 	private static Dictionary<string, object> playerData;
 	public static PlayerData Player;
+	public static VersionData Version;
+
 	private static Dictionary<string, object> matchData;
-	public static MatchData Match;
+	private static List<MatchData> matches;
 
 	private static List<StatData> stats;
 	private static Dictionary<string, object> statData;
@@ -65,17 +67,28 @@ public static class GameData {
 		SetTerrainData(terrainData);
 		SetMapData(mapData);
 
-		Match = new MatchData((Dictionary<string, object>)responseDict["Version"]);
+		Version = new VersionData((Dictionary<string, object>)responseDict["Version"]);
 
 		CreateWeightMap();
 	}
 
 #region // Set Static Data
 
+	// Populates match data and creates callable list
+	public static void SetMatchData(Dictionary<string, object> matchDict) {
+		matches = new List<MatchData>(); matches.Clear();
+		if(matchDict["Games"].ToString() == "[]") {
+			return;
+		}
+		matchData = (Dictionary<string, object>)matchDict["Games"];
+		foreach(KeyValuePair<string, object> match in matchDict) {
+			matches.Add(new MatchData(match));
+		}
+	}
+
 	// Populates terrain data and creates callable list
 	private static void SetTerrainData(Dictionary<string, object> terrainDict) {
 		foreach(KeyValuePair<string, object> terrain in terrainDict) {
-			//terrains.Add(new TerrainData((Dictionary<string, object>)terrainDict[terrain.Key]));
 			terrains.Add(new TerrainData(terrain));
 		}
 	}
@@ -132,6 +145,14 @@ public static class GameData {
 #endregion
 
 #region // Retrieve Static Data
+
+	// Called to retrieve dynamic match data
+	public static List<MatchData> GetMatches() {
+		return matches;
+	}
+	public static MatchData GetMatch(int index) {
+		return matches[index];
+	}
 
 	// Called to retrieve static terrain data
 	public static TerrainData GetTerrain(string shortNameKey) {
