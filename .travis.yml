@@ -4,7 +4,9 @@ osx_image: xcode61
 rvm:
 - 2.1.2
 install:
-- pg_ctl -D /usr/local/var/postgres start
+- export PG_DATA=$(brew --prefix)/var/postgres
+- pg_ctl -w start -l postgres.log --pgdata ${PG_DATA}
+- createuser -s postgres
 - brew install redis
 - brew services start redis
 - ./TravisScripts/install.sh
