@@ -40,11 +40,7 @@ public class ActiveCustomGameController : MonoBehaviour {
 	}
 
 	// Since can't pass params into Awake constructor, set detailed properties after instantiation
-	public void SetDetailedProperties(int index) {
-		// Below code is for testing - makes the dummy games say Game1, Game2 etc
-		_detailedView.name += (index + 1).ToString();
-		btn.transform.FindChild("Text").GetComponent<Text>().text += (index + 1).ToString();
-
+	public void SetDetailedProperties(MatchData matchData) {
 		_detailedViewRT = _detailedView.GetComponent<RectTransform>();
 	}
 
