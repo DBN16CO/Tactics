@@ -55,70 +55,16 @@ public static class AutoBuilder {
 		return scenes;
 	}
  
-	[MenuItem("File/AutoBuilder/Windows/32-bit")]
-	static void PerformWinBuild ()
-	{
-		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneWindows);
-		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/Win/" + GetProjectName() + ".exe",BuildTarget.StandaloneWindows,BuildOptions.None);
-	}
- 
-	[MenuItem("File/AutoBuilder/Windows/64-bit")]
-	static void PerformWin64Build ()
-	{
-		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneWindows);
-		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/Win64/" + GetProjectName() + ".exe",BuildTarget.StandaloneWindows64,BuildOptions.None);
-	}
- 
-	[MenuItem("File/AutoBuilder/Mac OSX/Universal")]
-	static void PerformOSXUniversalBuild ()
-	{
-		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneOSXUniversal);
-		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/OSX-Universal/" + GetProjectName() + ".app",BuildTarget.StandaloneOSXUniversal,BuildOptions.None);
-	}
- 
-	[MenuItem("File/AutoBuilder/Mac OSX/Intel")]
-	static void PerformOSXIntelBuild ()
-	{
-		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneOSXIntel);
-		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/OSX-Intel/" + GetProjectName() + ".app",BuildTarget.StandaloneOSXIntel,BuildOptions.None);
-	}
- 
-	[MenuItem("File/AutoBuilder/Mac OSX/PPC")]
-	static void PerformOSXPPCBuild ()
-	{
-		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.StandaloneOSXPPC);
-		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/OSX-PPC/" + GetProjectName() + ".app",BuildTarget.StandaloneOSXPPC,BuildOptions.None);
-	}
- 
-	[MenuItem("File/AutoBuilder/Mac OSX/Dashboard")]
-	static void PerformOSXDashboardBuild ()
-	{
-		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.DashboardWidget);
-		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/OSX-Dashboard/" + GetProjectName() + ".wdgt",BuildTarget.DashboardWidget,BuildOptions.None);
-	}
- 
 	[MenuItem("File/AutoBuilder/iOS")]
 	static void PerformiOSBuild ()
 	{
-		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.iPhone);
-		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/iOS",BuildTarget.iPhone,BuildOptions.None);
+		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.iOS);
+		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/iOS",BuildTarget.iOS,BuildOptions.None);
 	}
 	[MenuItem("File/AutoBuilder/Android")]
 	static void PerformAndroidBuild ()
 	{
 		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.Android);
 		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/Android",BuildTarget.Android,BuildOptions.None);
-	}
-	[MenuItem("File/AutoBuilder/Web/Standard")]
-	static void PerformWebBuild ()
-	{
-		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.WebPlayer);
-		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/Web",BuildTarget.WebPlayer,BuildOptions.None);
-	}
-	[MenuItem("File/AutoBuilder/Web/Streamed")]
-	static void PerformWebStreamedBuild ()
-	{
-		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.WebPlayerStreamed);
-		BuildPipeline.BuildPlayer(GetScenePaths(), "Builds/Web-Streamed",BuildTarget.WebPlayerStreamed,BuildOptions.None);
 	}
 }
