@@ -22,3 +22,5 @@ script:
 after_script:
 - cat $(pwd)/unity.log
 - cat ./Server/trace.log
+- ls -al
+- ls -al ./Builds/Android

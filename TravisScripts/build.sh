@@ -14,4 +14,10 @@ echo "Attempting to build $project for Android"
   -quit
 
 rc=$?
+if [ "$rc" -eq "0" ]; then
+	echo 'Android Build Successful'
+else
+	echo 'Android Build Failed'
+fi
+
 exit $rc
