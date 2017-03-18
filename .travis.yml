@@ -1,8 +1,6 @@
-language: objective-c
+language: csharp
+solution: tactics.sln
 sudo: required
-osx_image: xcode61
-rvm:
-- 2.1.2
 install:
 - brew services start postgresql
 - brew install redis
