@@ -5,7 +5,6 @@ rvm:
 - 2.1.2
 install:
 - pg_ctl -D /usr/local/var/postgres start
-- createuser -s postgres
 - brew install redis
 - brew services start redis
 - ./TravisScripts/install.sh
