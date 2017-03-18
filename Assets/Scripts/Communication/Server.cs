@@ -221,14 +221,15 @@ public static class Server {
 	}
 
 	// Used to query active games for user
-	public static bool QueryGames() {
+	public static Dictionary<string, object> QueryGames() {
 		var request = new Dictionary<string, object>();
-		request["Command"] = "GQU";
+		request["Command"] = "QGU";
 		Dictionary<string, object> response = SendCommand(request);
-
 		bool success = (bool)response["Success"];
-
-		return success;
+		if(success) {
+			GameData.SetMatchData(response);
+		}
+		return response;
 	}
 
 	// Used to set selected team in database
