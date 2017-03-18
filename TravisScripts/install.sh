@@ -11,6 +11,3 @@ sudo ./Database/Create.sh tactics 12345
 # Create the database tables for above database
 python ./Server/manage.py makemigrations
 python ./Server/manage.py migrate
-
-npm install unity-solution-2 -g
-unitysolution ./ Standalone
