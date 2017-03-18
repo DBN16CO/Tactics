@@ -14,13 +14,4 @@ echo "Attempting to build $project for Android"
   -quit
 
 rc=$?
-if [ "$rc" -eq "1" ]; then
-	echo 'Logs from build'
-	cat $(pwd)/unity.log
-	exit $rc
-fi
-
-echo 'Logs from build'
-cat $(pwd)/unity.log
-
 exit $rc

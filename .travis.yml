@@ -20,4 +20,5 @@ script:
 - ./TravisScripts/run_tests.sh
 
 after_script:
+- cat $(pwd)/unity.log
 - cat ./Server/trace.log
