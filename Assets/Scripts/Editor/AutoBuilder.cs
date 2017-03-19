@@ -65,6 +65,6 @@ public static class AutoBuilder {
 	static void PerformAndroidBuild ()
 	{
 		EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.Android);
-		BuildPipeline.BuildPlayer(GetScenePaths(), "./",BuildTarget.Android,BuildOptions.None);
+		Debug.Log(BuildPipeline.BuildPlayer(GetScenePaths(), "./tactics.apk",BuildTarget.Android,BuildOptions.None));
 	}
 }
