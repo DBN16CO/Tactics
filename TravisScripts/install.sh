@@ -12,8 +12,16 @@ sudo ./Database/Create.sh tactics 12345
 python ./Server/manage.py makemigrations
 python ./Server/manage.py migrate
 
-echo 'Downloading from http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg: '
-curl -o Unity.pkg http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg
+echo y | android update sdk --no-ui --all --filter "android-25,build-tools-25.0.2platform-tools,extra-android-m2repository,extra-google-m2repository"
 
-echo 'Installing Unity.pkg'
+echo 'Downloading unity 5.5.0f3 binaries:'
+curl -o Unity.pkg http://netstorage.unity3d.com/unity/38b4efef76f0/MacEditorInstaller/Unity-5.5.0f3.pkg
+curl -o Unity-Android.pkg http://netstorage.unity3d.com/unity...ySetup-Android-Support-for-Editor-5.5.0f3.pkg
+
+#echo 'Downloading from http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg: '
+#curl -o Unity.pkg http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg
+
+echo 'Installing Unity.pkg and Unity-Android.pkg'
 sudo installer -dumplog -package Unity.pkg -target /
+
+sudo installer -dumplog -package Unity-Android.pkg -target /
