@@ -14,6 +14,9 @@ python ./Server/manage.py migrate
 
 echo y | android update sdk --no-ui --all --filter "android-25,build-tools-25.0.2platform-tools,extra-android-m2repository,extra-google-m2repository"
 
+ls -al /usr/local/Cellar/android-sdk/
+export ANDROID_SDK_ROOT=/usr/local/Cellar/android-sdk/24.4.1_1/
+
 echo 'Downloading unity 5.5.0f3 binaries:'
 curl -o Unity.pkg http://netstorage.unity3d.com/unity/38b4efef76f0/MacEditorInstaller/Unity-5.5.0f3.pkg
 curl -o Unity-Android.pkg http://netstorage.unity3d.com/unity/38b4efef76f0/MacEditorTargetInstaller/UnitySetup-Android-Support-for-Editor-5.5.0f3.pkg
