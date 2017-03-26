@@ -18,8 +18,8 @@ ls -al /usr/local/Cellar/android-sdk/
 export ANDROID_SDK_ROOT=/usr/local/Cellar/android-sdk/24.4.1_1/
 
 echo 'Downloading unity 5.5.0f3 binaries:'
-curl -o Unity.pkg http://netstorage.unity3d.com/unity/38b4efef76f0/MacEditorInstaller/Unity-5.5.0f3.pkg
-curl -o Unity-Android.pkg http://netstorage.unity3d.com/unity/38b4efef76f0/MacEditorTargetInstaller/UnitySetup-Android-Support-for-Editor-5.5.0f3.pkg
+curl -o Unity.pkg http://netstorage.unity3d.com/unity/3829d7f588f3/MacEditorInstaller/Unity-5.5.2f1.pkg
+curl -o Unity-Android.pkg http://netstorage.unity3d.com/unity/3829d7f588f3/MacEditorTargetInstaller/UnitySetup-Android-Support-for-Editor-5.5.2f1.pkg
 
 #echo 'Downloading from http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg: '
 #curl -o Unity.pkg http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg
