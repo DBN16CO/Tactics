@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class ActiveCustomGameController : MonoBehaviour {
 
@@ -16,6 +17,7 @@ public class ActiveCustomGameController : MonoBehaviour {
 	private RectTransform _detailedViewRT; // Transform of the detailedview
 	private float _maxY;
 	private float _deltaY;				// The amount the detailedview lerped THIS frame
+	private int _matchID;
 
 	// Y position of bottom of detailed view, used to keep from lerping below screen
 	public float DetailedGlobalY {
@@ -35,14 +37,14 @@ public class ActiveCustomGameController : MonoBehaviour {
 		_collapsing = false;
 		_t = 0f;
 
-		btn.onClick.AddListener(ToggleDetailedView);
-		_detailedView = gameObject.transform.FindChild("DetailedView").gameObject;
+		btn.onClick.AddListener(SelectGame);
 	}
 
 	// Since can't pass params into Awake constructor, set detailed properties after instantiation
 	public void SetDetailedProperties(MatchData matchData) {
-		_detailedViewRT = _detailedView.GetComponent<RectTransform>();
-	}
+		_matchID = matchData.MatchID;
+ 		btn.transform.FindChild("Text").GetComponent<Text>().text = matchData.Name;
+ 	}
 
 	// Toggles whether to collapse or expand the detailedview
 	void ToggleDetailedView() {
@@ -54,6 +56,12 @@ public class ActiveCustomGameController : MonoBehaviour {
 			_collapsing = false;
 			_expanding = true;
 		}
+	}
+
+	// Handles any button presses to the 
+	void SelectGame() {
+		GameData.CurrentMatch = GameData.GetMatches[_matchID];
+		SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 	}
 
 	// Runs every frame - stop at t = 1 because lerp is from 0 to 1
