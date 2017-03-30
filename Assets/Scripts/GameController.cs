@@ -236,6 +236,26 @@ public class GameController : MonoBehaviour {
 		// Create Grid and add test units
 		SpawnController SC = gameObject.AddComponent<SpawnController>();
 		Tokens = SC.CreateMap("Forest Pattern");
+
+		// Testing for place units
+		List<MatchUnit> myUnits = new List<MatchUnit>();
+		for(int cnt = 0; cnt < 4; cnt++) {
+			MatchUnit unit = new MatchUnit();
+			switch(cnt) {
+				case 0: unit.name = "Archer"; 	break;
+				case 1: unit.name = "Archer"; 	break;
+				case 2: unit.name = "Mage";		break;
+				case 3: unit.name = "Cleric"; 	break;
+			}
+			myUnits.Add(unit);
+		}
+
+
+		MatchLeader myLeader = new MatchLeader();
+		myLeader.name = "Sniper";
+
+
+		/*
 		Units.Add(Tokens[4][6].CurrentUnit = SC.CreateUnit("Warrior",4,6));
 		Units.Add(Tokens[6][8].CurrentUnit = SC.CreateUnit("Warrior",6,8));
 		Units.Add(Tokens[7][5].CurrentUnit = SC.CreateUnit("Warrior",7,5));
@@ -243,10 +263,8 @@ public class GameController : MonoBehaviour {
 		Units[0].MyTeam = true;
 		Units[1].MyTeam = true;
 		Units[2].MyTeam = false;
-		Units[3].MyTeam = false;
+		Units[3].MyTeam = false;*/
 
-		// Create terrain weight map
-		//TerrainMod.CreateWeightMap();
 	}
 
 	// Runs every frame

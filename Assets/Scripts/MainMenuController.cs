@@ -7,7 +7,7 @@ public class MainMenuController : MonoBehaviour {
 	// Initiate variables and load active games
 	void Start () {
 		Server.inQueue = false;
-		LoadCustomGames();
+		//LoadCustomGames();
 	}
 
 	// Runs when the app is closed - attempt to close the websocket cleanly
@@ -16,7 +16,7 @@ public class MainMenuController : MonoBehaviour {
 	}
 
 	public void LoadSetTeam() {
-		SceneManager.LoadSceneAsync("SetTeam", LoadSceneMode.Single);
+		SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 	}
 
 	// Loads active games
@@ -32,7 +32,6 @@ public class MainMenuController : MonoBehaviour {
 		for(int i = 0; i < numGames ; i++) {
 			GameObject currGame = Instantiate(Resources.Load("Prefabs/ActiveCustomGame"), Vector3.zero, Quaternion.identity, activeGames) as GameObject;
 			currGame.GetComponent<ActiveCustomGameController>().SetDetailedProperties(GameData.GetMatch(i));
-
 			currGame.GetComponent<RectTransform>().anchoredPosition = new Vector3(0,-300 * i);
 			currGame.transform.SetAsFirstSibling();
 		}
