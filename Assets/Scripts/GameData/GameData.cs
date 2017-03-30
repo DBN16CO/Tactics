@@ -9,8 +9,9 @@ public static class GameData {
 	public static PlayerData Player;
 	public static VersionData Version;
 
-	private static Dictionary<string, object> matchData;
+	private static List<object> matchData;
 	private static List<MatchData> matches;
+	public  static MatchData CurrentMatch;
 
 	private static List<StatData> stats;
 	private static Dictionary<string, object> statData;
@@ -76,13 +77,17 @@ public static class GameData {
 
 	// Populates match data and creates callable list
 	public static void SetMatchData(Dictionary<string, object> matchDict) {
-		matches = new List<MatchData>(); matches.Clear();
+		matches = new List<MatchData>(); 
+		matches.Clear();
+
+		Debug.Log(matchDict["Games"].ToString());
 		if(matchDict["Games"].ToString() == "[]") {
 			return;
 		}
-		matchData = (Dictionary<string, object>)matchDict["Games"];
-		foreach(KeyValuePair<string, object> match in matchDict) {
-			matches.Add(new MatchData(match));
+		matchData = Json.ToList(matchDict["Games"].ToString());
+		foreach(object match in matchData) {
+			matches.Add(new MatchData(Json.ToDict(match.ToString())));
+			matches[matches.Count-1].MatchID = matches.Count -1;
 		}
 	}
 
@@ -147,11 +152,8 @@ public static class GameData {
 #region // Retrieve Static Data
 
 	// Called to retrieve dynamic match data
-	public static List<MatchData> GetMatches() {
-		return matches;
-	}
-	public static MatchData GetMatch(int index) {
-		return matches[index];
+	public static List<MatchData> GetMatches {
+		get{return matches;}
 	}
 
 	// Called to retrieve static terrain data
