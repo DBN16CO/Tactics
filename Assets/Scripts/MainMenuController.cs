@@ -7,7 +7,7 @@ public class MainMenuController : MonoBehaviour {
 	// Initiate variables and load active games
 	void Start () {
 		Server.inQueue = false;
-		//LoadCustomGames();
+		LoadCustomGames();
 	}
 
 	// Runs when the app is closed - attempt to close the websocket cleanly
@@ -16,7 +16,7 @@ public class MainMenuController : MonoBehaviour {
 	}
 
 	public void LoadSetTeam() {
-		SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
+		SceneManager.LoadSceneAsync("SetTeam", LoadSceneMode.Single);
 	}
 
 	// Loads active games

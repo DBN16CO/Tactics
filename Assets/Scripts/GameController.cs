@@ -242,17 +242,17 @@ public class GameController : MonoBehaviour {
 		for(int cnt = 0; cnt < 4; cnt++) {
 			MatchUnit unit = new MatchUnit();
 			switch(cnt) {
-				case 0: unit.name = "Archer"; 	break;
-				case 1: unit.name = "Archer"; 	break;
-				case 2: unit.name = "Mage";		break;
-				case 3: unit.name = "Cleric"; 	break;
+				case 0: unit.Name = "Archer"; 	break;
+				case 1: unit.Name = "Archer"; 	break;
+				case 2: unit.Name = "Mage";		break;
+				case 3: unit.Name = "Cleric"; 	break;
 			}
 			myUnits.Add(unit);
 		}
 
 
 		MatchLeader myLeader = new MatchLeader();
-		myLeader.name = "Sniper";
+		myLeader.Name = "Sniper";
 
 
 		/*
