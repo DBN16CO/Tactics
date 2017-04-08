@@ -40,6 +40,11 @@ def findMatch(data):
 	error = ''
 
 	user = Users.objects.filter(username=data["session_username"]).first()
+
+	in_queue = Game_Queue.objects.filter(user=user).first()
+	if in_queue:
+		return formJsonResult("You are already in the matchmaking queue for a game.")
+
 	version = Version.objects.latest('pk')
 
 	# Ensure that the user has set a team
