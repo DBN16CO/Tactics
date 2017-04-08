@@ -321,7 +321,7 @@ class TestFindMatch(TestGame):
 		self.helper_execute_success(self.st_cmd)
 		self.helper_execute_success(self.fm_cmd)
 		self.helper_execute_failure(self.fm_cmd,
-			"You are alrerady in the matchmaking queue for a game.")
+			"You are already in the matchmaking queue for a game.")
 
 		# Ensure the user is only in the queue once
 		game_queue_count = Game_Queue.objects.filter(user=self.user).count()
