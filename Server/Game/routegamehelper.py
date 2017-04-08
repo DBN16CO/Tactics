@@ -43,7 +43,7 @@ def findMatch(data):
 
 	in_queue = Game_Queue.objects.filter(user=user).first()
 	if in_queue:
-		return formJsonResult("User already exists in the matchmaking queue.")
+		return formJsonResult("You are alrerady in the matchmaking queue for a game.")
 
 	version = Version.objects.latest('pk')
 
