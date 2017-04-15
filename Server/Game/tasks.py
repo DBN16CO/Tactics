@@ -49,8 +49,8 @@ def processMatchmakingQueue():
         logger.debug("Processing matchmaking queue")
 
         with transaction.atomic():
-            # Get the matchmaking queue
-            queue = Game_Queue.objects.filter()
+            # Get and lock the matchmaking queue
+            queue = Game_Queue.objects.select_for_update()
 
             # Get the latest version to use for creating games
             version = Version.objects.latest('pk')
