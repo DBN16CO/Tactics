@@ -201,6 +201,8 @@ def processRequest(message):
 	if "Success" in response and response['Success'] and (cmd == 'LGN' or cmd == 'CU'):
 		message.channel_session['user'] = response.pop('Username')
 
+	logging.debug("Response: {0}".format(response))
+
 	# Reply back
 	message.reply_channel.send({
 		'text': json.dumps(response)
