@@ -12,7 +12,6 @@ import Game.unithelper
 import Static.statichelper
 from Communication.routehelper import formJsonResult
 from Game.models import Unit, Game_Queue
-from User.models import Users
 from Static.models import Version
 
 def setTeam(data):
