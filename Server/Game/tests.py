@@ -425,6 +425,21 @@ class TestMatchmaking(TestGame):
 		# Ensure that the Game Queue is now empty
 		self.assertTrue(Game_Queue.objects.count() == 0)
 
+	def test_mm_04_matchmaking_exception_rollback(self):
+		# Delete all game objects
+		Game.objects.filter().delete()
+
+		# Set unit test fail environment variable
+		os.environ['UT-Fail'] = "True"
+
+		# Should throw an exception after the game is created in db
+		processMatchmakingQueue()
+
+		del os.environ['UT-Fail']
+
+		# Validate that the game that was created gets rolled back
+		self.assertEqual(Game.objects.count(), 0)
+
 class TestPlaceUnits(TestGame):
 	"""
 	All tests within this class relate specifically to the command 'PU' (Place Units)
