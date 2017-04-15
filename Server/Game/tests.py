@@ -317,7 +317,17 @@ class TestFindMatch(TestGame):
 		self.assertEqual(game_queue_obj_qs.first().user, self.user)
 		self.assertEqual(game_queue_obj_qs.first().channel_name, u'Test')
 
-	def test_fm_03_cancel_search_success(self):
+	def test_fm_03_already_in_queue(self):
+		self.helper_execute_success(self.st_cmd)
+		self.helper_execute_success(self.fm_cmd)
+		self.helper_execute_failure(self.fm_cmd,
+			"You are already in the matchmaking queue for a game.")
+
+		# Ensure the user is only in the queue once
+		game_queue_count = Game_Queue.objects.filter(user=self.user).count()
+		self.assertEqual(game_queue_count, 1)
+
+	def test_fm_04_cancel_search_success(self):
 		self.helper_execute_success(self.st_cmd)
 		self.helper_execute_success(self.fm_cmd)
 
