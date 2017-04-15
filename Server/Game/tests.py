@@ -285,6 +285,14 @@ class TestSetTeam(TestGame):
 		for unit in unit_qs:
 			self.assertEqual(unit.unit_class.name, "Archer")
 
+	def test_st_06_already_in_queue(self):
+		# Execute set team and find match first
+		self.helper_execute_success(self.st_cmd)
+		self.helper_execute_success(self.fm_cmd)
+
+		# Validate we can't set a team while in the matchmaking queue
+		self.helper_execute_failure(self.st_cmd, "You are already in the matchmaking queue for a game.")
+
 class TestFindMatch(TestGame):
 	"""
 	All tests within this class related specifically to the commands:
