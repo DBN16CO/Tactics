@@ -7,11 +7,10 @@ which will detail the success or failure of the command
 as well as any other necessary information regarding the command.
 
 """
-import logging
 import Game.unithelper
 import Static.statichelper
 from Communication.routehelper import formJsonResult
-from Game.models import Unit
+from Game.models import Unit, Game_Queue
 from Static.models import Version
 
 def setTeam(data):
@@ -47,14 +46,18 @@ def setTeam(data):
 	username = data["session_username"]
 
 	error = ""
-	logging.debug(data)
+
+	in_queue = Game_Queue.objects.filter(user__username=username).first()
 
 	# Get Version and Static data, for use in validation - if setting team, must be newest version
 	version = Version.objects.latest('pk')
 	stat_info = Static.statichelper.getAllStaticData(version)
 
+	# Ensure the user isn't already in the matchmaking queue
+	if in_queue:
+		error = "You are already in the matchmaking queue for a game."
 	# Ensure that the 'Units' key exists' there were at least some units and a leader selected
-	if not "Units" in data:
+	elif not "Units" in data:
 		error = "The unit information is incomplete."
 	elif not "Perks" in data:
 		error = "The perk information is incomplete."
