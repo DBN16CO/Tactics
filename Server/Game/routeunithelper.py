@@ -47,7 +47,6 @@ def setTeam(data):
 	username = data["session_username"]
 
 	error = ""
-	logging.debug(data)
 
 	in_queue = Game_Queue.objects.filter(user__username=username).first()
 
