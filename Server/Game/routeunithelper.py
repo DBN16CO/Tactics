@@ -7,7 +7,6 @@ which will detail the success or failure of the command
 as well as any other necessary information regarding the command.
 
 """
-import logging
 import Game.unithelper
 import Static.statichelper
 from Communication.routehelper import formJsonResult
