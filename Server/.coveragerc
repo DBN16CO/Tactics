@@ -8,3 +8,4 @@ omit =
   *views.py*
   *log_uploader.py*
   Static/management/commands/*
+  Communication/management/commands/*
