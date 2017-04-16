@@ -268,18 +268,22 @@ def queryGamesUser(data):
 				game_response["Enemy_Leader"] = {"Name": enemy_leader.name, "Ability": enemy_leader_ability.ability.name}
 
 				# Store information about your perks
-				game_response["Your_Perks"] = [
-					{"Name": None if game_user.perk_1 == None else game_user.perk_1.name, "Tier":1},
-					{"Name": None if game_user.perk_2 == None else game_user.perk_2.name, "Tier":2},
-					{"Name": None if game_user.perk_3 == None else game_user.perk_3.name, "Tier":3}
-				]
+				game_response["Your_Perks"] = []
+				if game_user.perk_1 is not None:
+					game_response["Your_Perks"].append({"Name": game_user.perk_1.name, "Tier":1})
+				if game_user.perk_2 is not None:
+					game_response["Your_Perks"].append({"Name": game_user.perk_2.name, "Tier":2})
+				if game_user.perk_3 is not None:
+					game_response["Your_Perks"].append({"Name": game_user.perk_3.name, "Tier":3})
 
 				# Store information about the enemy's perks
-				game_response["Enemy_Perks"] = [
-					{"Name": None if opp_game_user.perk_1 == None else opp_game_user.perk_1.name, "Tier":1},
-					{"Name": None if opp_game_user.perk_1 == None else opp_game_user.perk_2.name, "Tier":2},
-					{"Name": None if opp_game_user.perk_1 == None else opp_game_user.perk_3.name, "Tier":3}
-				]
+				game_response["Enemy_Perks"] = []
+				if opp_game_user.perk_1 is not None:
+					game_response["Enemy_Perks"].append({"Name": opp_game_user.perk_1.name, "Tier":1})
+				if opp_game_user.perk_2 is not None:
+					game_response["Enemy_Perks"].append({"Name": opp_game_user.perk_2.name, "Tier":2})
+				if opp_game_user.perk_3 is not None:
+					game_response["Enemy_Perks"].append({"Name": opp_game_user.perk_3.name, "Tier":3})
 
 				# Store all of the Actions from History for the game
 				action_history = Action_History.objects.filter(game=game).order_by("order")
@@ -304,7 +308,7 @@ def queryGamesUser(data):
 					this_action["Tgt_New_HP"]  = actn.tgt_new_hp
 					this_action["Tgt_Counter"] = actn.tgt_counter
 					this_action["Tgt_Crit"]    = actn.tgt_crit
-					this_action["Tgt_Miss"]    = actn.tgt_missed 
+					this_action["Tgt_Miss"]    = actn.tgt_missed
 
 					game_response["Action_History"].append(this_action)
 
@@ -313,6 +317,7 @@ def queryGamesUser(data):
 
 	except Exception, e:
 		logging.error("Exception in query games for user: \n{0}".format(e))
+		logging.exception(e)
 		return formJsonResult("Internal Server Error")
 
 	return response

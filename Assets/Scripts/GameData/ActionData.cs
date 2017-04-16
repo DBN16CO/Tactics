@@ -9,7 +9,7 @@ public class ActionData {
 	public ActionData(KeyValuePair<string, object> action) {
 		Dictionary<string, object> actionData = (Dictionary<string, object>)action.Value;
 		name = action.Key;
-		description = action["Description"].ToString();
+		description = actionData["Description"].ToString();
 	}
 
 }
