@@ -10,7 +10,7 @@ as well as any other necessary information regarding the command.
 import logging
 from Communication.routehelper import formJsonResult
 from Static.models import Version
-from Game.models import Unit, Game_Queue, Game_User
+from Game.models import Action_History, Game_Queue, Game_User, Unit
 import Game.unithelper
 from User.models import Users
 
@@ -165,7 +165,30 @@ def queryGamesUser(data):
 					                   "Name": "(Perk 1)",\n
 					                   "Tier": "(Tier)"\n
 					               }\n
-					          ]\n
+					          ],\n
+					          "Action_History": [\n
+					          		{\n
+					          			"Order": 1,\n
+										"Turn": 1,\n
+										"Your_Action": True,\n
+										"Action": "Attack",\n
+										"Unit": 1,\n
+										"Old_X": 1,\n
+										"New_X": 2,\n
+										"Old_Y": 3,\n
+										"New_Y": 4,\n
+										"Old_HP": 10,\n
+										"New_HP": 5,\n
+										"Crit": False,\n
+										"Miss": False,\n
+										"Target": 9,\n
+										"Tgt_Old_HP": 10,\n
+										"Tgt_New_HP": 7,\n
+										"Tgt_Counter": True,\n
+										"Tgt_Crit": True,\n
+										"Tgt_Miss": False,\n
+					          		}\n
+					          ],\n
 					       }\n
 					],\n
 					"In_Game_Queue": "True/False"\n
@@ -196,6 +219,7 @@ def queryGamesUser(data):
 				# Start constructing the game object
 				game_response = {}
 				game_response["Name"] = game_user.name
+				game_response["Opponent"] = opp_user.username
 				game_response["Round"] = game.game_round
 				game_response["Your_Turn"] = game.user_turn == user
 				game_response["Map"] = game.map_path.name
@@ -256,6 +280,33 @@ def queryGamesUser(data):
 					{"Name": None if opp_game_user.perk_1 == None else opp_game_user.perk_2.name, "Tier":2},
 					{"Name": None if opp_game_user.perk_1 == None else opp_game_user.perk_3.name, "Tier":3}
 				]
+
+				# Store all of the Actions from History for the game
+				action_history = Action_History.objects.filter(game=game).order_by("order")
+				game_response["Action_History"] = []
+				for actn in action_history:
+					this_action = {}
+					this_action["Order"]       = actn.order
+					this_action["Turn"]        = actn.turn_number
+					this_action["Your_Action"] = actn.acting_user == user
+					this_action["Action"]      = actn.action.name
+					this_action["Unit"]        = actn.acting_unit.id
+					this_action["Old_X"]       = actn.old_x
+					this_action["New_X"]       = actn.new_x
+					this_action["Old_Y"]       = actn.old_y
+					this_action["New_Y"]       = actn.new_y
+					this_action["Old_HP"]      = actn.old_hp
+					this_action["New_HP"]      = actn.new_hp
+					this_action["Crit"]        = actn.unit_crit
+					this_action["Miss"]        = actn.unit_missed
+					this_action["Target"]      = actn.target
+					this_action["Tgt_Old_HP"]  = actn.tgt_old_hp
+					this_action["Tgt_New_HP"]  = actn.tgt_new_hp
+					this_action["Tgt_Counter"] = actn.tgt_counter
+					this_action["Tgt_Crit"]    = actn.tgt_crit
+					this_action["Tgt_Miss"]    = actn.tgt_missed 
+
+					game_response["Action_History"].append(this_action)
 
 				# Add the game object to the list of the user's games
 				response["Games"].append(game_response)

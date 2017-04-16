@@ -152,12 +152,17 @@ def takeAction(data):
 				 	"Unit"{\n
 						"ID":1,\n
 						"HP":10,\n
-						"NewHP":10\n
+						"NewHP":10,\n
+						"Miss":True,\n
+						"Crit":False\n
 				 	},\n
 				 	"Target":{\n
 						"ID":9,\n
 						"HP":10,\n
-						"NewHP":0\n
+						"NewHP":0,\n
+						"Counter":True,\n
+						"Miss":True,\n
+						"Crit":False,\n
 				 	}\n
 				 }\n
 				 Notes:\n

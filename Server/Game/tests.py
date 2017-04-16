@@ -573,6 +573,7 @@ class TestQueryGames(TestGame):
 	- Calling the command with one game with a single opponent returns successfully: (Test 01)\n
 		+ One game dictionary is returned with the proper game name\n
 	- Calling QGU when a set team that is not a matched game does not return an extra game (Test 02)\n
+	- Calling QGU mid game produces an Action History dictionary for each action (Test 03)\n
 	"""
 	def test_qgu_01_one_game_one_opponent(self):
 		self.get_both_users_in_queue()
@@ -585,6 +586,7 @@ class TestQueryGames(TestGame):
 
 		self.assertTrue(len(result["Games"]) == 1)
 		self.assertEquals(result["Games"][0]["Name"], Game_User.objects.filter(user=self.user).first().name)
+		self.assertEquals(result["Games"][0]["Opponent"], self.credentials2["username"])
 		self.assertEquals(result["Games"][0]["Round"], Game.objects.filter().first().game_round)
 
 	def test_qgu_02_set_team_not_matched(self):
@@ -602,6 +604,67 @@ class TestQueryGames(TestGame):
 		self.assertTrue(len(result["Games"]) == 1)
 		self.assertEquals(result["Games"][0]["Name"], Game_User.objects.filter(user=self.user).first().name)
 		self.assertEquals(result["Games"][0]["Round"], Game.objects.filter().first().game_round)
+
+	def test_qgu_03_action_history_correct(self):
+		self.get_both_users_in_queue()
+		processMatchmakingQueue()
+		self.game = Game.objects.latest('pk')
+
+		# Place units for player one
+		self.helper_execute_success(self.pu_cmd)
+
+		# Place units for player two
+		self.pu_cmd2 = {
+			"Command" : "PU",
+			"Game"    : "vs. {0} #1".format(self.credentials["username"]),
+			"Units"   : self.place_valid_team_dict(self.st_cmd["Units"], 2)
+		}
+		self.helper_execute_success(self.pu_cmd2, 2)
+
+		# Take an action to be sent
+		# Ensure it is player one's turn
+		self.game.user_turn = self.user
+		self.game.save()
+		self.attacker = Unit.objects.filter(game=self.game, owner=self.user).first()
+		self.ta_cmd = {
+			"Command" : "TA",
+			"Action"  : "Wait",
+			"Game"    : "vs. {0} #1".format(self.credentials2["username"]),
+			"Unit"    : self.attacker.id,
+			"X"       : self.attacker.x + 1,
+			"Y"       : self.attacker.y + 1
+		}
+		self.helper_execute_success(self.ta_cmd)
+
+		# Call QGU, ensure some Action History data was sent
+		qgu_cmd = {"Command":"QGU"}
+		result = self.helper_execute_success(qgu_cmd)
+
+		self.assertTrue(len(result["Games"]) == 1)
+		self.assertEquals(result["Games"][0]["Name"], Game_User.objects.filter(user=self.user).first().name)
+		self.assertEquals(result["Games"][0]["Round"], Game.objects.filter().first().game_round)
+
+		action_history = Action_History.objects.latest('pk')
+		self.assertTrue("Action_History" in result["Games"][0])
+		self.assertEquals(len(result["Games"][0]["Action_History"]), 1)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Turn"],        action_history.turn_number)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Your_Action"], True)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Action"], action_history.action.name)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Unit"],        action_history.acting_unit.id)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Old_X"],       action_history.old_x)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["New_X"],       action_history.new_x)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Old_Y"],       action_history.old_y)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["New_Y"],       action_history.new_y)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Old_HP"],      action_history.old_hp)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["New_HP"],      action_history.new_hp)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Crit"],        action_history.unit_crit)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Miss"],        action_history.unit_missed)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Target"],      action_history.target)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Old_HP"] , action_history.tgt_old_hp)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_New_HP"],  action_history.tgt_new_hp)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Counter"], action_history.tgt_counter)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Crit"],    action_history.tgt_crit)
+		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Miss"],    action_history.tgt_missed)
 
 class TestTakeAction(TestGame):
 	"""
