@@ -16,7 +16,7 @@ public class MainMenuController : MonoBehaviour {
 	}
 
 	public void LoadSetTeam() {
-		SceneManager.LoadSceneAsync("SetTeam", LoadSceneMode.Single);
+		SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 	}
 
 	// Loads active games

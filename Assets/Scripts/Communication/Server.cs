@@ -74,6 +74,8 @@ public static class Server {
 		bool success = (bool)response["Success"];
 		if(!success) {
 			Debug.Log("Request (" + request["Command"] + ") Failed");
+		/*}else if(request["Command"] == "IL") {
+			Debug.Log(strResponse);*/
 		}
 
 		return response;
@@ -260,6 +262,32 @@ public static class Server {
 
 		bool success = (bool)response["Success"];
 
+		return success;
+	}
+
+	// Called to send placed unit info to database
+	public static bool PlaceUnits(MatchData match) {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "PU";
+		request["Game"] = match.Name;
+
+		List<Dictionary<string, object>> unitsDict = new List<Dictionary<string, object>>();
+		foreach(Unit unit in GameController.Units) {
+			var unitDict = new Dictionary<string, object>();
+			MatchUnit unitInfo = unit.Info;
+			unitDict["ID"] 		= unitInfo.ID;
+			unitDict["Name"] 	= unitInfo.Name;
+			unitDict["X"]		= unitInfo.X;
+			unitDict["Y"]		= unitInfo.Y;
+			unitsDict.Add(unitDict);
+		}
+		request["Units"] = unitsDict;
+
+		Debug.Log(Json.ToString(request));
+
+		Dictionary<string, object> response = SendCommand(request);
+
+		bool success = (bool)response["Success"];
 		return success;
 	}
 
