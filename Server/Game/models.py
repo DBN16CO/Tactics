@@ -3,6 +3,31 @@ from __future__ import unicode_literals
 from django.db import models
 
 # Create your models here.
+class Action_History(models.Model):
+	order        = models.IntegerField()
+	game         = models.ForeignKey('Game',          on_delete=models.DO_NOTHING)
+	turn_number  = models.IntegerField()
+	acting_user  = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
+	acting_unit  = models.ForeignKey('Static.Class',  on_delete=models.DO_NOTHING, related_name='acting_unit')
+	action       = models.ForeignKey('Static.Action', on_delete=models.DO_NOTHING)
+	old_x        = models.IntegerField()
+	new_x        = models.IntegerField()
+	old_y        = models.IntegerField()
+	new_y        = models.IntegerField()
+	old_hp       = models.IntegerField()
+	new_hp       = models.IntegerField(default=-1)
+	unit_missed  = models.BooleanField(default=False)
+	unit_crit    = models.BooleanField(default=False)
+	target       = models.ForeignKey('Static.Class',  on_delete=models.DO_NOTHING, null=True, default=None, related_name='target')
+	tgt_old_hp   = models.IntegerField(default=-1)
+	tgt_new_hp   = models.IntegerField(default=-1)
+	tgt_missed   = models.BooleanField(default=False)
+	tgt_crit     = models.BooleanField(default=False)
+	created      = models.DateTimeField(auto_now_add=True)
+
+	class meta:
+		unique_together = ('order', 'game')
+
 class Game(models.Model):
 	game_round   = models.IntegerField(default=0)
 	user_turn    = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
