@@ -358,6 +358,7 @@ def endTurn(data):
 
 	# Update the game to be the other user's turn
 	game.user_turn = other_user
+	game.game_round += 1
 	game.save()
 
 	# Update each of the opposing player's living units so that they can now move

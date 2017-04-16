@@ -1,4 +1,4 @@
-from Game.models import Game_User, Game_Queue, Unit, Game
+from Game.models import Action_History, Game_User, Game_Queue, Unit, Game
 from Static.models import Version, Ability, Class, Leader, Leader_Ability, Perk, Stat, Unit_Stat
 from User.models import Users
 from Communication.testhelper import *
@@ -651,6 +651,8 @@ class TestTakeAction(TestGame):
 	- Can heal exactly to full HP (Test 19)\n
 	- Cannot take an action if it is not your turn (Test 20)\n
 	- Both a magical and physical attacker can successfully deal damage (Test 21)\n
+	- A miss or a crit is properly noted in the Take Action response\n
+	- The proper Action History update has been made for the action\n
 	"""
 	def setUp(self):
 		super(TestTakeAction, self).setUp()
@@ -736,6 +738,18 @@ class TestTakeAction(TestGame):
 		newX = command["X"]
 		newY = command["Y"]
 
+		# Get the old values for the unit to verify action history updates
+		pre_act_unit = Unit.objects.filter(pk=command["Unit"]).first()
+		pre_action = {}
+		pre_action["X"]  = pre_act_unit.x
+		pre_action["Y"]  = pre_act_unit.y
+		pre_action["HP"] = pre_act_unit.hp
+		game_user = Game_User.objects.filter(name=command["Game"]).first()
+		last_action = Action_History.objects.filter(
+			game=game_user.game).order_by('-order').first()
+		pre_action["Last_Order"] = 0 if last_action is None else last_action.order
+		pre_action["Action_Count"] = Action_History.objects.filter(game=game_user.game).count()
+
 		result = self.helper_execute_success(command)
 
 		moved_unit = Unit.objects.filter(pk=command["Unit"]).first()
@@ -749,7 +763,54 @@ class TestTakeAction(TestGame):
 		self.assertEqual(result["Unit"]["NewY"], newY)
 		self.assertEqual(result["Unit"]["ID"], moved_unit.id)
 
-		return result
+		# Ensure that the Action History information was updated
+		self.assertEqual(pre_action["Action_Count"] + 1,
+			Action_History.objects.filter(game=game_user.game).count())
+		action_history = Action_History.objects.filter(
+			game=game_user.game).order_by('-order').first()
+		self.assertIsNotNone(action_history)
+		self.assertEqual(pre_action["Last_Order"] + 1, action_history.order)
+		self.assertEqual(game_user.game,               action_history.game)
+		self.assertEqual(game_user.game.game_round,    action_history.turn_number)
+		self.assertEqual(game_user.user,               action_history.acting_user)
+		self.assertEqual(moved_unit.unit_class,        action_history.acting_unit)
+		self.assertEqual(command["Action"],            action_history.action.name)
+		self.assertEqual(pre_action["X"],              action_history.old_x)
+		self.assertEqual(moved_unit.x,                 action_history.new_x)
+		self.assertEqual(pre_action["Y"],              action_history.old_y)
+		self.assertEqual(moved_unit.y,                 action_history.new_y)
+
+		return [result, pre_action, action_history]
+
+	def helper_execute_targeted_action_success(self, command):
+		"""
+		Helper class which issues the provided targeted command and then should
+		feed the resulting data to either the attack or heal success functions.
+
+		Also computes the expected result if either attack was a crit, miss, or normal attack
+
+		All of this, as well as the updates units are returned as a list
+		"""
+		pre_act_tgt = Unit.objects.filter(pk=command["Target"]).first()
+		tgt_old_hp  = pre_act_tgt.hp
+
+		result, pre_action, action_history = self.helper_execute_move_success(command)
+
+		# Ensure the target's ID is in the JSON properly
+		self.assertEqual(result["Target"]["ID"], command["Target"])
+
+		# Get updated units
+		unit = Unit.objects.filter(pk=command["Unit"]).first()
+		tgt  = Unit.objects.filter(pk=command["Target"]).first()
+
+		# Get all possible attack results
+		attack_data = self.get_expected_attack_result(unit.unit_class, tgt.unit_class)
+
+		# Ensure that the previous health for each unit is correct - left at max
+		self.assertEqual(result["Unit"]["HP"],  attack_data["Unit"]["Max"])
+		self.assertEqual(action_history.old_hp, attack_data["Unit"]["Max"])
+
+		return [result, unit, tgt, attack_data, pre_action, tgt_old_hp, action_history]
 
 	def helper_execute_attack_success(self, command):
 		"""
@@ -760,23 +821,12 @@ class TestTakeAction(TestGame):
 
 		All of this, as well as the updates units are returned as a list
 		"""
-		result = self.helper_execute_move_success(command)
+		result, unit, tgt, attack_data, pre_action, tgt_old_hp, action_history = self.helper_execute_targeted_action_success(command)
 
-		# Ensure the target's ID is in the JSON properly
-		self.assertEqual(result["Target"]["ID"], command["Target"])
+		self.assertEqual(result["Target"]["HP"],    attack_data["Tgt"]["Max"])
+		self.assertEqual(action_history.tgt_old_hp, attack_data["Tgt"]["Max"])
 
-		# Get updated units
-		unit = Unit.objects.filter(pk=command["Unit"]).first()
-		tgt = Unit.objects.filter(pk=command["Target"]).first()
-
-		# Get all possible attack results
-		attack_data = self.get_expected_attack_result(unit.unit_class, tgt.unit_class)
-
-		# Ensure that the previous health for each unit is correct - left at max
-		self.assertEqual(result["Unit"]["HP"], attack_data["Unit"]["Max"])
-		self.assertEqual(result["Target"]["HP"], attack_data["Tgt"]["Max"])
-
-		return [result, unit, tgt, attack_data]
+		return [result, unit, tgt, attack_data, action_history]
 
 	def helper_execute_heal_success(self, command):
 		"""
@@ -788,24 +838,93 @@ class TestTakeAction(TestGame):
 
 		All of this, as well as the updates units are returned as a list
 		"""
-		result = self.helper_execute_move_success(command)
-
-		# Ensure the target's ID is in the JSON properly
-		self.assertEqual(result["Target"]["ID"], command["Target"])
-
-		# Get updated units
-		unit = Unit.objects.filter(pk=command["Unit"]).first()
-		tgt = Unit.objects.filter(pk=command["Target"]).first()
-
-		# Heals act the same as attacks, just only "normal" as an option
-		heal_data = self.get_expected_attack_result(unit.unit_class, tgt.unit_class)
+		result, unit, tgt, heal_data, pre_action, tgt_old_hp, action_history = self.helper_execute_targeted_action_success(command)
 
 		# Healer's HP should remain constant at max HP
-		self.assertEqual(unit.hp, heal_data["Unit"]["Max"])
-		self.assertEqual(result["Unit"]["HP"], heal_data["Unit"]["Max"])
 		self.assertEqual(result["Unit"]["NewHP"], heal_data["Unit"]["Max"])
+		self.assertEqual(action_history.new_hp, heal_data["Unit"]["Max"])
+		
+		return [result, unit, tgt, heal_data, action_history]
 
-		return [result, unit, tgt, heal_data]
+	def helper_verify_crit_miss(self, result, unit, tgt, attack_data, action_history, crit_miss):
+		"""
+		Helper function which can verify the provided test's hit and miss
+		values are all correct.
+
+		The crit_miss dictionary will provide all the expected results
+		"""
+		# Acting Unit: Missed hit
+		if crit_miss["Miss"] is True:
+			self.assertEqual(tgt.hp,                    attack_data["Tgt"]["Miss"])
+			self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Miss"])
+			self.assertEqual(action_history.tgt_new_hp, attack_data["Tgt"]["Miss"])
+			self.assertFalse(action_history.unit_crit)
+			self.assertTrue(action_history.unit_missed)
+			self.assertFalse(result["Unit"]["Crit"])
+			self.assertTrue(result["Unit"]["Miss"])
+		# Acting Unit: Critical hit
+		elif crit_miss["Crit"] is True:
+			self.assertEqual(tgt.hp,                    attack_data["Tgt"]["Crit"])
+			self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Crit"])
+			self.assertEqual(action_history.tgt_new_hp, attack_data["Tgt"]["Crit"])
+			self.assertTrue(action_history.unit_crit)
+			self.assertFalse(action_history.unit_missed)
+			self.assertTrue(result["Unit"]["Crit"])
+			self.assertFalse(result["Unit"]["Miss"])
+		# Acting Unit: Normal hit
+		else:
+			self.assertEqual(tgt.hp,                    attack_data["Tgt"]["Normal"])
+			self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Normal"])
+			self.assertEqual(action_history.tgt_new_hp, attack_data["Tgt"]["Normal"])
+			self.assertFalse(action_history.unit_crit)
+			self.assertFalse(action_history.unit_missed)
+			self.assertFalse(result["Unit"]["Crit"])
+			self.assertFalse(result["Unit"]["Miss"])
+
+		# Target Unit: No counter attack
+		if crit_miss["Tgt_Counter"] is False:
+			self.assertEqual(unit.hp,                 attack_data["Unit"]["Miss"])
+			self.assertEqual(result["Unit"]["NewHP"], attack_data["Unit"]["Miss"])
+			self.assertEqual(action_history.new_hp,   attack_data["Unit"]["Miss"])
+			self.assertFalse(action_history.tgt_counter)
+			self.assertFalse(action_history.tgt_crit)
+			self.assertFalse(action_history.tgt_missed)
+			self.assertFalse(result["Target"]["Counter"])
+			self.assertFalse(result["Target"]["Crit"])
+			self.assertFalse(result["Target"]["Miss"])
+		# Target Unit: Missed counter attack
+		elif crit_miss["Tgt_Miss"] is True:
+			self.assertEqual(unit.hp,                 attack_data["Unit"]["Miss"])
+			self.assertEqual(result["Unit"]["NewHP"], attack_data["Unit"]["Miss"])
+			self.assertEqual(action_history.new_hp,   attack_data["Unit"]["Miss"])
+			self.assertTrue(action_history.tgt_counter)
+			self.assertFalse(action_history.tgt_crit)
+			self.assertTrue(action_history.tgt_missed)
+			self.assertTrue(result["Target"]["Counter"])
+			self.assertFalse(result["Target"]["Crit"])
+			self.assertTrue(result["Target"]["Miss"])
+		# Target Unit: Critical hit on counter attack
+		elif crit_miss["Tgt_Crit"] is True:
+			self.assertEqual(unit.hp,                 attack_data["Unit"]["Crit"])
+			self.assertEqual(result["Unit"]["NewHP"], attack_data["Unit"]["Crit"])
+			self.assertEqual(action_history.new_hp,   attack_data["Unit"]["Crit"])
+			self.assertTrue(action_history.tgt_counter)
+			self.assertTrue(action_history.tgt_crit)
+			self.assertFalse(action_history.tgt_missed)
+			self.assertTrue(result["Target"]["Counter"])
+			self.assertTrue(result["Target"]["Crit"])
+			self.assertFalse(result["Target"]["Miss"])
+		# Target Unit: Normal hit on counter attack
+		else:
+			self.assertEqual(unit.hp,                 attack_data["Unit"]["Normal"])
+			self.assertEqual(result["Unit"]["NewHP"], attack_data["Unit"]["Normal"])
+			self.assertEqual(action_history.new_hp,   attack_data["Unit"]["Normal"])
+			self.assertTrue(action_history.tgt_counter)
+			self.assertFalse(action_history.tgt_crit)
+			self.assertFalse(action_history.tgt_missed)
+			self.assertTrue(result["Target"]["Counter"])
+			self.assertFalse(result["Target"]["Crit"])
+			self.assertFalse(result["Target"]["Miss"])
 
 	def get_expected_attack_result(self, unit, tgt):
 		"""
@@ -1103,7 +1222,7 @@ class TestTakeAction(TestGame):
 		self.atk_cmd = self.move_unit_near_target(self.atk_cmd, self.attacker, self.enemy_tgt)
 
 		# Call command, ensure movement was successful
-		result, unit, tgt, attack_data = self.helper_execute_attack_success(self.atk_cmd)
+		result, unit, tgt, attack_data, action_history = self.helper_execute_attack_success(self.atk_cmd)
 
 		# Verify target's new HP
 		self.assertEqual(tgt.hp, attack_data["Tgt"]["Normal"])
@@ -1122,6 +1241,13 @@ class TestTakeAction(TestGame):
 						result["Unit"]["NewHP"] == attack_data["Unit"]["Miss"],
 						msg="unit.hp={0}, attack_data={1}".format(unit.hp, attack_data["Unit"]))
 		self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Normal"])
+
+		# Ensure the Action History table was updated properly
+		self.assertTrue(action_history.new_hp == attack_data["Unit"]["Normal"] or 
+						action_history.new_hp == attack_data["Unit"]["Crit"] or 
+						action_history.new_hp == attack_data["Unit"]["Miss"],
+						msg="unit.hp={0}, attack_data={1}".format(unit.hp, attack_data["Unit"]))
+		self.assertTrue(action_history.tgt_new_hp == attack_data["Tgt"]["Normal"])
 
 	def test_ta_10_bad_heal(self):
 		nearest_ally = Unit.objects.filter(owner=self.user, 
@@ -1216,15 +1342,16 @@ class TestTakeAction(TestGame):
 		self.atk_cmd = self.move_unit_near_target(self.atk_cmd, self.attacker, self.enemy_tgt)
 
 		# Call command, ensure movement was successful
-		result, unit, tgt, attack_data = self.helper_execute_attack_success(self.atk_cmd)
+		result, unit, tgt, attack_data, action_history = self.helper_execute_attack_success(self.atk_cmd)
 
-		# Ensure database was updated properly
-		self.assertEqual(unit.hp, attack_data["Unit"]["Max"])
-		self.assertEqual(tgt.hp, 0)
-
-		# Ensure returned JSON is correct
-		self.assertEqual(result["Unit"]["NewHP"], attack_data["Unit"]["Max"])
-		self.assertEqual(result["Target"]["NewHP"], 0)
+		crit_miss = {
+			"Miss":        False,
+			"Crit":        True,
+			"Tgt_Counter": False,
+			"Tgt_Miss":    False,
+			"Tgt_Crit":    False
+		}
+		self.helper_verify_crit_miss(result, unit, tgt, attack_data, action_history, crit_miss)
 
 	def test_ta_13_attack_no_counter_success(self):
 		atk_rng = Stat.objects.filter(name="Attack Range", version=self.version).first()
@@ -1260,16 +1387,16 @@ class TestTakeAction(TestGame):
 		self.atk_cmd["Y"] = attacker.y
 
 		# Call command, ensure movement was successful
-		result, unit, tgt, attack_data = self.helper_execute_attack_success(self.atk_cmd)
+		result, unit, tgt, attack_data, action_history = self.helper_execute_attack_success(self.atk_cmd)
 
-		# Ensure database updates are correct
-		self.assertEqual(unit.hp, attack_data["Unit"]["Max"])
-		self.assertEqual(tgt.hp, attack_data["Tgt"]["Normal"])
-
-		# Ensure JSON is correct
-		self.assertEqual(result["Unit"]["NewHP"], attack_data["Unit"]["Max"])
-		self.assertEqual(result["Target"]["ID"], tgt.id)
-		self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Normal"])
+		crit_miss = {
+			"Miss":        False,
+			"Crit":        False,
+			"Tgt_Counter": False,
+			"Tgt_Miss":    False,
+			"Tgt_Crit":    False
+		}
+		self.helper_verify_crit_miss(result, unit, tgt, attack_data, action_history, crit_miss)
 
 	def test_ta_14_attack_miss_success(self):
 		# Ensure the attacker will miss and the counter will be a crit
@@ -1279,15 +1406,16 @@ class TestTakeAction(TestGame):
 		self.atk_cmd = self.move_unit_near_target(self.atk_cmd, self.attacker, self.enemy_tgt)
 
 		# Call command, ensure movement was successful
-		result, unit, tgt, attack_data = self.helper_execute_attack_success(self.atk_cmd)
+		result, unit, tgt, attack_data, action_history = self.helper_execute_attack_success(self.atk_cmd)
 
-		# Ensure database was updated properly
-		self.assertEqual(unit.hp, attack_data["Unit"]["Crit"])
-		self.assertEqual(tgt.hp, attack_data["Tgt"]["Miss"])
-
-		# Ensure JSON is correct
-		self.assertEqual(result["Unit"]["NewHP"], attack_data["Unit"]["Crit"])
-		self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Miss"])
+		crit_miss = {
+			"Miss":        True,
+			"Crit":        False,
+			"Tgt_Counter": True,
+			"Tgt_Miss":    False,
+			"Tgt_Crit":    True
+		}
+		self.helper_verify_crit_miss(result, unit, tgt, attack_data, action_history, crit_miss)
 
 	def test_ta_15_tgt_passive_success(self):
 		# Get a target that cannot attack (healer)
@@ -1302,15 +1430,16 @@ class TestTakeAction(TestGame):
 		self.atk_cmd = self.move_unit_near_target(self.atk_cmd, self.attacker, enemy_target)
 
 		# Call command, ensure movement was successful
-		result, unit, tgt, attack_data = self.helper_execute_attack_success(self.atk_cmd)
+		result, unit, tgt, attack_data, action_history = self.helper_execute_attack_success(self.atk_cmd)
 
-		# Ensure that the DB was updated properly
-		self.assertEqual(unit.hp, attack_data["Unit"]["Max"])
-		self.assertEqual(tgt.hp, attack_data["Tgt"]["Max"])
-
-		# Ensure that the JSON is correct
-		self.assertEqual(result["Unit"]["NewHP"], attack_data["Unit"]["Max"])
-		self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Max"])
+		crit_miss = {
+			"Miss":        True,
+			"Crit":        False,
+			"Tgt_Counter": False,
+			"Tgt_Miss":    False,
+			"Tgt_Crit":    False
+		}
+		self.helper_verify_crit_miss(result, unit, tgt, attack_data, action_history, crit_miss)
 
 	def test_ta_16_counter_misses_success(self):
 		# Ensure the attacker will hit and the counter will miss (no crit too)
@@ -1320,15 +1449,16 @@ class TestTakeAction(TestGame):
 		self.atk_cmd = self.move_unit_near_target(self.atk_cmd, self.attacker, self.enemy_tgt)
 
 		# Call command, ensure movement was successful
-		result, unit, tgt, attack_data = self.helper_execute_attack_success(self.atk_cmd)
+		result, unit, tgt, attack_data, action_history = self.helper_execute_attack_success(self.atk_cmd)
 
-		# Ensure the DB was updated properly
-		self.assertEqual(unit.hp, attack_data["Unit"]["Miss"])
-		self.assertEqual(tgt.hp, attack_data["Tgt"]["Normal"])
-
-		# Ensure that the JSON is correct
-		self.assertEqual(result["Unit"]["NewHP"], attack_data["Unit"]["Miss"])
-		self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Normal"])
+		crit_miss = {
+			"Miss":        False,
+			"Crit":        False,
+			"Tgt_Counter": True,
+			"Tgt_Miss":    True,
+			"Tgt_Crit":    False
+		}
+		self.helper_verify_crit_miss(result, unit, tgt, attack_data, action_history, crit_miss)
 
 	def test_ta_17_heal_fully_success(self):
 		# Simulate target losing 1 health
@@ -1341,7 +1471,7 @@ class TestTakeAction(TestGame):
 		self.heal_cmd["Y"] = self.healer.y
 
 		# Execute the command
-		result, unit, tgt, heal_data = self.helper_execute_heal_success(self.heal_cmd)
+		result, unit, tgt, heal_data, action_history = self.helper_execute_heal_success(self.heal_cmd)
 
 		# Ensure the DB was updated properly
 		self.assertEqual(tgt.hp, heal_data["Tgt"]["Max"])
@@ -1349,6 +1479,10 @@ class TestTakeAction(TestGame):
 		# Make sure the JSON is correct
 		self.assertEqual(result["Target"]["HP"], heal_data["Tgt"]["Max"] - hp_lost)
 		self.assertEqual(result["Target"]["NewHP"], heal_data["Tgt"]["Max"])
+
+		# Ensure the Action History table was updated properly
+		self.assertEqual(action_history.tgt_old_hp, heal_data["Tgt"]["Max"] - hp_lost)
+		self.assertEqual(action_history.tgt_new_hp, heal_data["Tgt"]["Max"])
 
 	def test_ta_18_heal_partial_success(self):
 		# Simulate target losing all but 1 health
@@ -1360,7 +1494,7 @@ class TestTakeAction(TestGame):
 		self.heal_cmd["Y"] = self.healer.y
 
 		# Execute the command
-		result, unit, tgt, heal_data = self.helper_execute_heal_success(self.heal_cmd)
+		result, unit, tgt, heal_data, action_history = self.helper_execute_heal_success(self.heal_cmd)
 
 		# Ensure the DB was updated properly
 		self.assertEqual(tgt.hp, 1 + heal_data["Tgt"]["Heal"])
@@ -1370,6 +1504,10 @@ class TestTakeAction(TestGame):
 		self.assertEqual(result["Target"]["HP"], 1)
 		self.assertEqual(result["Target"]["NewHP"], 1 + heal_data["Tgt"]["Heal"])
 		self.assertTrue(result["Target"]["NewHP"] < heal_data["Tgt"]["Max"])
+
+		# Ensure the Action History table was updated properly
+		self.assertEqual(action_history.tgt_old_hp, 1)
+		self.assertEqual(action_history.tgt_new_hp, 1 + heal_data["Tgt"]["Heal"])
 
 	def test_ta_19_heal_exact_full_success(self):
 		# Determine how much HP would be healed
@@ -1385,7 +1523,7 @@ class TestTakeAction(TestGame):
 		self.heal_cmd["Y"] = self.healer.y
 
 		# Execute the command
-		result, unit, tgt, heal_data = self.helper_execute_heal_success(self.heal_cmd)
+		result, unit, tgt, heal_data, action_history = self.helper_execute_heal_success(self.heal_cmd)
 
 		# Ensure the DB was updated properly
 		self.assertEqual(tgt.hp, heal_data["Tgt"]["Max"])
@@ -1393,6 +1531,10 @@ class TestTakeAction(TestGame):
 		# Make sure JSON is correct
 		self.assertEqual(result["Target"]["HP"], heal_data["Tgt"]["Max"] - heal_data["Tgt"]["Heal"])
 		self.assertEqual(result["Target"]["NewHP"], heal_data["Tgt"]["Max"])
+
+		# Ensure the Action History table was updated properly
+		self.assertEqual(action_history.tgt_old_hp, heal_data["Tgt"]["Max"] - heal_data["Tgt"]["Heal"])
+		self.assertEqual(action_history.tgt_new_hp, heal_data["Tgt"]["Max"])
 
 	def test_ta_20_act_on_enemy_turn(self):
 		# Ensure it is player two's turn
@@ -1431,13 +1573,22 @@ class TestTakeAction(TestGame):
 		self.assertEqual(result["Unit"]["HP"], 1)
 		self.assertEqual(result["Target"]["HP"], attack_data["Tgt"]["Max"])
 
-		# Ensure database was updated properly
-		self.assertEqual(unit.hp, 0)
-		self.assertEqual(tgt.hp, attack_data["Tgt"]["Max"])
+		# With altered starting health, the attacker should have died
+		attack_data["Unit"]["Crit"] = 0
 
-		# Ensure returned JSON is correct
-		self.assertEqual(result["Unit"]["NewHP"], 0)
-		self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Max"])
+		# Ensure the Action History table was updated properly
+		game_user = Game_User.objects.filter(name=self.atk_cmd["Game"]).first()
+		action_history = Action_History.objects.filter(
+			game=game_user.game).order_by('-order').first()
+		
+		crit_miss = {
+			"Miss":        True,
+			"Crit":        False,
+			"Tgt_Counter": True,
+			"Tgt_Miss":    False,
+			"Tgt_Crit":    True
+		}
+		self.helper_verify_crit_miss(result, unit, tgt, attack_data, action_history, crit_miss)
 
 class TestEndTurn(TestGame):
 	"""
@@ -1449,7 +1600,8 @@ class TestEndTurn(TestGame):
 	- Cannot end turn when it is not your turn (Test 02)\n
 	- Ending turn can be called successfully when it is your turn, and: (Test 03)\n
 		+ The turn value in the game is toggled to the other player\n
-		+ Each of the other player's units can now act
+		+ Each of the other player's units can now act\n
+	- Ending turn increases the 'game_round' value (Test 3)\n
 	"""
 	def setUp(self):
 		super(TestEndTurn, self).setUp()
@@ -1473,6 +1625,7 @@ class TestEndTurn(TestGame):
 		# Ensure it is player one's turn
 		self.game.user_turn = self.user
 		self.game.save()
+		self.pre_game_round = self.game.game_round
 
 		# The end turn command, with valid JSON
 		self.et_cmd = {
@@ -1513,6 +1666,9 @@ class TestEndTurn(TestGame):
 		# Ensure it is now user two's turn
 		game = Game.objects.filter(pk=self.game.id).first()
 		self.assertEqual(game.user_turn, self.user2)
+
+		# Ensure the game round has been increased
+		self.assertEqual(game.game_round, self.pre_game_round + 1)
 
 		# Ensure each of the user two units can move
 		units = Unit.objects.filter(owner=self.user2, game=game).exclude(hp__lte=0)

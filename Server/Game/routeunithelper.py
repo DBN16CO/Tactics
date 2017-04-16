@@ -213,7 +213,8 @@ def takeAction(data):
 
 	# If the unit is just moving for their action
 	if data["Action"] == "Wait":
-		if not Game.unithelper.saveActionResults(data["Action"], game, unit_dict):
+		if not Game.unithelper.saveActionResults(
+				stat_info["Actions"][data["Action"]]["Object"],	game, unit_dict):
 			return formJsonResult("There was a problem executing the action.", data)
 		action_result = {}
 		action_result["Unit"] = unit_dict
@@ -237,7 +238,8 @@ def takeAction(data):
 		if "Error" in action_result:
 			return formJsonResult(action_result["Error"], data)
 
-		if not Game.unithelper.saveActionResults(data["Action"], game, action_result["Unit"], action_result["Target"]):
+		if not Game.unithelper.saveActionResults(
+				stat_info["Actions"][data["Action"]]["Object"],	game, action_result["Unit"], action_result["Target"]):
 			return formJsonResult("There was a problem targeting that unit.", data)
 
 		action_result["Target"].pop("Unit", None)

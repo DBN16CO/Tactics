@@ -21,6 +21,7 @@ class Action_History(models.Model):
 	target       = models.ForeignKey('Static.Class',  on_delete=models.DO_NOTHING, null=True, default=None, related_name='target')
 	tgt_old_hp   = models.IntegerField(default=-1)
 	tgt_new_hp   = models.IntegerField(default=-1)
+	tgt_counter  = models.BooleanField(default=False)
 	tgt_missed   = models.BooleanField(default=False)
 	tgt_crit     = models.BooleanField(default=False)
 	created      = models.DateTimeField(auto_now_add=True)
@@ -29,7 +30,7 @@ class Action_History(models.Model):
 		unique_together = ('order', 'game')
 
 class Game(models.Model):
-	game_round   = models.IntegerField(default=0)
+	game_round   = models.IntegerField(default=1)
 	user_turn    = models.ForeignKey('User.Users',    on_delete=models.DO_NOTHING)
 	map_path     = models.ForeignKey('Static.Map',    on_delete=models.DO_NOTHING)
 	created      = models.DateTimeField(auto_now_add=True)

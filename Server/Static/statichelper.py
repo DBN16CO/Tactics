@@ -74,6 +74,9 @@ def getAllStaticDataIL(version=None):
 			logging.info("Reloading Static data failed.")
 			return response
 
+		for actn in response["Actions"]:
+			response["Actions"][actn].pop("Object", None)
+
 		for clss in response["Classes"]:
 			response["Classes"][clss].pop("Object", None)
 
@@ -236,7 +239,10 @@ def getActionData(version):
 
 	# Add each action name to the list
 	for actn in all_ver_actions:
-		action_dict[actn.name] = actn.description
+		action_dict[actn.name] = {}
+		action_dict[actn.name]["Object"]      = actn
+		action_dict[actn.name]["Description"] = actn.description
+		logging.debug("DESC IS {0}".format(actn.description))
 
 	return action_dict
 
