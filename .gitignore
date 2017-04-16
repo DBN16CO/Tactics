@@ -53,6 +53,7 @@ ehthumbs.db
 *trace.log
 *scheduler.log
 *matchmaking.log
+*message_queue.log
 nohup.out
 *.rdb
 /Server/cover/*
