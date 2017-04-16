@@ -17,14 +17,7 @@ class PrintColors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-class Command(BaseCommand):
-	"""
-	Allows for manually creating a websocket and sending data to the server for development testing
-	"""
-
-	help = "Creates a websocket to the server for testing purposes."
-
-	def connect(self, url):
+def connect(url):
 		try:
 			print(PrintColors.OKBLUE + "Connecting to tactics server at {0}".format(url) + PrintColors.ENDC)
 			ws = websocket.create_connection(url, sockopt=((socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),))
@@ -36,20 +29,20 @@ class Command(BaseCommand):
 
 		return ws
 
-	def ping_server(self, ws):
+def ping_server(ws):
 		while True:
 			try:
 				if 'Stop Ping' not in os.environ:
 					ws.send(json.dumps({"PING": "PING"}))
 				else:
 					break
-			except Exception as e:
+			except Exception:
 				pass
 
 			time.sleep(10)
 		print("Stopped keepalive thread")
 
-	def process_commands(self, ws, cmd_data):
+def process_commands(ws, cmd_data):
 		print("Processing commands file")
 		for cmd in cmd_data:
 			print("Sending {0}".format(cmd))
@@ -57,6 +50,13 @@ class Command(BaseCommand):
 			result = ws.recv()
 			print("Received {0}".format(result))
 		print("Finished processing commands file")
+
+class Command(BaseCommand):
+	"""
+	Allows for manually creating a websocket and sending data to the server for development testing
+	"""
+
+	help = "Creates a websocket to the server for testing purposes."
 
 	def add_arguments(self, parser):
 		parser.add_argument('--url', type=str, default=None)
@@ -67,15 +67,15 @@ class Command(BaseCommand):
 		if not url:
 			url = "ws://localhost:8000"
 
-		ws = self.connect(url)
-		t = threading.Thread(target=self.ping_server, args=(ws,))
+		ws = connect(url)
+		t = threading.Thread(target=ping_server, args=(ws,))
 		t.start()
 
 		commands = options['commands']
 		cmd_data = None
 		if commands:
 			cmd_data = json.load(open(commands, 'r'))
-			self.process_commands(ws, cmd_data)
+			process_commands(ws, cmd_data)
 
 		data = None
 
@@ -89,17 +89,15 @@ class Command(BaseCommand):
 
 			try:
 				data = json.loads(data)
-			except:
+			except Exception:
 				print("Not valid json data")
 				continue
 
 			try:
 				ws.send(json.dumps(data))
 				print(str(ws.recv()))
-			except Exception as e:
+			except Exception:
 				print(PrintColors.FAIL + "Failed to send data...reconnecting" + PrintColors.ENDC)
-				ws = self.connect(url)
+				ws = connect(url)
 				ws.send(json.dumps(data))
 				print(str(ws.recv()))
-		
-		
