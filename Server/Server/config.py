@@ -10,9 +10,16 @@ LOGIN_TOKEN_EXPIRATION = 14
 
 # How often celery workers execute the matchmaking logic (in seconds)
 GAME_QUEUE_PROCESS_INTERVAL = 5
+GAME_QUEUE_LOG_NAME = 'matchmaking.log'
+GAME_QUEUE_LOG_LEVEL = logging.DEBUG
 
 # How often celery workers upload logs to google drive (in seconds)
 UPLOAD_LOGS_INTERVAL = 86400
+
+# How often celery works process asynchronous messages from the queue (in seconds)
+MESSAGE_QUEUE_INTERVAL = 10
+MESSAGE_QUEUE_LOG_NAME = 'message_queue.log'
+MESSAGE_QUEUE_LOG_LEVEL = logging.DEBUG
 
 # Password policy configuration
 # Note: the requirements lists contain a boolean (whether or not to actively require that particular requirement) and also the valid list

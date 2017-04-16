@@ -13,9 +13,9 @@ from celery.utils.log import get_task_logger
 from django.db import transaction
 
 logger = get_task_logger(__name__)
-fh = logging.FileHandler('./matchmaking.log', mode='a')
+fh = logging.FileHandler('./{0}'.format(config.GAME_QUEUE_LOG_NAME), mode='a')
 logger.addHandler(fh)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(config.GAME_QUEUE_LOG_LEVEL)
 
 @celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=config.UPLOAD_LOGS_INTERVAL))
 def uploadServerLogs():
