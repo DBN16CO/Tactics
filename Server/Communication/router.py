@@ -85,7 +85,20 @@ def processRequest(message):
 		start_time = time.clock()
 
 	# Get the request
-	request = message.content['bytes']
+	if 'contents' in message and 'bytes' in message.contents:
+		request = message.contents['bytes']
+	elif 'contents' in message and 'text' in message.contents:
+		request = message.contents['text']
+	elif 'bytes' in message:
+		request = message['bytes']
+	elif 'text' in message:
+		request = message['text']
+	else:
+		logging.error("Failed to obtain request message data")
+		message.reply_channel.send({
+			'text': json.dumps({"Success":False, "Error":"Failed to obtain request message data"})
+		})
+		return
 	logging.debug("Parsing incoming json request: \n{0}".format(request))
 
 	# Parse the Json

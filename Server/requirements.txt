@@ -11,3 +11,4 @@ sphinx>=1.4.9
 celery>=4.0.0
 django-celery-beat>=1.0.0
 google-api-python-client==1.6.2
+websocket-client==0.40.0
