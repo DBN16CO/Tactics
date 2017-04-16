@@ -285,6 +285,14 @@ class TestSetTeam(TestGame):
 		for unit in unit_qs:
 			self.assertEqual(unit.unit_class.name, "Archer")
 
+	def test_st_06_already_in_queue(self):
+		# Execute set team and find match first
+		self.helper_execute_success(self.st_cmd)
+		self.helper_execute_success(self.fm_cmd)
+
+		# Validate we can't set a team while in the matchmaking queue
+		self.helper_execute_failure(self.st_cmd, "You are already in the matchmaking queue for a game.")
+
 class TestFindMatch(TestGame):
 	"""
 	All tests within this class related specifically to the commands:
@@ -317,7 +325,17 @@ class TestFindMatch(TestGame):
 		self.assertEqual(game_queue_obj_qs.first().user, self.user)
 		self.assertEqual(game_queue_obj_qs.first().channel_name, u'Test')
 
-	def test_fm_03_cancel_search_success(self):
+	def test_fm_03_already_in_queue(self):
+		self.helper_execute_success(self.st_cmd)
+		self.helper_execute_success(self.fm_cmd)
+		self.helper_execute_failure(self.fm_cmd,
+			"You are already in the matchmaking queue for a game.")
+
+		# Ensure the user is only in the queue once
+		game_queue_count = Game_Queue.objects.filter(user=self.user).count()
+		self.assertEqual(game_queue_count, 1)
+
+	def test_fm_04_cancel_search_success(self):
 		self.helper_execute_success(self.st_cmd)
 		self.helper_execute_success(self.fm_cmd)
 
@@ -414,6 +432,21 @@ class TestMatchmaking(TestGame):
 
 		# Ensure that the Game Queue is now empty
 		self.assertTrue(Game_Queue.objects.count() == 0)
+
+	def test_mm_04_matchmaking_exception_rollback(self):
+		# Delete all game objects
+		Game.objects.filter().delete()
+
+		# Set unit test fail environment variable
+		os.environ['UT-Fail'] = "True"
+
+		# Should throw an exception after the game is created in db
+		processMatchmakingQueue()
+
+		del os.environ['UT-Fail']
+
+		# Validate that the game that was created gets rolled back
+		self.assertEqual(Game.objects.count(), 0)
 
 class TestPlaceUnits(TestGame):
 	"""
