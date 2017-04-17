@@ -344,8 +344,6 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 	:rtype: Boolean
 	:return: True if the update was successful, False otherwise
 	"""
-	logging.debug("Unit: {0}".format(unit_dict))
-	logging.debug("Target: {0}".format(target_dict))
 	unit = unit_dict["Unit"]
 
 	# Create Action History object to add to list of actions
