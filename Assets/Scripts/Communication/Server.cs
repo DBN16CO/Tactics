@@ -74,8 +74,6 @@ public static class Server {
 		bool success = (bool)response["Success"];
 		if(!success) {
 			Debug.Log("Request (" + request["Command"] + ") Failed");
-		/*}else if(request["Command"] == "IL") {
-			Debug.Log(strResponse);*/
 		}
 
 		return response;
@@ -282,8 +280,6 @@ public static class Server {
 			unitsDict.Add(unitDict);
 		}
 		request["Units"] = unitsDict;
-
-		Debug.Log(Json.ToString(request));
 
 		Dictionary<string, object> response = SendCommand(request);
 
