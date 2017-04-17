@@ -8,11 +8,21 @@ public class GameController : MonoBehaviour {
 	private int _gridHeight;
 	private int _gridLength;
 
-	private List<Unit> _units;
+	private static List<Unit> _units;
 	private static Token _selectedToken;
 	private List<ValidAction> _actions;		// Array of valid moves
 
-	// Game Settings
+	// Game vars
+	private MapData _currentMap;
+	public List<MatchUnit> myUnits;
+	public int myTeam;
+
+
+	// Static Game vars
+	public static SpawnController SC;
+	public static PlaceUnitsController PU;
+	public static bool PlacingUnits;
+	public static PUUnit UnitBeingPlaced;
 
 
 #region Setters and Getters
@@ -28,7 +38,7 @@ public class GameController : MonoBehaviour {
 		get{return _gridLength;}
 		set{_gridLength = value;}
 	}
-	public List<Unit> Units {
+	public static List<Unit> Units {
 		get{return _units;}
 		set{_units = value;}
 	}
@@ -40,27 +50,55 @@ public class GameController : MonoBehaviour {
 		get{return _actions;}
 		set{_actions = value;}
 	}
+	public MapData CurrentMap {
+		get{return _currentMap;}
+		set{_currentMap = value;}
+	}
+
+	// When Conditions
+	private bool UnitsArePlaced {
+		get{
+			foreach(MatchUnit unit in myUnits) {
+				if(unit.X == -1) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+
 #endregion
 
 
 	// Ultimately, this will run on match generation
 	// Development - place anything we need to initialize for dev/test here
 	void Start() {
-		// Not testing - will likely actually apply for match generation
 		// Initialize match variables
 		Actions = new List<ValidAction>();
 		Units = new List<Unit>();
+		SC = gameObject.AddComponent<SpawnController>();
+		// Map game vars from QGU match data and determine if place units is necessary
+		myTeam = GameData.CurrentMatch.UserTeam;
+		myUnits = GameData.CurrentMatch.AlliedUnits;
+		PlacingUnits = !UnitsArePlaced;
+		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
+		Tokens = SC.CreateMap(GameData.CurrentMatch.MapName);
+		if(PlacingUnits) {
+			PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();
+		}
+
+
 
 		// Block for testing -------------------------------------------
 		// Set startup variables
-		TestStartup();
+//		TestStartup();
 		// For any gameplay vars and functions
-		TestGamePlay();
+//		TestGamePlay();
 		// End testing block -------------------------------------------
 
 		// Not testing - will likely actually apply for match generation
 		// Initialize turn
-		StartTurn();
+		//StartTurn();
 	}
 
 	// Runs when the app is closed - attempt to close the websocket cleanly
@@ -234,8 +272,38 @@ public class GameController : MonoBehaviour {
 	// For testing - gameplay variables and functionality
 	private void TestGamePlay() {
 		// Create Grid and add test units
-		SpawnController SC = gameObject.AddComponent<SpawnController>();
-		Tokens = SC.CreateMap("Forest Pattern");
+		//SC = gameObject.AddComponent<SpawnController>();
+
+		// Testing for place units
+		/*myTeam = 2;
+		myUnits = new List<MatchUnit>();
+		for(int cnt = 0; cnt < 8; cnt++) {
+			MatchUnit unit = new MatchUnit();
+			switch(cnt) {
+				case 0: unit.Name = "Archer"; 	break;
+				case 1: unit.Name = "Archer"; 	break;
+				case 2: unit.Name = "Mage";		break;
+				case 3: unit.Name = "Cleric"; 	break;
+				case 4: unit.Name = "Armor"; 	break;
+				case 5: unit.Name = "Armor"; 	break;
+				case 6: unit.Name = "Armor";	break;
+				case 7: unit.Name = "Armor"; 	break;
+			}
+			unit.X = -1; unit.Y = -1;
+			myUnits.Add(unit);
+		}
+		MatchLeader myLeader = new MatchLeader();
+		myLeader.Name = "Sniper";
+
+		PlacingUnits = !UnitsArePlaced;
+
+		string mapName = "Forest Pattern";
+		_currentMap = GameData.GetMap(mapName);
+		Tokens = SC.CreateMap(mapName);
+
+		PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();*/
+
+		/*
 		Units.Add(Tokens[4][6].CurrentUnit = SC.CreateUnit("Warrior",4,6));
 		Units.Add(Tokens[6][8].CurrentUnit = SC.CreateUnit("Warrior",6,8));
 		Units.Add(Tokens[7][5].CurrentUnit = SC.CreateUnit("Warrior",7,5));
@@ -243,10 +311,8 @@ public class GameController : MonoBehaviour {
 		Units[0].MyTeam = true;
 		Units[1].MyTeam = true;
 		Units[2].MyTeam = false;
-		Units[3].MyTeam = false;
+		Units[3].MyTeam = false;*/
 
-		// Create terrain weight map
-		//TerrainMod.CreateWeightMap();
 	}
 
 	// Runs every frame

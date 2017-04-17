@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
 
 public class MatchData {
 
@@ -125,3 +123,4 @@ public struct MatchPerk {
 	public string Name;
 	public int Tier;
 }
+

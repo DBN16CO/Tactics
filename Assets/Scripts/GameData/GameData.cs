@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-//using System;
-//using System.Collections;
+﻿//using UnityEngine;
 using System.Collections.Generic;
 
 public static class GameData {
@@ -77,10 +75,9 @@ public static class GameData {
 
 	// Populates match data and creates callable list
 	public static void SetMatchData(Dictionary<string, object> matchDict) {
-		matches = new List<MatchData>(); 
+		matches = new List<MatchData>();
 		matches.Clear();
 
-		Debug.Log(matchDict["Games"].ToString());
 		if(matchDict["Games"].ToString() == "[]") {
 			return;
 		}
