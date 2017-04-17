@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 public class SpawnController : MonoBehaviour {
 
@@ -28,10 +27,11 @@ public class SpawnController : MonoBehaviour {
 		float orthoSize = Camera.main.orthographicSize;
 		ScaleFactor = (2f * orthoSize) / (float)tokens.Length; 		// This will have to change if we want non-square maps
 		// Loop through each token
+		GameObject GameMap = new GameObject(); GameMap.name = "MapTokens";
 		for(int width = 0; width < tokens.Length; width++) {
 			for(int height = 0; height < tokens[width].Length; height++) {
 				// Instantiate token at each grid position
-				Token token = (Instantiate(Resources.Load("Prefabs/Token"),new Vector2(((float)width*ScaleFactor)-orthoSize,-((float)height*ScaleFactor)+orthoSize) + new Vector2(ScaleFactor/2f,-ScaleFactor/2f),Quaternion.identity) as GameObject).GetComponent<Token>();
+				Token token = (Instantiate(Resources.Load("Prefabs/Token"),new Vector2(((float)width*ScaleFactor)-orthoSize,-((float)height*ScaleFactor)+orthoSize) + new Vector2(ScaleFactor/2f,-ScaleFactor/2f),Quaternion.identity, GameMap.transform) as GameObject).GetComponent<Token>();
 				// Set scale to scale factor
 				token.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
 				// Assign terrain based on preset map
@@ -40,6 +40,10 @@ public class SpawnController : MonoBehaviour {
 				// Asign token variables
 				token.X = width;
 				token.Y = height;
+				// If placing units, grey out the tokens that can't be placed on
+				if(GameController.PlacingUnits && gameObject.GetComponent<GameController>().CurrentMap.teamPlaceUnit[width][height] != gameObject.GetComponent<GameController>().myTeam) {
+					token.gameObject.GetComponent<SpriteRenderer>().material = Resources.Load<Material>("Materials/disabled");
+				}
 				// Add token to token array
 				tokens[width][height] = token;
 			}
@@ -51,14 +55,33 @@ public class SpawnController : MonoBehaviour {
 	}
 
 	// Call this to create a unit for a token
-	public Unit CreateUnit(string unit,int x, int y) {
+	public Unit CreateUnit(MatchUnit unit,int x, int y) {
 		// Instantiate the specified unit
-		Unit ret = (Instantiate(Resources.Load("Prefabs/" + unit),Vector3.zero,Quaternion.identity) as GameObject).GetComponent<Unit>();
+		Unit ret = (Instantiate(Resources.Load("Units/" + unit.Name),Vector3.zero,Quaternion.identity) as GameObject).GetComponent<Unit>();
 		// Set the position to the token's position
 		ret.transform.position = gameObject.GetComponent<GameController>().Tokens[x][y].transform.position;
 		ret.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
-		// Return final unit
+		// Add to GameController Units and Return final unit
+		if(unit.X == -1 || unit.Y == -1) {
+			// Set initial params if new unit
+			unit.X = x; unit.Y = y; unit.HP = GameData.GetUnit(unit.Name).GetStat("HP").Value;
+		}
+		ret.Info = unit;
+		GameController.Units.Add(ret);
+		if(GameController.PlacingUnits) {
+			GameController.UnitBeingPlaced.RemoveUnit();
+		}
 		return ret;
+	}
+
+	public static void ReturnPlacedUnit(Unit unit) {
+		GameController.PU.AddUnit(unit.Info);
+		DestroyUnit(unit);
+	}
+
+	public static void DestroyUnit(Unit unit) {
+		GameController.Units.Remove(unit);
+		Destroy(unit.gameObject);
 	}
 
 }

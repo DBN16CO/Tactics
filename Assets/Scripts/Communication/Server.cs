@@ -263,6 +263,30 @@ public static class Server {
 		return success;
 	}
 
+	// Called to send placed unit info to database
+	public static bool PlaceUnits(MatchData match) {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "PU";
+		request["Game"] = match.Name;
+
+		List<Dictionary<string, object>> unitsDict = new List<Dictionary<string, object>>();
+		foreach(Unit unit in GameController.Units) {
+			var unitDict = new Dictionary<string, object>();
+			MatchUnit unitInfo = unit.Info;
+			unitDict["ID"] 		= unitInfo.ID;
+			unitDict["Name"] 	= unitInfo.Name;
+			unitDict["X"]		= unitInfo.X;
+			unitDict["Y"]		= unitInfo.Y;
+			unitsDict.Add(unitDict);
+		}
+		request["Units"] = unitsDict;
+
+		Dictionary<string, object> response = SendCommand(request);
+
+		bool success = (bool)response["Success"];
+		return success;
+	}
+
 	// Called to cancel ranked match queue
 	public static bool CancelQueue() {
 		var request = new Dictionary<string, object>();

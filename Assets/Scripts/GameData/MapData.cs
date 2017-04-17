@@ -6,7 +6,7 @@ using System;
 public class MapData {
 
 	public string name;
-	public bool[][] canPlaceUnit;
+	public int[][] teamPlaceUnit;
 	public string[][] terrain;
 
 	public int width;
@@ -25,10 +25,10 @@ public class MapData {
 		width = rows[0].Count(x => x == ' ') + 1;
 		height = rows.Length;
 
-		canPlaceUnit = new bool[width][];
+		teamPlaceUnit = new int[width][];
 		terrain = new string[width][];
 		for(int x = 0; x < width; x++) {
-			canPlaceUnit[x] = new bool[height];
+			teamPlaceUnit[x] = new int[height];
 			terrain[x] = new string[height];
 		}
 
@@ -36,7 +36,7 @@ public class MapData {
 		for(int y = 0; y < height; y++) {
 			string[] cols = rows[y].Split(newCol, StringSplitOptions.RemoveEmptyEntries);
 			for(int x = 0; x < width; x++) {
-				canPlaceUnit[x][y] = (cols[x].Substring(0, 1) == "1");
+				teamPlaceUnit[x][y] = int.Parse(cols[x].Substring(0, 1));
 				terrain[x][y] = cols[x].Substring(2,1);
 			}
 		}
