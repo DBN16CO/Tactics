@@ -45,7 +45,7 @@ def setup_static_db(version):
 	# Save the action data
 	logging.info("Creating Action objects...")
 	for actn in data["Actions"].keys():
-		action = Action(name=actn, description=data["Actions"][actn], version=ver)
+		action = Action(name=actn, description=data["Actions"][actn]["Description"], version=ver)
 		action.save()
 
 	# Save the Leader Data
@@ -144,9 +144,9 @@ def ver_1_0_static_data():
 
 	# Action Data
 	data["Actions"] = {
-		"Attack": "Deal damage to target unit.",
-		"Heal":   "Restore health to target allied unit.",
-		"Wait":   "End move without taking action."
+		"Attack": {"Description":"Deal damage to target unit."},
+		"Heal":   {"Description":"Restore health to target allied unit."},
+		"Wait":   {"Description":"End move without taking action."}
 	}
 
 	# Class Data

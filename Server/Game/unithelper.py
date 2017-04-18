@@ -10,7 +10,7 @@
 import logging, math
 from random import randint
 
-from Game.models import Game, Game_User, Unit
+from Game.models import Action_History, Game, Game_User, Unit
 from User.models import Users
 import Game.maphelper
 import Static.statichelper
@@ -180,10 +180,15 @@ def calculateActionResult(action, game, unit_dict, target):
 	:rtype: Dictionary
 	:return: The result of the action, will have a "Unit" and "Target" dictionary
 	"""
-	version   = game.version
-	clss      = unit_dict["Unit"].unit_class
-	tgt_clss  = target.unit_class
-	stat_info = Static.statichelper.getAllStaticData(version)
+	version     = game.version
+	clss        = unit_dict["Unit"].unit_class
+	tgt_clss    = target.unit_class
+	stat_info   = Static.statichelper.getAllStaticData(version)
+	unit_crit   = False
+	unit_miss   = False
+	tgt_counter = False
+	tgt_crit    = False
+	tgt_miss    = False
 
 	# Is the target close enough?
 	atk_rng  = stat_info["Classes"][clss.name]["Stats"]["Attack Range"]
@@ -230,12 +235,14 @@ def calculateActionResult(action, game, unit_dict, target):
 		if randint(0, 99) >= agil_val:
 			# If critting, double attack amount
 			if randint(0, 99) < luck_val:
+				unit_crit = True
 				logging.debug("The unit had a critical hit on the target!")
 				amount = 2 * amount
 
 			# Calculate result
 			tgt_hp_left = max(0, tgt_prev_hp - max(0, (amount - prevent)))
 		else:
+			unit_miss = True
 			logging.debug("MISSED the target!")
 
 		# Determine if there will be a counter attack
@@ -249,7 +256,10 @@ def calculateActionResult(action, game, unit_dict, target):
 		# 3. Can the target even attack?
 		canAttack = stat_info["Classes"][tgt_clss.name]["Actions"]["Attack"]
 
-		if distance <= tgt_atk_rng and tgt_hp_left > 0 and randint(0, 99) >= agil_val and canAttack:
+		if distance > tgt_atk_rng or tgt_hp_left <= 0 or not canAttack:
+			logging.debug("The target unit cannot counter.")
+		elif randint(0, 99) >= agil_val:
+			tgt_counter = True
 			logging.debug("Target within range to counter attack.")
 
 			attackType = tgt_clss.attack_type
@@ -264,12 +274,15 @@ def calculateActionResult(action, game, unit_dict, target):
 
 			# If critting, double attack amount
 			if randint(0, 99) < luck_val:
+				tgt_crit = True
 				logging.debug("The the target got a crit in response. Ouch!")
 				amount = 2 * amount
 
 			unit_hp_left = max(0, unit_prev_hp - max(0, math.ceil((amount - prevent) / 2)))
 		else:
-			logging.debug("MISSED! Or out of range to counter.")
+			tgt_counter = True
+			tgt_miss = True
+			logging.debug("Target's counter attack MISSED!")
 
 	elif action == "Heal":
 		logging.debug("{0}[{1}] healing {2}.".format(clss.name,unit_dict["Unit"].id, target.id))
@@ -291,10 +304,13 @@ def calculateActionResult(action, game, unit_dict, target):
 	# Create the response object
 	response = {}
 	response["Unit"] = unit_dict
-	response["Unit"]["ID"] = response["Unit"]["Unit"].id
-	response["Unit"]["HP"] = unit_prev_hp
+	response["Unit"]["ID"]    = response["Unit"]["Unit"].id
+	response["Unit"]["HP"]    = unit_prev_hp
 	response["Unit"]["NewHP"] = unit_hp_left
-	response["Target"] = {"Unit":target,"ID":target.id, "HP":tgt_prev_hp, "NewHP":tgt_hp_left}
+	response["Unit"]["Crit"]  = unit_crit
+	response["Unit"]["Miss"]  = unit_miss
+	response["Target"] = {"Unit":target,"ID":target.id, "HP":tgt_prev_hp,
+		"NewHP":tgt_hp_left, "Counter":tgt_counter, "Crit":tgt_crit, "Miss":tgt_miss}
 
 	logging.debug("Result: {0}".format(response))
 
@@ -302,9 +318,10 @@ def calculateActionResult(action, game, unit_dict, target):
 
 def saveActionResults(action, game, unit_dict, target_dict=None):
 	"""
-	Updates the game with the provided action
+	Updates the game with the provided action.
+	Also updates the action history table for the specific game.
 
-	:type action: String
+	:type action: Action object
 	:param action: The action taken
 
 	:type game: Game object
@@ -315,8 +332,10 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 						- "Unit" which is the unit object\n
 						- "NewX" which is the X coordinate to which the unit is moving\n
 						- "NewY" which is the Y coordinate to which the unit is moving\n
-						- "HP" if a target was specified, which is the old HP for this unit before the action
-						- "NewHP" if a target was specified, which is the new HP for this unit after the action
+						- "HP" if a target was specified, which is the old HP for this unit before the action\n
+						- "NewHP" if a target was specified, which is the new HP for this unit after the action\n
+						- "Crit" True/False if the unit landed a critical hit (True=crit)\n
+						- "Miss" True/False if the unit missed the target (True=miss)
 
 	:type target_dict: Dictionary
 	:param target_dict: Necessary components to describe the targeted unit,
@@ -325,13 +344,31 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 	:rtype: Boolean
 	:return: True if the update was successful, False otherwise
 	"""
-	unit   = unit_dict["Unit"]
+	unit = unit_dict["Unit"]
+
+	# Create Action History object to add to list of actions
+	last_order = Action_History.objects.filter(game=game).count()
+	action_history = Action_History(
+		order=last_order + 1,
+		game=game,
+		turn_number=game.game_round,
+		acting_user=unit.owner,
+		acting_unit=unit.unit_class,
+		action=action,
+		old_x=unit.x,
+		new_x=unit_dict["NewX"],
+		old_y=unit.y,
+		new_y=unit_dict["NewY"],
+		old_hp=unit.hp
+	)
+
 	unit.x = unit_dict["NewX"]
 	unit.y = unit_dict["NewY"]
 	unit.acted = True
 
-	# If there is not target
+	# If there is not a target
 	if target_dict == None:
+		action_history.save()
 		unit.prev_target = None
 		unit.save()
 		return True
@@ -342,12 +379,25 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 	if unit.hp <= 0:
 		logging.debug("The attacking unit was KILLED by a counterattack.")
 
-	target    = target_dict["Unit"]
+	target = target_dict["Unit"]
+
+	# Update the Action History row for target information
+	action_history.new_hp      = unit_dict["NewHP"]
+	action_history.unit_crit   = unit_dict["Crit"]
+	action_history.unit_missed = unit_dict["Miss"]
+	action_history.target      = target.unit_class
+	action_history.tgt_old_hp  = target.hp
+	action_history.tgt_new_hp  = target_dict["NewHP"]
+	action_history.tgt_crit    = target_dict["Crit"]
+	action_history.tgt_counter = target_dict["Counter"]
+	action_history.tgt_missed  = target_dict["Miss"]
+
 	target.hp = target_dict["NewHP"]
 	if target.hp <= 0:
 		logging.debug("The target was KILLED!")
 
 	# Save the result
+	action_history.save()
 	unit.save()
 	target.save()
 
