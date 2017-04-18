@@ -242,7 +242,6 @@ def getActionData(version):
 		action_dict[actn.name] = {}
 		action_dict[actn.name]["Object"]      = actn
 		action_dict[actn.name]["Description"] = actn.description
-		logging.debug("DESC IS {0}".format(actn.description))
 
 	return action_dict
 
