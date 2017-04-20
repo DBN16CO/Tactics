@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections.Generic;
 
 public class MainMenuController : MonoBehaviour {
 
@@ -16,7 +15,7 @@ public class MainMenuController : MonoBehaviour {
 	}
 
 	public void LoadSetTeam() {
-		SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
+		SceneManager.LoadSceneAsync("SetTeam", LoadSceneMode.Single);
 	}
 
 	// Loads active games

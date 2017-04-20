@@ -15,7 +15,7 @@ public class SpawnController : MonoBehaviour {
 
 
 	// Call this to instantiate a new game grid
-	public Token[][] CreateMap(string mapKey) {
+	public void CreateMap(string mapKey) {
 		MapData map = GameData.GetMap(mapKey);
 		// Initialize Tokens jagged array
 		Token[][] tokens = new Token[map.width][];
@@ -26,6 +26,7 @@ public class SpawnController : MonoBehaviour {
 		// Assumes PPU = resolution for each sprite
 		float orthoSize = Camera.main.orthographicSize;
 		ScaleFactor = (2f * orthoSize) / (float)tokens.Length; 		// This will have to change if we want non-square maps
+//		Camera.main.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
 		// Loop through each token
 		GameObject GameMap = new GameObject(); GameMap.name = "MapTokens";
 		for(int width = 0; width < tokens.Length; width++) {
@@ -42,24 +43,25 @@ public class SpawnController : MonoBehaviour {
 				token.Y = height;
 				// If placing units, grey out the tokens that can't be placed on
 				if(GameController.PlacingUnits && gameObject.GetComponent<GameController>().CurrentMap.teamPlaceUnit[width][height] != gameObject.GetComponent<GameController>().myTeam) {
-					token.gameObject.GetComponent<SpriteRenderer>().material = Resources.Load<Material>("Materials/disabled");
+					token.SetActionProperties("disabled");
 				}
 				// Add token to token array
 				tokens[width][height] = token;
 			}
 		}
-		// Set game vars and return token array
-		gameObject.GetComponent<GameController>().GridLength = tokens.Length - 1;
-		gameObject.GetComponent<GameController>().GridHeight = tokens[0].Length - 1;
-		return tokens;
+		GameMap.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
+		// Set game vars
+		GameController.GridLength = tokens.Length - 1;
+		GameController.GridHeight = tokens[0].Length - 1;
+		GameController.Tokens = tokens;
 	}
 
 	// Call this to create a unit for a token
-	public Unit CreateUnit(MatchUnit unit,int x, int y) {
+	public Unit CreateUnit(MatchUnit unit,int x, int y, bool myTeam) {
 		// Instantiate the specified unit
 		Unit ret = (Instantiate(Resources.Load("Units/" + unit.Name),Vector3.zero,Quaternion.identity) as GameObject).GetComponent<Unit>();
 		// Set the position to the token's position
-		ret.transform.position = gameObject.GetComponent<GameController>().Tokens[x][y].transform.position;
+		ret.transform.position = GameController.Tokens[x][y].transform.position;
 		ret.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
 		// Add to GameController Units and Return final unit
 		if(unit.X == -1 || unit.Y == -1) {
@@ -67,6 +69,8 @@ public class SpawnController : MonoBehaviour {
 			unit.X = x; unit.Y = y; unit.HP = GameData.GetUnit(unit.Name).GetStat("HP").Value;
 		}
 		ret.Info = unit;
+		ret.MyTeam = myTeam;
+		GameController.Tokens[x][y].CurrentUnit = ret;
 		GameController.Units.Add(ret);
 		if(GameController.PlacingUnits) {
 			GameController.UnitBeingPlaced.RemoveUnit();

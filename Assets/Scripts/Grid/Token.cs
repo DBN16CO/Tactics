@@ -95,7 +95,7 @@ public class Token : MonoBehaviour {
 
 	// Token actions when unit is placed
 	private void PlaceUnit() {
-		CurrentUnit = GameController.SC.CreateUnit(GameController.UnitBeingPlaced.matchUnit,X,Y);
+		CurrentUnit = GameController.SC.CreateUnit(GameController.UnitBeingPlaced.matchUnit,X,Y, true);
 	}
 
 	// Sets properties based on action
@@ -116,12 +116,15 @@ public class Token : MonoBehaviour {
 				CanAttack = false;
 				PaintAction(action);
 				break;
+			case "disabled":
+				PaintAction(action);
+				break;
 		}
 	}
 
 	// Paints the token per the current action
 	public void PaintAction(string action) {
-		gameObject.GetComponent<SpriteRenderer>().material = Resources.Load("Materials/" + action) as Material;
+		gameObject.GetComponent<SpriteRenderer>().material = Resources.Load<Material>("Materials/" + action);
 	}
 
 	// Sets the token's terrain based on string input
