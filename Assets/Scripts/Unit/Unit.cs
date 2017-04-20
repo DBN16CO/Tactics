@@ -65,7 +65,7 @@ public class Unit : MonoBehaviour {
 		}else {
 			_selected = true;
 		// UI Options in GameController
-			_gc.SelectUnit(this, token);
+			_gc.SelectUnit(token);
 		}
 	}
 
@@ -78,7 +78,7 @@ public class Unit : MonoBehaviour {
 	// Resets unit at start of turn
 	public void Reset() {
 		_takenAction = false;
-		RemainingMoveRange = GetStat("MoveRange").Value;
+		RemainingMoveRange = GameData.GetUnit(name).GetStat("Move").Value;
 	}
 
 }

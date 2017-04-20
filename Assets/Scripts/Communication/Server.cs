@@ -70,6 +70,9 @@ public static class Server {
 		if (response == null){
 			return null;
 		}
+		if(request["Command"] == "IL") {
+			Debug.Log(strResponse);
+		}
 
 		bool success = (bool)response["Success"];
 		if(!success) {

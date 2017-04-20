@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 public class GameController : MonoBehaviour {
 
-	private Token[][] _tokens;
-	private int _gridHeight;
-	private int _gridLength;
+	private static Token[][] _tokens;
+	private static int _gridHeight;
+	private static int _gridLength;
 
 	private static List<Unit> _units;
 	private static Token _selectedToken;
@@ -15,6 +15,7 @@ public class GameController : MonoBehaviour {
 	// Game vars
 	private MapData _currentMap;
 	public List<MatchUnit> myUnits;
+	public List<MatchUnit> enemyUnits;
 	public int myTeam;
 
 
@@ -26,15 +27,15 @@ public class GameController : MonoBehaviour {
 
 
 #region Setters and Getters
-	public Token[][] Tokens {
+	public static Token[][] Tokens {
 		get{return _tokens;}
 		set{_tokens = value;}
 	}
-	public int GridHeight {
+	public static int GridHeight {
 		get{return _gridHeight;}
 		set{_gridHeight = value;}
 	}
-	public int GridLength {
+	public static int GridLength {
 		get{return _gridLength;}
 		set{_gridLength = value;}
 	}
@@ -80,25 +81,23 @@ public class GameController : MonoBehaviour {
 		// Map game vars from QGU match data and determine if place units is necessary
 		myTeam = GameData.CurrentMatch.UserTeam;
 		myUnits = GameData.CurrentMatch.AlliedUnits;
+		enemyUnits = GameData.CurrentMatch.EnemyUnits;
 		PlacingUnits = !UnitsArePlaced;
 		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
-		Tokens = SC.CreateMap(GameData.CurrentMatch.MapName);
+		SC.CreateMap(GameData.CurrentMatch.MapName);
 		if(PlacingUnits) {
 			PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();
+		}else{
+			InitializeMap();
+			StartTurn();
 		}
 
 
 
 		// Block for testing -------------------------------------------
-		// Set startup variables
-//		TestStartup();
 		// For any gameplay vars and functions
 //		TestGamePlay();
 		// End testing block -------------------------------------------
-
-		// Not testing - will likely actually apply for match generation
-		// Initialize turn
-		//StartTurn();
 	}
 
 	// Runs when the app is closed - attempt to close the websocket cleanly
@@ -116,10 +115,11 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Runs when a unit is selected. Take action if possible, otherwise show unit info
-	public void SelectUnit(Unit unit, Token token) {
+	public void SelectUnit(Token token) {
+		Unit unit = token.CurrentUnit;
 		SelectedToken = token;
 		if(unit.MyTeam && !unit.TakenAction) {
-			SetValidActions(unit, token);
+			SetValidActions(token);
 		}else{
 			ShowUnitInfo(unit);
 		}
@@ -139,7 +139,8 @@ public class GameController : MonoBehaviour {
 	// Begins the process to asses valid moves for the selected unit
 	// Set range to unit's remaining range (in case we make units able to move twice if it has leftover)
 	// After all actions have been assessed, paint the tokens
-	private void SetValidActions(Unit unit, Token token) {
+	private void SetValidActions(Token token) {
+		Unit unit = token.CurrentUnit;
 		float range = unit.RemainingMoveRange;
 		AddValidAction("move", token);
 		EvalSurroundingTokenActions(unit, token, range, "move");
@@ -186,9 +187,9 @@ public class GameController : MonoBehaviour {
 			if(prevToken.CurrentUnit != null) {
 				// We can't move to this token or the previous token
 				// Evaluate the prevToken with atkrange-1 since we're really trying to eval prevprevtoken
-				EvalSurroundingTokenActions(unit, prevToken, unit.GetStat("AttackRange").Value-1, "attack");
+				EvalSurroundingTokenActions(unit, prevToken, GameData.GetUnit(unit.name).GetStat("Attack Range").Value-1, "attack");
 			}else{
-				EvalSurroundingTokenActions(unit, prevToken, unit.GetStat("AttackRange").Value, "attack");
+				EvalSurroundingTokenActions(unit, prevToken, GameData.GetUnit(unit.name).GetStat("Attack Range").Value, "attack");
 			}
 		}
 		// Otherwise, the action must be attack, which elicits no further action once that range runs out
@@ -240,8 +241,8 @@ public class GameController : MonoBehaviour {
 	// Sets up for overwrite and removes the action from a token
 	private void RemoveValidAction(Token token) {
 		// We don't have a reference to the specific action so loop through valid actions
-		for(int index = 0; index < Actions.Count; index++) {
-			ValidAction currAction = Actions[index];
+		for(int x = 0; x < Actions.Count; x++) {
+			ValidAction currAction = Actions[x];
 			if(currAction.col == token.X && currAction.row == token.Y) {
 				Actions.Remove(currAction);
 				token.SetActionProperties("overwrite");
@@ -259,16 +260,23 @@ public class GameController : MonoBehaviour {
 		return action;
 	}
 
+	// Initializes the game map when opening after place units has already been completed
+	private void InitializeMap() {
+		foreach(MatchUnit unit in myUnits) {
+			if(unit.X != -1) {
+				SC.CreateUnit(unit, unit.X, unit.Y, true);
+			}
+		}
+		foreach(MatchUnit unit in enemyUnits) {
+			if(unit.X != -1) {
+				SC.CreateUnit(unit, unit.X, unit.Y, false);
+			}
+		}
+	}
+
 
 
 #region Development
-	// For testing - any initial variable setting
-	private void TestStartup() {
-		//PlayerPrefs.DeleteAll();
-		//PlayerPrefs.DeleteKey("session");
-		//GridAlpha = "33";
-	}
-
 	// For testing - gameplay variables and functionality
 	private void TestGamePlay() {
 		// Create Grid and add test units

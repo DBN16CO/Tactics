@@ -66,9 +66,15 @@ public class PlaceUnitsController : MonoBehaviour {
 
 	// Action when submit button is pressed
 	void PlaceUnits() {
-		Debug.Log(Server.PlaceUnits(GameData.CurrentMatch));
-		GameController.PlacingUnits = false;
-		Destroy(gameObject);
+		if(Server.PlaceUnits(GameData.CurrentMatch)) {
+			GameController.PlacingUnits = false;
+			for(int x = 0; x < GameController.Tokens.Length; x++) {
+				for(int y = 0; y < GameController.Tokens[x].Length; y++) {
+					GameController.Tokens[x][y].SetActionProperties("clear");
+				}
+			}
+			Destroy(gameObject);
+		}
 	}
 
 }
