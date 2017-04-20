@@ -4,8 +4,10 @@
 
 .. moduleauthor:: Drew, Brennan, and Nick
 """
+import os
 from channels import Channel
 from channels.tests import ChannelTestCase
+from django.test import TestCase
 from router import *
 from Server.config import *
 from Game.models import Unit, Game, Game_User, Game_Queue
@@ -14,19 +16,30 @@ from Static.models import Map
 import Static.create_data
 from Game.tasks import processMatchmakingQueue
 from Server import config
+import Static.statichelper
 
 class TestHelper(ChannelTestCase):
 	"""
 	Used to set up any unit tests
 	"""
-	def __init__(self):
+	def __init__(self, testName=None):
 		"""
 		Sets up the test config and initializes the Database
 		"""
+		# Logging
+		self.setupConfig()
+		startTestLog(testName)
+
+		# Set the test environment variable
+		os.environ['TEST_ENV'] = "TEST_ENV"
+
+		# Test Channels
 		self.channel = Channel(u'Test')
 		self.channel2 = Channel(u'Test2')
-		self.setupConfig()
+
+		# Create database, with version 1.0 data
 		self.initStaticData("1.0")
+
 		# Load all of the map data for the most-recent version
 		loadMaps()
 
@@ -46,7 +59,7 @@ class TestHelper(ChannelTestCase):
 			chn = self.channel2
 
 		chn.send({u'bytes': payload, u'reply_channel': chn.name})
-		logging.error("Chn.name="+chn.name)
+		logging.debug("Chn.name={0}".format(chn.name))
 		message = self.get_next_message(chn.name, require=True)
 		processRequest(message)
 
@@ -126,81 +139,14 @@ class TestHelper(ChannelTestCase):
 
 		result = self.createTestUser(request, channel_num)
 		if result["Success"] == False:
-			logging.error("Creating the test user resulted in failure:\n\t" + result["Error"])
+			logging.error("Creating the test user resulted in failure:\n\t{0}".format(result["Error"]))
 			return False
 
 		result = self.login(request, channel_num)
 		if result["Success"] == False:
-			logging.error("Logging in test user resulted in failure:\n\t" + result["Error"])
+			logging.error("Logging in test user resulted in failure:\n\t{0}".format(result["Error"]))
 	
 		return result["Success"]
-
-	def createUserAndJoinQueue(self, credentials, team, channel_num=1):
-		self.createUserAndLogin(credentials, channel_num)
-
-		username = credentials["username"]
-
-		# Setup values and set team
-		version = Version.objects.latest('pk')
-		perks = '"Extra Money", "Forest Fighter", "Mountain Fighter"'
-		user = Users.objects.get(username=username)
-		self.send('{"Command":"ST","Units":' + team + ',"Leader":"Sniper","Ability":"Extra Range","Perks":[' + perks + ']}', channel_num)
-		self.receive(channel_num)
-
-		# Find a match
-		self.send('{"Command":"FM"}', channel_num)
-		result = json.loads(self.receive(channel_num))
-
-		return result["Success"]
-
-	def createUsersAndMatch(self, credentials1, team1, credentials2, team2):
-		self.createUserAndJoinQueue(credentials1, team1, 1)
-		self.createUserAndJoinQueue(credentials2, team2, 2)
-
-		processMatchmakingQueue()
-
-		return Game_User.objects.filter(user=Users.objects.filter(username=credentials1["username"])).first().game != None
-
-	def createUsersAndPlaceUnits(self, credentials1, team1, credentials2, team2):
-		self.assertTrue(self.createUsersAndMatch(credentials1, team1, credentials2, team2))
-		game_users = Game_User.objects.filter()
-		if game_users.first().user.username == credentials1["username"]:
-			game_user_1 = game_users.first()
-			game_user_2 = game_users.last()
-		else:
-			game_user_2 = game_users.first()
-			game_user_1 = game_users.last()
-
-		# Valid Team 1 Placement - across top of map
-		placed_team_1 = []
-		counter = 0
-		for class_name in json.loads(team1):
-			placed_team_1.append({"Name":str(class_name),"X":counter,"Y":0})
-			counter += 1
-
-		# Valid Team 2 Placement - across bottom of map
-		placed_team_2 = []
-		counter = 0
-		for class_name in json.loads(team2):
-			placed_team_2.append({"Name":str(class_name),"X":counter,"Y":15})
-			counter += 1
-
-		command1 = '{"Command":"PU","Game":"'+game_user_1.name+'","Units":'+str(placed_team_1)+'}'
-		self.send(command1.replace("'", '"'),1)
-		response = json.loads(self.receive(1))
-		self.assertTrue(response["Success"])
-		command2 = '{"Command":"PU","Game":"'+game_user_2.name+'","Units":'+str(placed_team_2)+'}'
-		self.send(command2.replace("'", '"'),2)
-		response = json.loads(self.receive(2))
-		self.assertTrue(response["Success"])
-
-		logging.debug("Printing information about the units created for this test:")
-		units = Unit.objects.filter()
-		for unit in units:
-			logging.debug("Unit: X: %d\t Y: %d\t ID: %d\t Name: %s\t Owner: %s", unit.x_pos, unit.y_pos,
-				unit.pk, unit.unit_class.name, unit.owner.username)
-
-		return game_users
 
 	@staticmethod
 	def initStaticData(version_name):
@@ -213,18 +159,54 @@ class TestHelper(ChannelTestCase):
 
 		return False
 
-
 def startTestLog(testName):
 	"""
 	Provides all header messages to the log for any test
 	"""
 	logging.debug("")
-	logging.debug("==========  Starting Test: " + str(testName) + " ==========")
+	logging.debug("============  Starting Test: {0} ============".format(testName))
 
 def endTestLog(testName):
 	"""
 	Provides all footer messages to the log for any test
-
-	Note: Will not run if any test fails at some point
 	"""
-	logging.debug("========== Finishing Test: " + str(testName) + " ==========")
+	logging.debug("============ Finishing Test: {0} ============".format(testName))
+
+class CommonTestHelper(TestCase):
+	"""
+	Contains methods common to all test classes
+	"""
+	def setUp(self):
+		self.testHelper = TestHelper(self._testMethodName)
+
+		# Clear the cached static DB data since IDs change between tests
+		Static.statichelper.static_data = {}
+
+	def tearDown(self):
+		endTestLog(self._testMethodName)
+
+	def helper_execute_failure(self, command, message, channel_num=1):
+		"""
+		This method will execute the provided command (in channel 1), receive the response, 
+		then ensure that the 'Success' returned is FALSE,
+		and that the provided message matches the produced 'Error' message
+		
+		NOTE: The provided command a dictionary that will need to be converted to a string here
+		"""
+		self.testHelper.send(json.dumps(command), channel_num)
+		result = json.loads(self.testHelper.receive(channel_num))
+
+		self.assertFalse(result["Success"])
+		self.assertEqual(result["Error"], message)
+
+	def helper_execute_success(self, command, channel_num=1):
+		"""
+		This method will execute the provided command (in channel 1), receive the response,
+		ensure that the 'Success' is returned TRUE,
+		and then return the result for further testing
+		"""
+		self.testHelper.send(json.dumps(command), channel_num)
+		result = json.loads(self.testHelper.receive(channel_num))
+
+		self.assertTrue(result["Success"])
+		return result

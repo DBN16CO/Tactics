@@ -1,12 +1,15 @@
-﻿using UnityEngine;
-//using System;
-//using System.Collections;
+﻿//using UnityEngine;
 using System.Collections.Generic;
 
 public static class GameData {
 
 	private static Dictionary<string, object> playerData;
 	public static PlayerData Player;
+	public static VersionData Version;
+
+	private static List<object> matchData;
+	private static List<MatchData> matches;
+	public  static MatchData CurrentMatch;
 
 	private static List<StatData> stats;
 	private static Dictionary<string, object> statData;
@@ -63,15 +66,31 @@ public static class GameData {
 		SetTerrainData(terrainData);
 		SetMapData(mapData);
 
+		Version = new VersionData((Dictionary<string, object>)responseDict["Version"]);
+
 		CreateWeightMap();
 	}
 
 #region // Set Static Data
 
+	// Populates match data and creates callable list
+	public static void SetMatchData(Dictionary<string, object> matchDict) {
+		matches = new List<MatchData>();
+		matches.Clear();
+
+		if(matchDict["Games"].ToString() == "[]") {
+			return;
+		}
+		matchData = Json.ToList(matchDict["Games"].ToString());
+		foreach(object match in matchData) {
+			matches.Add(new MatchData(Json.ToDict(match.ToString())));
+			matches[matches.Count-1].MatchID = matches.Count -1;
+		}
+	}
+
 	// Populates terrain data and creates callable list
 	private static void SetTerrainData(Dictionary<string, object> terrainDict) {
 		foreach(KeyValuePair<string, object> terrain in terrainDict) {
-			//terrains.Add(new TerrainData((Dictionary<string, object>)terrainDict[terrain.Key]));
 			terrains.Add(new TerrainData(terrain));
 		}
 	}
@@ -102,6 +121,7 @@ public static class GameData {
 		foreach(KeyValuePair<string, object> perk in perkDict) {
 			perks.Add(new PerkData(perk));
 		}
+		perks.Sort((x,y) => x.tier.CompareTo(y.tier));
 	}
 
 	// Populates unit data and creates callable list
@@ -127,6 +147,11 @@ public static class GameData {
 #endregion
 
 #region // Retrieve Static Data
+
+	// Called to retrieve dynamic match data
+	public static List<MatchData> GetMatches {
+		get{return matches;}
+	}
 
 	// Called to retrieve static terrain data
 	public static TerrainData GetTerrain(string shortNameKey) {

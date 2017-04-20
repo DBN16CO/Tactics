@@ -8,3 +8,9 @@ install:
 
 script:
 - ./TravisScripts/run_tests.sh
+
+after_script:
+- cat ./Server/trace.log
+
+notifications:
+  slack: dbn16:jT35x7zWh66YQfk4MMFZ0KvD

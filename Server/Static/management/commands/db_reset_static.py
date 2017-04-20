@@ -17,7 +17,7 @@ class Command(BaseCommand):
 	def handle(self, *args, **options):
 		for version in options['version']:
 			ver = Version.objects.filter(name=version).first()
-			
+
 			if ver == None:
 				self.stderr.write("Version (" + ver.name + ") does not exist, not dropping any values...")
 				continue

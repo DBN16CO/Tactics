@@ -5,7 +5,7 @@ public class StatData {
 
 	public string name;
 	public string description;
-	public float value;
+	public int Value;
 
 	public StatData(KeyValuePair<string, object> stat, bool forUnit) {
 		name = stat.Key;
@@ -13,7 +13,7 @@ public class StatData {
 			Dictionary<string, object> statData = (Dictionary<string, object>)stat.Value;
 			description = statData["Description"].ToString();
 		}else {
-			value = float.Parse(stat.Value.ToString());
+			Value = int.Parse(stat.Value.ToString());
 		}
 	}
 

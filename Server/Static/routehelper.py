@@ -6,8 +6,6 @@ Outputs - they will pass back a formatted JSON response object
 which will detail the success or failure of the command
 as well as any other necessary information regarding the command.
 """
-import logging
-from Static.models import Version
 import Static.statichelper
 
 def getAllStaticData(data):
@@ -32,7 +30,9 @@ def getAllStaticData(data):
 				 		<Next Ability>,\n
 				 	},\n
 				 	"Actions":{\n
-				 		"Attack": "Deal damage to target unit.",\n
+				 		"Attack": {\n
+				 			"Description":"Deal damage to target unit."\n
+				 		},\n
 						<Next Action>,\n
 					},\n
 				 	"Classes":{\n
@@ -93,80 +93,8 @@ def getAllStaticData(data):
 	"""
 
 	#TODO Determine if user needs other version's static data
-	error_list = []
+	response = Static.statichelper.getAllStaticDataIL()
 
-	# Get the most current version's info
-	logging.debug("Loading Version data...")
-	version_obj = Version.objects.latest('pk')
-	version = Static.statichelper.getVersionData(version_obj)
-	logging.debug("Using latest version: " + str(version_obj.name))
-
-	# Get all of the Abilities
-	logging.debug("Loading Ability data...")
-	abilities = Static.statichelper.getAbilityData(version_obj)
-	if abilities == None or len(abilities) == 0:
-		error_list.append("Abilities")
-
-	# Get all of the actions
-	logging.debug("Loading Action data...")
-	actions = Static.statichelper.getActionData(version_obj)
-	if actions == None or len(actions) == 0:
-		error_list.append("Actions")
-
-	# Get all of the classes
-	logging.debug("Loading Class data...")
-	classes = Static.statichelper.getClassData(version_obj)
-	if classes == None or len(classes) == 0:
-		error_list.append("Classes")
-
-	# Get all of the Leaders
-	logging.debug("Loading Leader data...")
-	leaders = Static.statichelper.getLeaderData(version_obj)
-	if leaders == None or len(leaders) == 0:
-		error_list.append("Leaders")
-
-	# Get all of the maps
-	logging.debug("Loading Map data...")
-	maps = Static.statichelper.getMapData(version_obj)
-	if maps == None or len(maps) == 0:
-		error_list.append("Maps")
-
-	# Get all of the perks
-	logging.debug("Loading Perk data...")
-	perks = Static.statichelper.getPerkData(version_obj)
-	if perks == None or len(perks) == 0:
-		error_list.append("Perks")
-
-	# Get all of the stat information
-	logging.debug("Loading Stat data...")
-	stats = Static.statichelper.getStatData(version_obj)
-	if stats == None or len(stats) == 0:
-		error_list.append("Stats")
-
-	# Get all of the terrain information
-	logging.debug("Loading Terrain data...")
-	terrain = Static.statichelper.getTerrainData(version_obj)
-	if terrain == None or len(terrain) == 0:
-		error_list.append("Terrain")
-
-	if len(error_list) == 0:
-		# Get all of the terrain info
-		response = {"Success": True, 
-					"Version": version,
-					"Abilities": abilities,
-					"Actions": actions,
-					"Classes": classes,
-					"Leaders": leaders,
-					"Maps"   : maps,
-					"Perks"  : perks,
-					"Stats"  : stats,
-					"Terrain": terrain}
-	else:
-		error = "The following tables could not be loaded: "
-		for err in error_list:
-			error += err + ", "
-		error = error.strip(" ").strip(",")
-		response = {"Success": False,
-					"Error": error}
+	response["Success"] = True if not "Error" in response else False
 
 	return response

@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System;
+using System.Linq;
+using System.Threading;
 using System.Text;
 using System.Collections.Generic;
 using Common.Cryptography;
@@ -9,46 +11,104 @@ using System.Text.RegularExpressions;
 // This class contains all of the Server call functions
 public static class Server {
 
+	public static bool inQueue;
+	private static string url = "ws://tactics-dev.ddns.net:8443";
+	//private static string url = "ws://localhost:8000";
+	//private static string url = ""ws://tactics-production.herokuapp.com/""
+
 
 	public static void Connect() {
-		Communication.Connect(new Uri("ws://localhost:8000"));
-		//Communication.Connect(new Uri("ws://tactics-production.herokuapp.com/"));
+		Communication.Connect(new Uri(url));
+	}
+
+	public static void Disconnect() {
+		Communication.Close();
+	}
+
+	private static Dictionary<string, object> SendCommand(Dictionary<string, object> request) {
+		string[] noLoginReqCommands = {"LGN", "CU"};
+
+		// Verify the websocket is still connected and try to reconnect if it isn't
+		if (!Communication.IsConnected()){
+			Communication.Close();
+			Communication.Connect(new Uri(url));
+		}
+
+		// Failed to reconnect with the server
+		if (!Communication.IsConnected()){
+			return null;
+		}
+
+		// Send the request
+		Communication.SendString(Json.ToString(request));
+
+		// Wait for the response
+		string strResponse = null;
+		Dictionary<string, object> response = null;
+
+		int retryCount = 0;
+		const int maxRetries = 20;
+		while(strResponse == null && retryCount < maxRetries) {
+			strResponse = Communication.RecvString();
+			if (strResponse != null){
+				response = Json.ToDict(strResponse);
+				if (!noLoginReqCommands.All(request["Command"].ToString().Contains) && IsUnauthenticated(response)){
+					// Server says we are not logged in, re-authenticate
+					RetryLogin();
+					strResponse = null;
+					response = null;
+					Communication.SendString(Json.ToString(request));
+				}
+			}
+
+			if (strResponse == null){
+				retryCount++;
+				Thread.Sleep(100);
+			}
+		}
+
+		if (response == null){
+			return null;
+		}
+
+		bool success = (bool)response["Success"];
+		if(!success) {
+			Debug.Log("Request (" + request["Command"] + ") Failed");
+		}
+
+		return response;
 	}
 
 	public static bool InitialLoad() {
-		// Create the request, set data to pass, and send it
 		var request = new Dictionary<string, object>();
 		request["Command"] = "IL";
-		Communication.SendString(Json.ToString(request));
-		// Wait for the response, then parse
-		string strResponse = null;
-		while(strResponse == null) {
-			strResponse = Communication.RecvString();
+		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
 		}
-		var response = Json.ToDict(strResponse);
+
 		bool success = (bool)response["Success"];
 		if(success) {
-			//Debug.Log(strResponse);
 			GameData.SetGameData(response);
 		}
+
 		return success;
 	}
 
 	// Used to login to server with username and password
 	public static bool Login(string username, string pw) {
-		// Create the request, set data to pass, and send it
 		var request = new Dictionary<string, object>();
 		request["Command"] 	= "LGN";
 		request["username"]	= username;
 		request["pw"]		= pw;
-		Communication.SendString(Json.ToString(request));
-		// Wait for the response, then parse
-		string strResponse = null;
-		while(strResponse == null) {
-			strResponse = Communication.RecvString();
+
+		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
 		}
-		var response = Json.ToDict(strResponse);
-		// If login successful, encrypt and store session token
+
 		bool success = (bool)response["Success"];
 		if(success) {
 			string _loginToken = response["Token"].ToString();
@@ -57,7 +117,21 @@ public static class Server {
 			PlayerPrefs.Save();
 			Debug.Log("user '" + username + "' logged in with token: " + _loginToken);
 		}
+
 		return success;
+	}
+
+	private static bool IsUnauthenticated(Dictionary<string, object> response){
+		bool success = (bool)response["Success"];
+		if (!success){
+			string error = response["Error"].ToString();
+			if (error.Contains("User is not authenticated")){
+				Debug.Log("User is not authenticated, retry logging in.");
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	// Used to login to server with cached session token
@@ -89,65 +163,142 @@ public static class Server {
 
 	// Used to get user preferences
 	public static bool GetUserInfo() {
-		// Create the request
 		var request = new Dictionary<string, object>();
 		request["Command"] = "GUI";
-		Communication.SendString(Json.ToString(request));
-		// Wait for the response, then parse
-		string strResponse = null;
-		while(strResponse == null) {
-			strResponse = Communication.RecvString();
+		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
 		}
-		var response = Json.ToDict(strResponse);
-		// Error Handling
+
 		bool success = (bool)response["Success"];
 		if(success) {
-			//Debug.Log(strResponse);
 			GameData.SetPlayerData(response);
 		}
+
 		return success;
 	}
 
 	// Used to logout of the server
 	public static bool Logout() {
-		// Create the request, decrypt session token, and send it
 		var request = new Dictionary<string, object>();
 		request["Command"] = "LGO";
-		Communication.SendString(Json.ToString(request));
-		// Wait for the response, then parse
-		string strResponse = null;
-		while(strResponse == null) {
-			strResponse = Communication.RecvString();
+
+		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
 		}
-		var response = Json.ToDict(strResponse);
-		// If successful, delete cached token
+
 		bool success = (bool)response["Success"];
-		if(success) {
+		if (success){
 			Debug.Log("User logged out");
 			PlayerPrefs.DeleteKey("session");
 			PlayerPrefs.Save();
 		}
+
 		return success;
 	}
 
 	// Used to create a user in the database
 	public static bool CreateUser(string username, string pw, string email) {
-		// Create the request, set the data, and send
 		var request = new Dictionary<string, object>();
 		request["Command"] 	= "CU";
 		request["username"]	= username;
 		request["pw"]		= pw;
 		request["email"]	= email;
-		Communication.SendString(Json.ToString(request));
-		// Wait for the response, then parse
-		string strResponse = null;
-		while (strResponse == null) {
-			strResponse = Communication.RecvString();
+
+		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
 		}
-		var response = Json.ToDict(strResponse);
-		// Error Handling
+
 		bool success = (bool)response["Success"];
 		Debug.Log("user '" + username + "' created: " + success);
+
+		return success;
+	}
+
+	// Used to query active games for user
+	public static Dictionary<string, object> QueryGames() {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "QGU";
+		Dictionary<string, object> response = SendCommand(request);
+		bool success = (bool)response["Success"];
+		if(success) {
+			GameData.SetMatchData(response);
+		}
+		return response;
+	}
+
+	// Used to set selected team in database
+	public static bool SetTeam(string leader, string ability, List<string> units, List<string> perks) {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "ST";
+		request["Leader"] = leader;
+		request["Ability"] = ability;
+		request["Units"] = units;
+		request["Perks"] = perks;
+
+		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
+		}
+
+		bool success = (bool)response["Success"];
+
+		return success;
+	}
+
+	// Called to find ranked match after team is set
+	public static bool FindMatch() {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "FM";
+		Dictionary<string, object> response = SendCommand(request);
+
+		bool success = (bool)response["Success"];
+
+		return success;
+	}
+
+	// Called to send placed unit info to database
+	public static bool PlaceUnits(MatchData match) {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "PU";
+		request["Game"] = match.Name;
+
+		List<Dictionary<string, object>> unitsDict = new List<Dictionary<string, object>>();
+		foreach(Unit unit in GameController.Units) {
+			var unitDict = new Dictionary<string, object>();
+			MatchUnit unitInfo = unit.Info;
+			unitDict["ID"] 		= unitInfo.ID;
+			unitDict["Name"] 	= unitInfo.Name;
+			unitDict["X"]		= unitInfo.X;
+			unitDict["Y"]		= unitInfo.Y;
+			unitsDict.Add(unitDict);
+		}
+		request["Units"] = unitsDict;
+
+		Dictionary<string, object> response = SendCommand(request);
+
+		bool success = (bool)response["Success"];
+		return success;
+	}
+
+	// Called to cancel ranked match queue
+	public static bool CancelQueue() {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "CS";
+		Dictionary<string, object> response = SendCommand(request);
+
+		if (response == null){
+			return false;
+		}
+
+		bool success = (bool)response["Success"];
+
 		return success;
 	}
 

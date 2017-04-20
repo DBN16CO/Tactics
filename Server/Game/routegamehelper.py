@@ -10,7 +10,7 @@ as well as any other necessary information regarding the command.
 import logging
 from Communication.routehelper import formJsonResult
 from Static.models import Version
-from Game.models import Unit, Game_Queue, Game_User
+from Game.models import Action_History, Game_Queue, Game_User, Unit
 import Game.unithelper
 from User.models import Users
 
@@ -40,17 +40,64 @@ def findMatch(data):
 	error = ''
 
 	user = Users.objects.filter(username=data["session_username"]).first()
+
+	in_queue = Game_Queue.objects.filter(user=user).first()
+	if in_queue:
+		return formJsonResult("You are already in the matchmaking queue for a game.")
+
 	version = Version.objects.latest('pk')
 
 	# Ensure that the user has set a team
 	unitCount = Unit.objects.filter(owner=user, version=version, game=None).count()
-	if unitCount != version.unit_count:
-		logging.error(str(data["session_username"]) + "'s unit count is " + str(unitCount) + " when it should be " + str(version.unit_count) + ".")
+	if unitCount < version.unit_min or unitCount > version.unit_max:
+		logging.error("{0}'s unit count is {1} when it should be between {2} and {3}.".format(data["session_username"], unitCount, version.unit_min, version.unit_max))
 		error = "You must set a team before starting a match."
 	else:
 		# Add the user to the game queue
 		game_queue = Game_Queue(user=user, channel_name=data['channel_name'])
 		game_queue.save()
+
+	return formJsonResult(error)
+
+def cancelSearch(data):
+	"""
+	Called when the user wants to cancel the game search.
+	Note: This is a best effort attempt since it races the matchmaker.
+	Command: CS (Cancel Search)
+
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+	             be of the following format:\n
+	             {\n
+	             }\n
+
+	:rtype: 	 Dictionary
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {"Success":True\n
+				 }\n
+				 If Unsuccessful:\n
+				 	{"Successful":False,\n
+				 	 "Error":"Failed to cancel the game search"}\n
+	"""
+	username = data['session_username']
+	user = Users.objects.filter(username=username).first()
+	in_game_queue = Game_Queue.objects.filter(user=user).first()
+
+	error = ''
+	if in_game_queue:
+		logging.info("User ({0}) is in the game queue...deleting queue entry".format(username))
+		try:
+			in_game_queue.delete()
+		except Exception as e:
+			is_in_queue = Game_Queue.objects.filter(user=user).first() != None
+			if is_in_queue:
+				error = "Failed to cancel the game search"
+				logging.exception(e)
+			else:
+				logging.info("User ({0}) was taken out of queue before delete could occur".format(username))
+	else:
+		logging.warning("User ({0}) requested to cancel game search but was not in the queue".format(username))
 
 	return formJsonResult(error)
 
@@ -83,14 +130,10 @@ def queryGamesUser(data):
 					                {\n
 					                   "ID": 1,\n
 					                   "Name": "(Class)",\n
-					                   "HP_Rem": 99,\n
+					                   "HP": 99,\n
 					                   "Prev_HP": 109,\n
 					                   "X": 7,\n
 					                   "Y": 8,\n
-					                   "Prev_X": 9,\n
-					                   "Prev_Y": 10,\n
-					                   "Prev_Target": 2,\n
-					                   "Prev_Action": "(Action Name)"\n
 					                }\n
 					          ],\n
 					          "Your_Leader": {\n
@@ -107,14 +150,10 @@ def queryGamesUser(data):
 					               {\n
 					                   "ID": 2,\n
 					                   "Name": "(Class)",\n
-					                   "HP_Rem": 99,\n
+					                   "HP": 99,\n
 					                   "Prev_HP": 109,\n
 					                   "X": 7,\n
 					                   "Y": 8,\n
-					                   "Prev_X": 9,\n
-					                   "Prev_Y": 10,\n
-					                   "Prev_Target": 1,\n
-					                   "Prev_Action": "(Action Name)"\n
 					               }\n
 					          ],\n
 					          "Enemy_Leader": {\n
@@ -126,7 +165,30 @@ def queryGamesUser(data):
 					                   "Name": "(Perk 1)",\n
 					                   "Tier": "(Tier)"\n
 					               }\n
-					          ]\n
+					          ],\n
+					          "Action_History": [\n
+					          		{\n
+					          			"Order": 1,\n
+										"Turn": 1,\n
+										"Your_Action": True,\n
+										"Action": "Attack",\n
+										"Unit": 1,\n
+										"Old_X": 1,\n
+										"New_X": 2,\n
+										"Old_Y": 3,\n
+										"New_Y": 4,\n
+										"Old_HP": 10,\n
+										"New_HP": 5,\n
+										"Crit": False,\n
+										"Miss": False,\n
+										"Target": 9,\n
+										"Tgt_Old_HP": 10,\n
+										"Tgt_New_HP": 7,\n
+										"Tgt_Counter": True,\n
+										"Tgt_Crit": True,\n
+										"Tgt_Miss": False,\n
+					          		}\n
+					          ],\n
 					       }\n
 					],\n
 					"In_Game_Queue": "True/False"\n
@@ -157,6 +219,7 @@ def queryGamesUser(data):
 				# Start constructing the game object
 				game_response = {}
 				game_response["Name"] = game_user.name
+				game_response["Opponent"] = opp_user.username
 				game_response["Round"] = game.game_round
 				game_response["Your_Turn"] = game.user_turn == user
 				game_response["Map"] = game.map_path.name
@@ -176,21 +239,9 @@ def queryGamesUser(data):
 					unit = {}
 					unit["ID"] = your_unit.id
 					unit["Name"] = your_unit.unit_class.name
-					unit["HP_Rem"] = your_unit.hp_remaining
-					unit["Prev_HP"] = your_unit.prev_hp
-					unit["X"] = your_unit.x_pos
-					unit["Y"] = your_unit.y_pos
-					unit["Prev_X"] = your_unit.prev_x
-					unit["Prev_Y"] = your_unit.prev_y
-					
-					prev_target = your_unit.prev_target
-					prev_action = your_unit.prev_action
-					if prev_target:
-						unit["Prev_Target"] = prev_target.id
-						unit["Prev_Action"] = prev_action.name
-					else:
-						unit["Prev_Target"] = None
-						unit["Prev_Action"] = None
+					unit["HP"] = your_unit.hp
+					unit["X"] = your_unit.x
+					unit["Y"] = your_unit.y
 
 					game_response["Your_Units"].append(unit)
 
@@ -199,21 +250,9 @@ def queryGamesUser(data):
 					unit = {}
 					unit["ID"] = enemy_unit.id
 					unit["Name"] = enemy_unit.unit_class.name
-					unit["HP_Rem"] = enemy_unit.hp_remaining
-					unit["Prev_HP"] = enemy_unit.prev_hp
-					unit["X"] = enemy_unit.x_pos
-					unit["Y"] = enemy_unit.y_pos
-					unit["Prev_X"] = enemy_unit.prev_x
-					unit["Prev_Y"] = enemy_unit.prev_y
-
-					prev_target = enemy_unit.prev_target
-					prev_action = enemy_unit.prev_action
-					if prev_target:
-						unit["Prev_Target"] = prev_target.id
-						unit["Prev_Action"] = prev_action.name
-					else:
-						unit["Prev_Target"] = None
-						unit["Prev_Action"] = None
+					unit["HP"] = enemy_unit.hp
+					unit["X"] = enemy_unit.x
+					unit["Y"] = enemy_unit.y
 
 					game_response["Enemy_Units"].append(unit)
 
@@ -229,24 +268,55 @@ def queryGamesUser(data):
 				game_response["Enemy_Leader"] = {"Name": enemy_leader.name, "Ability": enemy_leader_ability.ability.name}
 
 				# Store information about your perks
-				game_response["Your_Perks"] = [
-					{"Name": game_user.perk_1.name, "Tier": game_user.perk_1.tier},
-					{"Name": game_user.perk_2.name, "Tier": game_user.perk_2.tier},
-					{"Name": game_user.perk_3.name, "Tier": game_user.perk_3.tier}
-				]
+				game_response["Your_Perks"] = []
+				if game_user.perk_1 is not None:
+					game_response["Your_Perks"].append({"Name": game_user.perk_1.name, "Tier":1})
+				if game_user.perk_2 is not None:
+					game_response["Your_Perks"].append({"Name": game_user.perk_2.name, "Tier":2})
+				if game_user.perk_3 is not None:
+					game_response["Your_Perks"].append({"Name": game_user.perk_3.name, "Tier":3})
 
 				# Store information about the enemy's perks
-				game_response["Enemy_Perks"] = [
-					{"Name": opp_game_user.perk_1.name, "Tier": opp_game_user.perk_1.tier},
-					{"Name": opp_game_user.perk_2.name, "Tier": opp_game_user.perk_2.tier},
-					{"Name": opp_game_user.perk_3.name, "Tier": opp_game_user.perk_3.tier}
-				]
+				game_response["Enemy_Perks"] = []
+				if opp_game_user.perk_1 is not None:
+					game_response["Enemy_Perks"].append({"Name": opp_game_user.perk_1.name, "Tier":1})
+				if opp_game_user.perk_2 is not None:
+					game_response["Enemy_Perks"].append({"Name": opp_game_user.perk_2.name, "Tier":2})
+				if opp_game_user.perk_3 is not None:
+					game_response["Enemy_Perks"].append({"Name": opp_game_user.perk_3.name, "Tier":3})
+
+				# Store all of the Actions from History for the game
+				action_history = Action_History.objects.filter(game=game).order_by("order")
+				game_response["Action_History"] = []
+				for actn in action_history:
+					this_action = {}
+					this_action["Order"]       = actn.order
+					this_action["Turn"]        = actn.turn_number
+					this_action["Your_Action"] = actn.acting_user == user
+					this_action["Action"]      = actn.action.name
+					this_action["Unit"]        = actn.acting_unit.id
+					this_action["Old_X"]       = actn.old_x
+					this_action["New_X"]       = actn.new_x
+					this_action["Old_Y"]       = actn.old_y
+					this_action["New_Y"]       = actn.new_y
+					this_action["Old_HP"]      = actn.old_hp
+					this_action["New_HP"]      = actn.new_hp
+					this_action["Crit"]        = actn.unit_crit
+					this_action["Miss"]        = actn.unit_missed
+					this_action["Target"]      = actn.target
+					this_action["Tgt_Old_HP"]  = actn.tgt_old_hp
+					this_action["Tgt_New_HP"]  = actn.tgt_new_hp
+					this_action["Tgt_Counter"] = actn.tgt_counter
+					this_action["Tgt_Crit"]    = actn.tgt_crit
+					this_action["Tgt_Miss"]    = actn.tgt_missed
+
+					game_response["Action_History"].append(this_action)
 
 				# Add the game object to the list of the user's games
 				response["Games"].append(game_response)
 
 	except Exception, e:
-		logging.error("Exception in query games for user:")
+		logging.error("Exception in query games for user: \n{0}".format(e))
 		logging.exception(e)
 		return formJsonResult("Internal Server Error")
 
@@ -254,7 +324,7 @@ def queryGamesUser(data):
 
 def placeUnits(data):
 	"""
-	Called when the game is ready to start and the user is deciding where to place their units. 
+	Called when the game is ready to start and the user is deciding where to place their units.
 	Command: PU (Place Units)
 
 	:type  data: Dictionary
@@ -294,17 +364,60 @@ def placeUnits(data):
 		return formJsonResult(error, data)
 
 	game_name = data["Game"]
-	unit_list = data["Units"]
-
-	if len(unit_list) != version.unit_count:
-		error = "Not enough units selected: (" + str(version.unit_count) + ") required, (" + str(len(unit_list)) + ") chosen."
-		return formJsonResult(error, data)
 
 	# Ensure that the game name provided is valid
 	game_user_obj = Game_User.objects.filter(user=user, name=game_name).first()
 	if game_user_obj == None:
-		error = "Invalid game name (" + game_name + ") for user " + user.username + "."
-	else:
-		error = Game.unithelper.placeUnits(game_user_obj, unit_list, user, version)
+		return formJsonResult("Invalid game name ({0}) for user {1}.".format(game_name, user.username))
+
+	unit_list = data["Units"]
+	units_set = Unit.objects.filter(game=game_user_obj.game, owner=user, x=-1, y=-1).count()
+
+	# Ensure the user is setting the proper number of units
+	if len(unit_list) != units_set:
+		error = "Incorrect number of units selected: ({0}) required, ({1}) chosen.".format(units_set, len(unit_list))
+		return formJsonResult(error, data)
+
+	# Call place units
+	error = Game.unithelper.placeUnits(game_user_obj, unit_list, user, version)
 
 	return formJsonResult(error, data)
+
+def endTurn(data):
+	"""
+	Called when the user has completed all of their desired moves for a turn and is ready
+	to pass play over to the opponent
+	Command: ET (End Turn)
+
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+				 be of the following format:\n
+				{\n
+					"Game":"vs. opponent #1"\n
+				}\n
+
+	:rtype: 	 Dictionary
+	:return: 	 A JSON object noting the success of the method call:\n
+				 If Successful:\n
+				 {"Success":True\n
+				 }\n
+				 If Unsuccessful:\n
+				 	{"Successful":False,\n
+				 	 "Error":"It is not your turn."}\n
+	"""
+	game_data = Game.unithelper.validateGameStarted(data)
+	if "Error" in game_data:
+		return formJsonResult(game_data["Error"], data)
+
+	game = game_data["Game"]
+	other_user = Game_User.objects.filter(game=game).exclude(user=game_data["User"]).first().user
+
+	# Update the game to be the other user's turn
+	game.user_turn = other_user
+	game.game_round += 1
+	game.save()
+
+	# Update each of the opposing player's living units so that they can now move
+	Unit.objects.filter(owner=other_user, game=game).exclude(hp__lte=0).update(acted=False)
+
+	return formJsonResult(None, data)

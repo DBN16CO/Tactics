@@ -1,10 +1,9 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class ActiveCustomGameController : MonoBehaviour {
-
-	private MainMenuController _mc;
 
 	public Button btn;
 	private GameObject _detailedView;
@@ -13,31 +12,39 @@ public class ActiveCustomGameController : MonoBehaviour {
 	private bool _expanded;				// When detailedview is expanded
 	public bool _collapsing;			// When detailedview is collapsing
 	private float _t;					// Arbitrary measure of time
+	private RectTransform _RT;			// Transform of this gameObject
+	private RectTransform _parentRT;	// Transform of the parent scrollview
 	private RectTransform _detailedViewRT; // Transform of the detailedview
+	private float _maxY;
 	private float _deltaY;				// The amount the detailedview lerped THIS frame
+	private int _matchID;
+
+	// Y position of bottom of detailed view, used to keep from lerping below screen
+	public float DetailedGlobalY {
+		get{return Mathf.Round(_RT.anchoredPosition.y - _RT.sizeDelta.y + _detailedViewRT.anchoredPosition.y);}
+	}
+
 
 	// Initialization - set variables & add click listener
 	void Awake () {
-		_mc = GameObject.Find("MainMenuController").GetComponent<MainMenuController>();
 		gameObject.name = gameObject.name.Substring(0, 16);
+		_RT = gameObject.GetComponent<RectTransform>();
+		_parentRT = transform.parent.GetComponent<RectTransform>();
+		_maxY = transform.parent.parent.parent.gameObject.GetComponent<RectTransform>().sizeDelta.y;
 
 		_expanding = false;
 		_expanded = false;
 		_collapsing = false;
 		_t = 0f;
 
-		btn.onClick.AddListener(ToggleDetailedView);
-		_detailedView = gameObject.transform.FindChild("DetailedView").gameObject;
+		btn.onClick.AddListener(SelectGame);
 	}
 
 	// Since can't pass params into Awake constructor, set detailed properties after instantiation
-	public void SetDetailedProperties(int index) {
-		// Below code is for testing - makes the dummy games say Game1, Game2 etc
-		_detailedView.name += (index + 1).ToString();
-		btn.transform.FindChild("Text").GetComponent<Text>().text += (index + 1).ToString();
-
-		_detailedViewRT = _detailedView.GetComponent<RectTransform>();
-	}
+	public void SetDetailedProperties(MatchData matchData) {
+		_matchID = matchData.MatchID;
+ 		btn.transform.FindChild("Text").GetComponent<Text>().text = matchData.Name;
+ 	}
 
 	// Toggles whether to collapse or expand the detailedview
 	void ToggleDetailedView() {
@@ -49,6 +56,12 @@ public class ActiveCustomGameController : MonoBehaviour {
 			_collapsing = false;
 			_expanding = true;
 		}
+	}
+
+	// Handles any button presses to the 
+	void SelectGame() {
+		GameData.CurrentMatch = GameData.GetMatches[_matchID];
+		SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 	}
 
 	// Runs every frame - stop at t = 1 because lerp is from 0 to 1
@@ -65,6 +78,11 @@ public class ActiveCustomGameController : MonoBehaviour {
 			_detailedViewRT.anchoredPosition = new Vector3(0,Mathf.Lerp(_detailedViewRT.anchoredPosition.y,Convert.ToInt32(_expanding) * -500,_t));
 			_deltaY = _detailedViewRT.anchoredPosition.y - preY;
 			LerpBelowGames();
+			if(DetailedGlobalY < - _maxY - _parentRT.anchoredPosition.y) {
+				_parentRT.anchoredPosition -= new Vector2(0,_deltaY);
+			}else if(_parentRT.anchoredPosition.y + _maxY > _parentRT.sizeDelta.y) {
+				_parentRT.anchoredPosition -= new Vector2(0,_deltaY);
+			}
 		}
 	}
 
@@ -72,13 +90,11 @@ public class ActiveCustomGameController : MonoBehaviour {
 	// also resize parent transform (scrollable area)
 	private void LerpBelowGames() {
 		int currIndex = transform.GetSiblingIndex();
-		int maxY = (transform.parent.childCount - 1) * -300;
 		for(int i = currIndex-1; i >= 0; i--) {
 			RectTransform childRT = transform.parent.GetChild(i).GetComponent<RectTransform>();
 			childRT.anchoredPosition = new Vector2(0,childRT.anchoredPosition.y + _deltaY);
 		}
-		RectTransform parentRT = transform.parent.GetComponent<RectTransform>();
-		parentRT.sizeDelta = new Vector2(1440,parentRT.sizeDelta.y - _deltaY);
+		_parentRT.sizeDelta -= new Vector2(0,_deltaY);
 	}
 
 }

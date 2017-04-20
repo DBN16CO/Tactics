@@ -4,6 +4,7 @@ using System;
 // Class governing unit options
 public class Unit : MonoBehaviour {
 
+	private MatchUnit _info;
 	private Stat[] _stats;
 	// Situational stats
 	private float _remainingMoveRange;
@@ -13,7 +14,13 @@ public class Unit : MonoBehaviour {
 	private bool _myTeam;
 	private GameController _gc;
 
+
 #region Setters and Getters
+	// Returns unit information
+	public MatchUnit Info {
+		get{return _info;}
+		set{_info = value;}
+	}
 	// Returns _myTeam;
 	public bool MyTeam {
 		get{return _myTeam;}
@@ -47,6 +54,7 @@ public class Unit : MonoBehaviour {
 		for(int cnt = 0; cnt < Stats.Length; cnt++) {
 			Stats[cnt] = new Stat(Enum.GetName(typeof(UnitStats), cnt));
 		}
+		name = name.Substring(0, name.Length-7);
 		_gc = GameObject.Find("GameController").GetComponent<GameController>();
 	}
 
@@ -57,7 +65,7 @@ public class Unit : MonoBehaviour {
 		}else {
 			_selected = true;
 		// UI Options in GameController
-			_gc.SelectUnit(this, token);
+			_gc.SelectUnit(token);
 		}
 	}
 
@@ -70,7 +78,7 @@ public class Unit : MonoBehaviour {
 	// Resets unit at start of turn
 	public void Reset() {
 		_takenAction = false;
-		RemainingMoveRange = GetStat("MoveRange").Value;
+		RemainingMoveRange = GameData.GetUnit(name).GetStat("Move").Value;
 	}
 
 }

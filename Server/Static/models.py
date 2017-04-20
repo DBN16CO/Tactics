@@ -6,7 +6,8 @@ from django.db import models
 class Version(models.Model):
 	name         = models.CharField(max_length=16, unique=True)
 	price_max    = models.IntegerField(default=1000)
-	unit_count   = models.IntegerField(default=8)
+	unit_min     = models.IntegerField(default=1)
+	unit_max     = models.IntegerField(default=10)
 
 class Ability(models.Model):
 	name         = models.CharField(max_length=16)
@@ -15,8 +16,8 @@ class Ability(models.Model):
 
 	class Meta:
 		unique_together = ('name', 'version')
-	
-class Action(models.Model):	
+
+class Action(models.Model):
 	name         = models.CharField(max_length=16)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 	description  = models.CharField(max_length=100)
@@ -24,8 +25,9 @@ class Action(models.Model):
 	class Meta:
 		unique_together = ('name', 'version')
 
-class Class(models.Model):	
+class Class(models.Model):
 	name         = models.CharField(max_length=16)
+	attack_type  = models.CharField(max_length=25)   # Physical or Magical?
 	description  = models.CharField(max_length=100)
 	price        = models.IntegerField(default=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
@@ -33,7 +35,12 @@ class Class(models.Model):
 	class Meta:
 		unique_together = ('name', 'version')
 
-class Leader(models.Model):	
+class Class_Action(models.Model):
+	clss         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
+	action       = models.ForeignKey(Action,       on_delete=models.DO_NOTHING)
+	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
+
+class Leader(models.Model):
 	name         = models.CharField(max_length=16)
 	description  = models.CharField(max_length=100)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
@@ -59,7 +66,7 @@ class Perk(models.Model):
 		unique_together = ('name', 'version')
 
 class Map(models.Model):
-	name         = models.CharField(max_length=16)	
+	name         = models.CharField(max_length=16)
 	file_path    = models.CharField(max_length=128)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
@@ -77,7 +84,7 @@ class Stat(models.Model):
 class Unit_Stat(models.Model):
 	stat 		 = models.ForeignKey(Stat,		   on_delete=models.DO_NOTHING)
 	unit         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
-	value        = models.FloatField(default=0)
+	value        = models.IntegerField(default=0)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:
@@ -95,7 +102,7 @@ class Terrain(models.Model):
 class Terrain_Unit_Movement(models.Model):
 	terrain 	 = models.ForeignKey(Terrain,	   on_delete=models.DO_NOTHING)
 	unit         = models.ForeignKey(Class,        on_delete=models.DO_NOTHING)
-	move         = models.FloatField(default=1.0)
+	move         = models.IntegerField(default=1)
 	version      = models.ForeignKey(Version,      on_delete=models.DO_NOTHING)
 
 	class Meta:

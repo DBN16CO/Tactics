@@ -7,12 +7,11 @@ which will detail the success or failure of the command
 as well as any other necessary information regarding the command.
 
 """
-import logging
 import Game.unithelper
+import Static.statichelper
 from Communication.routehelper import formJsonResult
-from Static.models import Ability, Action, Class, Leader, Leader_Ability, Perk, Version
-from Game.models import Game_User, Unit
-from User.models import Users
+from Game.models import Unit, Game_Queue
+from Static.models import Version
 
 def setTeam(data):
 	"""
@@ -47,78 +46,78 @@ def setTeam(data):
 	username = data["session_username"]
 
 	error = ""
-	logging.debug(data)
 
-	# Get Version data, for use in validation - if setting team, must be newest version
+	in_queue = Game_Queue.objects.filter(user__username=username).first()
+
+	# Get Version and Static data, for use in validation - if setting team, must be newest version
 	version = Version.objects.latest('pk')
+	stat_info = Static.statichelper.getAllStaticData(version)
 
+	# Ensure the user isn't already in the matchmaking queue
+	if in_queue:
+		error = "You are already in the matchmaking queue for a game."
 	# Ensure that the 'Units' key exists' there were at least some units and a leader selected
-	if not "Units" in data:
+	elif not "Units" in data:
 		error = "The unit information is incomplete."
 	elif not "Perks" in data:
 		error = "The perk information is incomplete."
 	# Ensure the user selected the proper number of units - too many, cheater!
-	elif len(data["Units"]) > version.unit_count:
-		error = "Too many units have been selected (" + str(len(data["Units"])) + ")."
+	elif len(data["Units"]) > version.unit_max:
+		error = "Too many units have been selected ({0}).".format(len(data["Units"]))
 	# Ensure the user selected the proper number of units - too few, oops, add a few!
-	elif len(data["Units"]) < version.unit_count:
-		error = ("You must select " + str(version.unit_count) + " units, only "
-			+ str(len(data["Units"])) + " chosen.")
+	elif len(data["Units"]) < version.unit_min:
+		error = "You must select at least {0} unit(s), {1} chosen.".format(version.unit_min,
+			"none" if len(data["Units"]) == 0 else len(data["Units"]))
 	# Ensure that at least a leader and ability were provided
 	elif not "Leader" in data or not "Ability" in data:
 		error = "The leader information is incomplete."
 	# All expected JSON keys existed
 	else:
-		# Get the ability and leader data and validate it
-		ability = Ability.objects.filter(version=version, name=data["Ability"]).first()
-		leader = Leader.objects.filter(version=version, name=data["Leader"]).first()
-		leader_ability = Leader_Ability.objects.filter(ability=ability, leader=leader, version=version).first()
-
 		# Ensure that the leader and ability are names that exist in the DB
-		if ability == None or leader == None:
+		if not data["Leader"] in stat_info["Leaders"]:
 			error = "The leader information provided is invalid."
 		# Ensure that the pair of leader+ability is a valid pair
-		elif leader_ability == None:
-			error = "The " + leader.name + " cannot use the ability " + ability.name + "."
+		elif not data["Ability"] in stat_info["Leaders"][data["Leader"]]["Abilities"]:
+			error = "The {0} cannot use the ability {1}.".format(
+				data["Leader"], data["Ability"])
 		else:
+			# Get the leader ability object to set in the Game_User table
+			leader_ability = stat_info["Leaders"][data["Leader"]]["Abilities"][data["Ability"]]
+
 			# Add each of the valid units to a list
 			units = []
 			unit_errs = ''
 			for unt_nam in data["Units"]:
-				unit = Class.objects.filter(name=unt_nam, version=version).first()
-
 				# If a unit name provided was not valid
-				if unit == None:
+				if not unt_nam in stat_info["Classes"]:
 					unit_errs += unt_nam +","
 				else:
-					units.append(unit)
+					units.append(stat_info["Classes"][unt_nam]["Object"])
 
 			# Add each of the valid perks to a list
 			perks = []
 			perk_errs = ''
 			for prk_nam in data["Perks"]:
-				perk = Perk.objects.filter(name=prk_nam, version=version).first()
-
 				# If a perk name provided was not valid
-				if perk == None:
+				if not prk_nam in stat_info["Perks"]:
 					perk_errs += prk_nam +","
 				else:
-					perks.append(perk)
+					perks.append(stat_info["Perks"][prk_nam]["Object"])
 
 			# If some of the units provided were not valid names
 			if len(unit_errs) != 0:
 				unit_errs = unit_errs.strip(",")
-				error = "The following are not valid unit selections: " + unit_errs
+				error = "The following are not valid unit selections: {0}".format(unit_errs)
 			# If some of the perks provided were not valid names
 			elif len(perk_errs) != 0:
 				perk_errs = perk_errs.strip(",")
-				error = "The following are not valid perk selections: " + perk_errs
+				error = "The following are not valid perk selections: {0}".format(perk_errs)
 			# If too many perks were selected
 			elif len(perks) > 3:
-				error = "Too many perks have been selected (" + str(len(perks)) + ")."
+				error = "Too many perks have been selected ({0}).".format(len(perks))
 			else:
 				error = Game.unithelper.setTeam(leader_ability, perks, units, username, version)
-					
+
 	return formJsonResult(error, data)
 
 def takeAction(data):
@@ -152,16 +151,24 @@ def takeAction(data):
 				 	"Success":True\n
 				 	"Unit"{\n
 						"ID":1,\n
-						"HP":10\n
+						"HP":10,\n
+						"NewHP":10,\n
+						"Miss":True,\n
+						"Crit":False\n
 				 	},\n
 				 	"Target":{\n
 						"ID":9,\n
-						"HP":0\n
+						"HP":10,\n
+						"NewHP":0,\n
+						"Counter":True,\n
+						"Miss":True,\n
+						"Crit":False,\n
 				 	}\n
 				 }\n
 				 Notes:\n
 				 	- The "Target" object could be omitted if the action did not involve a target.\n
 				 	- The HP for the unit could be omitted if the action is "Wait" or "Heal"\n
+				 	- The HP is the previous HP
 				 If Unsuccessful:\n
 				 	{"Successful":False,\n
 				 	 "Error":"You did not provide the necessary information."}\n
@@ -169,37 +176,15 @@ def takeAction(data):
 				 	- The error message provided should be of an acceptable form such that
 				 	  errors can be directly displayed for the user.
 	"""
-	username = data["session_username"]
-	user = Users.objects.filter(username=username).first()
+	game_data = Game.unithelper.validateGameStarted(data)
+	if "Error" in game_data:
+		return formJsonResult(game_data["Error"], data)
 
-	# Ensure that the game name provided is valid
-	if not "Game" in data:
-		return formJsonResult("Internal Error: Game Key missing.", data)
-	game_name = data["Game"]
+	user = game_data["User"]
+	game = game_data["Game"]
+	version = game_data["Version"]
 
-	# Ensure that the game name matches with this user
-	game_usr = Game_User.objects.filter(user=user, name=game_name).first()
-	if game_usr == None:
-		return formJsonResult("No match for game of name " + game_name + ".", data)
-
-	version = game_usr.game.version
-
-	# Now verify both players have placed their units
-	game = game_usr.game
-	user_placed_unit_count = Unit.objects.filter(game=game, owner=user).exclude(x_pos=-1).exclude(y_pos=-1).count()
-	opponent_placed_unit_count = Unit.objects.filter(game=game).exclude(x_pos=-1).exclude(y_pos=-1).exclude(owner=user).count()
-	expected_count = version.unit_count
-	if user_placed_unit_count != expected_count:
-		return formJsonResult("You must place all of your units before taking a turn.")
-	elif opponent_placed_unit_count != expected_count:
-		return formJsonResult("Please wait until your opponent places their units before taking a turn.")
-
-	# The valid actions for a user in this version
-	if not "Action" in data:
-		return formJsonResult("Internal Error: Action Key missing.", data)
-	action = Action.objects.filter(version=version, name=data["Action"]).first()
-	if action == None:
-		return formJsonResult("The selected action is not valid.", data)
+	stat_info = Static.statichelper.getAllStaticData(version)
 
 	# Get the new coordinates for the action
 	if not "X" in data or not "Y" in data:
@@ -211,12 +196,20 @@ def takeAction(data):
 	if not "Unit" in data:
 		return formJsonResult("Internal Error: Unit Key missing.", data)
 	unit_id  = data["Unit"]
-	unit = Unit.objects.filter(pk=unit_id, game=game_usr.game, owner=user).first()
+	unit = Unit.objects.filter(pk=unit_id, game=game, owner=user).first()
 	if unit == None:
 		return formJsonResult("Internal Error: Specified unit ID not in game.", data)
+	elif unit.acted:
+		return formJsonResult("That unit has already acted this turn.", data)
+
+	# The valid actions for a user in this version
+	if not "Action" in data:
+		return formJsonResult("Internal Error: Action Key missing.", data)
+	elif not data["Action"] in stat_info["Classes"][unit.unit_class.name]["Actions"] or not stat_info["Classes"][unit.unit_class.name]["Actions"][data["Action"]]:
+		return formJsonResult("The selected action is not valid.", data)
 
 	# Ensure that the move is valid
-	is_move_valid = Game.unithelper.validateMove(unit, game_usr.game, user, x, y)
+	is_move_valid = Game.unithelper.validateMove(unit, game, user, x, y)
 	if "Error" in is_move_valid:
 		return formJsonResult(is_move_valid["Error"], data)
 
@@ -224,37 +217,40 @@ def takeAction(data):
 	unit_dict = {"Unit":unit, "NewX":x, "NewY":y}
 
 	# If the unit is just moving for their action
-	if action.name == "Wait":
-		if not Game.unithelper.saveActionResults(game_usr.game, unit_dict):
+	if data["Action"] == "Wait":
+		if not Game.unithelper.saveActionResults(
+				stat_info["Actions"][data["Action"]]["Object"],	game, unit_dict):
 			return formJsonResult("There was a problem executing the action.", data)
 		action_result = {}
 		action_result["Unit"] = unit_dict
 		action_result["Unit"]["ID"] = action_result["Unit"]["Unit"].id
-		action_result["Unit"].pop("Unit", None)
 
 	# If the action is one that requires a target
 	else:
 		# Determine the target
 		if not "Target" in data:
 			return formJsonResult("Internal Error: Target Key missing.", data)
-		target_id   = data["Target"]
-		target = Unit.objects.filter(pk=target_id, game=game_usr.game).first()
+		target_id = data["Target"]
+		if target_id == unit_id:
+			return formJsonResult("Cannot target self.", data)
+		target = Unit.objects.filter(pk=target_id, game=game).first()
 		if target == None:
 			return formJsonResult("Internal Error: Specified target ID not in game.", data)
 
 		# Process attacking and healing
-		if action.name == "Attack":
-			action_result = Game.unithelper.calculateAttack(game_usr.game, unit_dict, target)
-		elif action.name == "Heal":
-			action_result = Game.unithelper.calculateHeal(game_usr.game, unit_dict,  target)
+		action_result = Game.unithelper.calculateActionResult(data["Action"], game, unit_dict, target)
 
 		if "Error" in action_result:
 			return formJsonResult(action_result["Error"], data)
 
-		if not Game.unithelper.saveActionResults(game_usr.game, action_result["Unit"], action_result["Target"]):
+		if not Game.unithelper.saveActionResults(
+				stat_info["Actions"][data["Action"]]["Object"],	game, action_result["Unit"], action_result["Target"]):
 			return formJsonResult("There was a problem targeting that unit.", data)
 
+		action_result["Target"].pop("Unit", None)
+
 	# Prepare the response
+	action_result["Unit"].pop("Unit", None)
 	response = formJsonResult("")
 
 	# The unit response

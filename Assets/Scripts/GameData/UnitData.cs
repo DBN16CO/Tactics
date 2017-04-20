@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;		// For dictionaries
+﻿using System;
+using System.Collections.Generic;		// For dictionaries
 
 // Class holding game data for each unit
 public class UnitData {
 
 	public string name;
 	public string description;
+	public int price;
 	public string spritePath;
 
 	private List<StatData> stats;
@@ -13,6 +15,8 @@ public class UnitData {
 		Dictionary<string, object> unitData = (Dictionary<string, object>)unit.Value;
 		name = unit.Key;
 		description = unitData["Description"].ToString();
+		price = Int32.Parse(unitData["Price"].ToString());
+		spritePath = "Sprites/Units/axeman"; // Testing
 
 		stats = new List<StatData>();
 		foreach(KeyValuePair<string, object> stat in (Dictionary<string, object>)unitData["Stats"]) {

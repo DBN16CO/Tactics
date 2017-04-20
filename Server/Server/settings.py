@@ -32,13 +32,12 @@ SECRET_KEY = '#wqr!(awm4844k^p9@3xhiqt(8t5nt%1u6^g(t_85_ix#iu*s^'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -51,6 +50,7 @@ INSTALLED_APPS = [
     'User',
     'django_nose',
     'django_celery_beat',
+    'Admin'
 ]
 
 # Use nose to run all tests
@@ -61,6 +61,8 @@ NOSE_ARGS = [
     '--with-coverage',
     '--cover-package=Communication,Game,Static,User',
     '--cover-inclusive',
+    '--cover-erase',
+    '--cover-html',
     '--nocapture',
     '--nologcapture',
     '--verbosity=3'

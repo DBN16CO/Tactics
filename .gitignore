@@ -55,3 +55,4 @@ ehthumbs.db
 *matchmaking.log
 nohup.out
 *.rdb
+/Server/cover/*
