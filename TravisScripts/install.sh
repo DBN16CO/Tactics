@@ -17,4 +17,5 @@ python ./Server/manage.py migrate
 #curl -o Unity.pkg http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg
 
 #echo 'Installing Unity.pkg'
+curl -O http://beta.unity3d.com/download/a2454d41e248/unity-editor_amd64-5.5.3xf1Linux.deb
 #sudo installer -dumplog -package Unity.pkg -target /
