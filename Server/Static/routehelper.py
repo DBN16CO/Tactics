@@ -30,7 +30,9 @@ def getAllStaticData(data):
 				 		<Next Ability>,\n
 				 	},\n
 				 	"Actions":{\n
-				 		"Attack": "Deal damage to target unit.",\n
+				 		"Attack": {\n
+				 			"Description":"Deal damage to target unit."\n
+				 		},\n
 						<Next Action>,\n
 					},\n
 				 	"Classes":{\n

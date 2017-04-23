@@ -1,32 +1,33 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
 
 public class MatchData {
 
 	public int MatchID;
 
 	// QGU properties
-	public string           Name;
-	public int              Round;
-	public bool             UserTurn;
-	public string           MapName;
-	public bool             InGameQueue;
-	public bool             Finished;
-	public int              UserTeam;
-	public int              EnemyTeam;
-	public List<MatchUnit>  AlliedUnits;
-	public MatchLeader      AlliedLeader;
-	public List<MatchPerk>  AlliedPerks;
-	public List<MatchUnit>  EnemyUnits;
-	public MatchLeader      EnemyLeader;
-	public List<MatchPerk>  EnemyPerks;
+	public string            Name;
+	public string            Opponent;
+	public int               Round;
+	public bool              UserTurn;
+	public string            MapName;
+	public bool              InGameQueue;
+	public bool              Finished;
+	public int               UserTeam;
+	public int               EnemyTeam;
+	public List<MatchUnit>   AlliedUnits;
+	public MatchLeader       AlliedLeader;
+	public List<MatchPerk>   AlliedPerks;
+	public List<MatchUnit>   EnemyUnits;
+	public MatchLeader       EnemyLeader;
+	public List<MatchPerk>   EnemyPerks;
+	public List<MatchAction> GameActions;
 
 	// Default constructor
 	// Parses all fields necessary to describe the game to the front end
 	public MatchData(Dictionary<string, object> matchData) {
 		// General match information
 		Name        = matchData["Name"].ToString();
+		Opponent    = matchData["Opponent"].ToString();
     	Round       = int.Parse(matchData["Round"].ToString());
         UserTurn    = (bool)matchData["Your_Turn"];
         MapName     = matchData["Map"].ToString();
@@ -102,18 +103,70 @@ public class MatchData {
 			enemyPerk.Tier = int.Parse(perk["Tier"].ToString());
 			enemyPerk.Name = perk["Name"].ToString();
 
-			AlliedPerks.Add(enemyPerk);
+			EnemyPerks.Add(enemyPerk);
+		}
+
+		// Get all of the Action History Data
+		GameActions = new List<MatchAction>();
+		foreach(object actionData in Json.ToList(matchData["Action_History"].ToString())){
+			Dictionary<string, object> actn = Json.ToDict(actionData.ToString());
+
+			MatchAction currAction;
+
+			currAction.Order         = int.Parse(actn["Order"].ToString());
+			currAction.Turn          = int.Parse(actn["Turn"].ToString());
+			currAction.YourAction    = (bool)actn["Your_Action"];
+			currAction.Action        = actn["Action"].ToString();
+			currAction.UnitID        = int.Parse(actn["Unit"].ToString());
+			currAction.UnitOldX      = int.Parse(actn["Old_X"].ToString());
+			currAction.UnitNewX      = int.Parse(actn["New_X"].ToString());
+			currAction.UnitOldY      = int.Parse(actn["Old_Y"].ToString());
+			currAction.UnitNewY      = int.Parse(actn["New_Y"].ToString());
+			currAction.UnitOldHP     = int.Parse(actn["Old_HP"].ToString());
+			currAction.UnitNewHP     = int.Parse(actn["New_HP"].ToString());
+			currAction.UnitCrit      = (bool)actn["Crit"];
+			currAction.UnitMiss      = (bool)actn["Miss"];
+			currAction.TargetID      = int.Parse(actn["Target"].ToString());
+			currAction.TargetOldHP   = int.Parse(actn["Tgt_Old_HP"].ToString());
+			currAction.TargetNewHP   = int.Parse(actn["Tgt_New_HP"].ToString());
+			currAction.TargetCounter = (bool)actn["Tgt_Counter"];
+			currAction.TargetCrit    = (bool)actn["Tgt_Crit"];
+			currAction.TargetMiss    = (bool)actn["Tgt_Miss"];
+
+			GameActions.Add(currAction);
 		}
 	}
 }
 
+public struct MatchAction {
+	public int    Order;
+	public int    Turn;
+	public bool   YourAction;
+	public string Action;
+	public int    UnitID;
+	public int    UnitOldX;
+	public int    UnitOldY;
+	public int    UnitNewX;
+	public int    UnitNewY;
+	public int    UnitOldHP;
+	public int    UnitNewHP;
+	public bool   UnitCrit;
+	public bool   UnitMiss;
+	public int    TargetID;
+	public int    TargetOldHP;
+	public int    TargetNewHP;
+	public bool   TargetCounter;
+	public bool   TargetCrit;
+	public bool   TargetMiss;
+}
+
 public struct MatchUnit {
-	public int ID;
+	public int    ID;
 	public string Name;
-	public int HP;
-	public int PrevHP;
-	public int X;
-	public int Y;
+	public int    HP;
+	public int    PrevHP;
+	public int    X;
+	public int    Y;
 }
 
 public struct MatchLeader {
@@ -123,5 +176,6 @@ public struct MatchLeader {
 
 public struct MatchPerk {
 	public string Name;
-	public int Tier;
+	public int    Tier;
 }
+

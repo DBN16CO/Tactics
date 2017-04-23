@@ -18,7 +18,7 @@ public class StartupController : MonoBehaviour {
 
 	// Runs on app startup - start server connection, login, load game data
 	void Start () {
-		//PlayerPrefs.DeleteKey("session"); // Uncomment this to test from login screen
+		PlayerPrefs.DeleteKey("session"); // Uncomment this to test from login screen
 		Server.Connect();
 		// If session token works, go to game, otherwise remove token and init login UI
 		if(PlayerPrefs.HasKey("session")) {

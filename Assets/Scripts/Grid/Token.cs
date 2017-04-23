@@ -1,4 +1,5 @@
 ﻿using UnityEngine;					// Because we inherit from MonoBehaviour
+using UnityEngine.EventSystems;
 
 // Class governing the base object of gameplay
 // Each grid square is a token and is the main form of player interaction
@@ -38,6 +39,17 @@ public class Token : MonoBehaviour {
 		get{return _canMove;}
 		set{_canMove = value;}
 	}
+
+	// Booleans for place units
+	public bool IsDisabled {
+		get{return gameObject.GetComponent<SpriteRenderer>().material.name == "disabled (Instance)";}
+	}
+	private bool IsValidPlacement {
+		get{return !IsDisabled && CurrentUnit == null && GameController.UnitBeingPlaced != null;}
+	}
+	private bool SelectingPlacedUnit {
+		get{return CurrentUnit != null && GameController.UnitBeingPlaced == null;}
+	}
 #endregion
 
 
@@ -50,15 +62,25 @@ public class Token : MonoBehaviour {
 	// Called when the token is clicked - unselect if already selected
 	// If CanMove, then you must already have a selected unit, so move
 	void OnMouseDown() {
-		if(CurrentUnit != null) {
-			if(CurrentUnit.MyTeam && GameController.SelectedToken != null) {
-				if(this != GameController.SelectedToken) {
-					GameController.SelectedToken.CurrentUnit.UnselectUnit();
+		if(!EventSystem.current.IsPointerOverGameObject()) { // This stops token action if other UI is over it
+			if(GameController.PlacingUnits) {
+				if(IsValidPlacement) {
+					PlaceUnit();
+				}else if(SelectingPlacedUnit) {
+					SpawnController.ReturnPlacedUnit(CurrentUnit);
+				}
+			}else{ // Normal actions if not placing units
+				if(CurrentUnit != null) {
+					if(CurrentUnit.MyTeam && GameController.SelectedToken != null) {
+						if(this != GameController.SelectedToken) {
+							GameController.SelectedToken.CurrentUnit.UnselectUnit();
+						}
+					}
+					CurrentUnit.Clicked(this);
+				}else if(CanMove) {
+					MoveUnit(GameController.SelectedToken);
 				}
 			}
-			CurrentUnit.Clicked(this);
-		}else if(CanMove) {
-			MoveUnit(GameController.SelectedToken);
 		}
 	}
 
@@ -69,6 +91,11 @@ public class Token : MonoBehaviour {
 		prevToken.CurrentUnit = null;
 		unit.transform.position = gameObject.transform.position;
 		unit.UnselectUnit();
+	}
+
+	// Token actions when unit is placed
+	private void PlaceUnit() {
+		CurrentUnit = GameController.SC.CreateUnit(GameController.UnitBeingPlaced.matchUnit,X,Y, true);
 	}
 
 	// Sets properties based on action
@@ -89,12 +116,15 @@ public class Token : MonoBehaviour {
 				CanAttack = false;
 				PaintAction(action);
 				break;
+			case "disabled":
+				PaintAction(action);
+				break;
 		}
 	}
 
 	// Paints the token per the current action
 	public void PaintAction(string action) {
-		gameObject.GetComponent<SpriteRenderer>().material = Resources.Load("Materials/" + action) as Material;
+		gameObject.GetComponent<SpriteRenderer>().material = Resources.Load<Material>("Materials/" + action);
 	}
 
 	// Sets the token's terrain based on string input
