@@ -151,6 +151,7 @@ def processRequest(message):
 		try:
 			dbUser = Users.objects.filter(username=user).first()
 			dbUser.token = None
+			dbUser.channel = None
 			dbUser.save()
 			response = {"Success": True}
 		except Exception, e:
@@ -163,7 +164,7 @@ def processRequest(message):
 		return
 
 	# If the command is one of the following, it will also need the channel name for processing
-	commands_needing_channel_name = ["FM",]
+	commands_needing_channel_name = ["LGN", "CU"]
 	if cmd in commands_needing_channel_name:
 		data['channel_name'] = message.reply_channel.name
 		logging.debug("Adding channel name to JSON: " + data['channel_name'])
@@ -187,6 +188,7 @@ def processRequest(message):
 		"PA":Communication.routehelper.pingAuthentication,
 		"PU":Game.routegamehelper.placeUnits,
 		"QGU":Game.routegamehelper.queryGamesUser,
+		"RM":Communication.routehelper.receivedMessage,
 		"ST":Game.routeunithelper.setTeam,
 		"TA":Game.routeunithelper.takeAction,
 	}

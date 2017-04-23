@@ -25,6 +25,19 @@ def verifyPassword(password, dbHash):
 	"""
 	return bcrypt.verify(password, dbHash)
 
+def refreshChannel(user, channel_name):
+	"""
+	Update the user's latest channel name to be used for async messaging
+
+	:type user: User
+	:param user: The user to have their channel updated
+
+	:type channel_name: String
+	:param channel_name: The unqiue channel name for the user
+	"""
+	user.channel = channel_name
+	user.save()
+
 def refreshToken(user):
 	"""
 	Refresh the login token by executing Django's model save()
@@ -134,7 +147,7 @@ def verify_valid_username(username):
 	if len(username) > 16:
 		raise Exception("The username provided is too long. The maximum number of characters for a username is 16.")
 
-def createUser(username, password, email):
+def createUser(username, password, email, channel_name):
 	"""
 	Creates a user with the provided values
 
@@ -164,7 +177,7 @@ def createUser(username, password, email):
 	encryptPass = encrypt(password)
 
 	# Create the user
-	newUser = Users(username=username, password=encryptPass, email=email)
+	newUser = Users(username=username, password=encryptPass, email=email, channel=channel_name)
 	newUser.save()
 
 	# Return the user

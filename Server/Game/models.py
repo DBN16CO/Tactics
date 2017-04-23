@@ -40,7 +40,6 @@ class Game(models.Model):
 
 class Game_Queue(models.Model):
 	user         = models.OneToOneField('User.Users', on_delete=models.DO_NOTHING)
-	channel_name = models.CharField(max_length=100, unique=True)
 	created      = models.DateTimeField(auto_now_add=True)
 	updated      = models.DateTimeField(auto_now=True)
 

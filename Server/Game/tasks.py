@@ -5,6 +5,7 @@ import celery
 import datetime
 import random
 from Game.models import Game, Game_Queue, Game_User, Unit
+from Communication.models import AsyncMessages
 from Static.models import Version, Map
 from Static.log_uploader import upload_logs
 import logging
@@ -132,6 +133,16 @@ def processMatchmakingQueue():
             for unit in Unit.objects.filter(owner__in=[first_player.user, second_player.user], game=None):
                 unit.game = game
                 unit.save()
+
+            logger.debug("Creating async notification messages")
+
+            # Create the async messages to notify the user's that a match has been found
+            notify_message = "Match Found"
+            first_player_message = AsyncMessages(user=first_player.user, message=notify_message)
+            first_player_message.save()
+
+            second_player_message = AsyncMessages(user=second_player.user, message=notify_message)
+            second_player_message.save()
 
             logger.debug("Deleting players from the queue")
 

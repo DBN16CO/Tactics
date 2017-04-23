@@ -1,6 +1,7 @@
 from Game.models import Action_History, Game_User, Game_Queue, Unit, Game
 from Static.models import Version, Ability, Class, Leader, Leader_Ability, Perk, Stat, Unit_Stat
 from User.models import Users
+from Communication.models import AsyncMessages
 from Communication.testhelper import *
 from Game.tasks import processMatchmakingQueue
 import copy, json, math
@@ -323,7 +324,6 @@ class TestFindMatch(TestGame):
 		game_queue_obj_qs = Game_Queue.objects.filter(user=self.user)
 		self.assertEqual(game_queue_obj_qs.count(), 1)
 		self.assertEqual(game_queue_obj_qs.first().user, self.user)
-		self.assertEqual(game_queue_obj_qs.first().channel_name, u'Test')
 
 	def test_fm_03_already_in_queue(self):
 		self.helper_execute_success(self.st_cmd)
@@ -383,6 +383,9 @@ class TestMatchmaking(TestGame):
 
 		# Ensure that a game was created
 		self.assertTrue(Game.objects.count() == 1)
+
+		# Ensure two async messages have been created
+		self.assertTrue(AsyncMessages.objects.count() == 2)
 
 		# Ensure that the Game Queue is now empty
 		self.assertTrue(Game_Queue.objects.count() == 0)
