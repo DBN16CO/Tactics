@@ -1,8 +1,10 @@
-language: python
+language: objective-c
 sudo: required
-services:
-- postgresql
-- redis-server
+
+osx_image: xcode61
+rvm:
+- 2.1.2
+
 install:
 - ./TravisScripts/install.sh
 
