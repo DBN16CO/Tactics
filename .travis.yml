@@ -8,6 +8,7 @@ install:
 
 script:
 - ./TravisScripts/run_tests.sh
+- ./TravisScripts/run_unity_tests.sh
 
 after_script:
 - cat ./Server/trace.log
