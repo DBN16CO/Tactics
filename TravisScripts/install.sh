@@ -18,4 +18,5 @@ python ./Server/manage.py migrate
 
 #echo 'Installing Unity.pkg'
 curl -O http://beta.unity3d.com/download/a2454d41e248/unity-editor_amd64-5.5.3xf1Linux.deb
+sudo dpkg -i ./unity-editor_amd64-5.5.3xf1Linux.deb
 #sudo installer -dumplog -package Unity.pkg -target /
