@@ -13,6 +13,7 @@ script:
 - ./TravisScripts/run_unity_tests.sh
 
 after_script:
+- cat ./unity_tests.log
 - cat ./Server/trace.log
 
 notifications:
