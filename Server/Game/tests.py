@@ -751,12 +751,13 @@ class TestTakeAction(TestGame):
 		self.game.save()
 
 		# Commonly used units
+		self.melee_units = Unit_Stat.objects.filter(stat__name="Attack Range", value=1).values('unit')
 		self.heal_class = Class.objects.filter(name="Cleric", version=self.version).first()
 		self.attacker  = Unit.objects.filter(game=self.game, owner=self.user).exclude(
-			unit_class=self.heal_class).first()
+			unit_class=self.heal_class).exclude(id__in=self.melee_units).first()
 		self.healer  = Unit.objects.filter(game=self.game, owner=self.user,
 			unit_class=self.heal_class).first()
-		self.enemy_tgt = Unit.objects.filter(game=self.game, owner=self.user2).exclude(
+		self.enemy_tgt = Unit.objects.filter(game=self.game, owner=self.user2, unit_class__in=self.melee_units).exclude(
 			unit_class=self.attacker.unit_class).exclude(unit_class=self.healer.unit_class).first()
 
 		# Find a reliable, nearby ally
