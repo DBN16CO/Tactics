@@ -8,5 +8,5 @@
   -runEditorTests \
   -quit
 result=$?
-echo "The Unity tests ran with an error code of $result"
+echo "The Unity tests ran with an exit code of $result"
 exit $result
