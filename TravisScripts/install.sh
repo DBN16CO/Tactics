@@ -5,16 +5,19 @@
 echo 'Downloading Pre-reqs: '
 pip install -r ./Server/requirements.txt
 
-# Create the database if it does not already exist
-sudo ./Database/Create.sh tactics 12345
+# Setup PSQL and REDIS
+export PG_DATA=$(brew --prefix)/var/postgres
+rm -rf $PG_DATA
+initdb $PG_DATA -E utf8
+pg_ctl -w start -l postgres.log --pgdata ${PG_DATA}
+createuser -s postgres
+brew update
+brew install redis
+brew services start redis
+redis-server --daemonize yes
 
-# Create the database tables for above database
-python ./Server/manage.py makemigrations
-python ./Server/manage.py migrate
+echo 'Downloading from http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg: '
+curl -o Unity.pkg http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg
 
-#python ./Server/manage.py runserver
-#echo 'Downloading from http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg: '
-#curl -o Unity.pkg http://netstorage.unity3d.com/unity/b7e030c65c9b/MacEditorInstaller/Unity-5.4.2f2.pkg
-
-#echo 'Installing Unity.pkg'
-#sudo installer -dumplog -package Unity.pkg -target /
+echo 'Installing Unity.pkg'
+sudo installer -dumplog -package Unity.pkg -target /
