@@ -8,7 +8,7 @@ using System.Collections.Generic;
 /// When the IL command is called several Game Data objects are created.
 /// This test fixture should ensure that they are each individually properly
 /// populated when the expected IL response is received.
-///</summary>
+///</remarks>
 [TestFixture]
 public class ILTest
 {
