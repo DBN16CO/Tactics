@@ -1,15 +1,20 @@
-language: python
+language: objective-c
 sudo: required
-services:
-- postgresql
-- redis-server
+
+osx_image: xcode61
+rvm:
+- 2.1.2
+
 install:
 - ./TravisScripts/install.sh
 
 script:
 - ./TravisScripts/run_tests.sh
+- ./TravisScripts/run_unity_tests.sh
 
 after_script:
+- cat ./unity_tests.log
+- cat ./EditorTestResults.xml
 - cat ./Server/trace.log
 
 notifications:

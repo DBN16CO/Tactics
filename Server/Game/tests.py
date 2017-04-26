@@ -754,18 +754,22 @@ class TestTakeAction(TestGame):
 		self.game.save()
 
 		# Commonly used units
+		self.melee_units = Unit_Stat.objects.filter(stat__name="Attack Range", value=1).values('unit')
 		self.heal_class = Class.objects.filter(name="Cleric", version=self.version).first()
 		self.attacker  = Unit.objects.filter(game=self.game, owner=self.user).exclude(
-			unit_class=self.heal_class).first()
+			unit_class=self.heal_class).exclude(id__in=self.melee_units).first()
 		self.healer  = Unit.objects.filter(game=self.game, owner=self.user,
 			unit_class=self.heal_class).first()
-		self.enemy_tgt = Unit.objects.filter(game=self.game, owner=self.user2).exclude(
+		self.enemy_tgt = Unit.objects.filter(game=self.game, owner=self.user2, unit_class__in=self.melee_units).exclude(
 			unit_class=self.attacker.unit_class).exclude(unit_class=self.healer.unit_class).first()
 
 		# Find a reliable, nearby ally
-		self.nearest_ally_x = self.attacker.x - 1 if self.attacker.x != 0 else self.attacker.x + 1
-		self.nearest_ally = Unit.objects.filter(owner=self.user, game=self.game,
-			x=self.nearest_ally_x).first()
+		self.nearest_atk_ally_x = self.attacker.x - 1 if self.attacker.x != 0 else self.attacker.x + 1
+		self.nearest_atk_ally = Unit.objects.filter(owner=self.user, game=self.game,
+			x=self.nearest_atk_ally_x).first()
+		self.nearest_heal_ally_x = self.healer.x - 1 if self.healer.x != 0 else self.healer.x + 1
+		self.nearest_heal_ally = Unit.objects.filter(owner=self.user, game=self.game,
+			x=self.nearest_heal_ally_x).first()
 
 		# Find the attacking unit's movement range
 		move = Stat.objects.filter(name="Move", version=self.version).first()
@@ -791,7 +795,7 @@ class TestTakeAction(TestGame):
 		self.heal_cmd = copy.deepcopy(self.no_tgt_cmd)
 		self.heal_cmd["Action"] = "Heal"
 		self.heal_cmd["Unit"]   = self.healer.id
-		self.heal_cmd["Target"] = self.nearest_ally.id
+		self.heal_cmd["Target"] = self.nearest_heal_ally.id
 
 	def helper_execute_move_success(self, command):
 		"""
@@ -1169,11 +1173,11 @@ class TestTakeAction(TestGame):
 	def test_ta_02_bad_move(self):
 		# Moving onto ally unit
 		ally_move_command = copy.deepcopy(self.no_tgt_cmd)
-		ally_move_command["X"] = self.nearest_ally_x
+		ally_move_command["X"] = self.nearest_atk_ally_x
 		ally_move_command["Y"] = 0
 		self.helper_execute_failure(ally_move_command,
 			"Location ({0},0) occupied by an ally. Can move through, but not to, that token.".format(
-				self.nearest_ally_x))
+				self.nearest_atk_ally_x))
 
 		# Move near enemy for next tests
 		self.attacker.x = self.enemy_tgt.x
@@ -1316,9 +1320,6 @@ class TestTakeAction(TestGame):
 		self.assertTrue(action_history.tgt_new_hp == attack_data["Tgt"]["Normal"])
 
 	def test_ta_10_bad_heal(self):
-		nearest_ally = Unit.objects.filter(owner=self.user, 
-			x=self.healer.x - 1 if self.healer.x != 0 else 1).first()
-
 		# Trying to heal self
 		heal_self_command = copy.deepcopy(self.heal_cmd)
 		heal_self_command["Target"] = self.healer.id
@@ -1328,28 +1329,28 @@ class TestTakeAction(TestGame):
 		heal_full_hp_command = copy.deepcopy(self.heal_cmd)
 		heal_full_hp_command["X"] = self.healer.x
 		heal_full_hp_command["Y"] = self.healer.y
-		heal_full_hp_command["Target"] = nearest_ally.id
+		heal_full_hp_command["Target"] = self.nearest_heal_ally.id
 		self.helper_execute_failure(heal_full_hp_command, "Target already has full Health.")
 
 		# Trying to heal ally that is dead
-		nearest_ally.hp = 0 			# He died :(
-		nearest_ally.save()
+		self.nearest_heal_ally.hp = 0 			# He died :(
+		self.nearest_heal_ally.save()
 		heal_dead_command = copy.deepcopy(self.heal_cmd)
 		heal_dead_command["X"] = self.healer.x
 		heal_dead_command["Y"] = self.healer.y
-		heal_dead_command["Target"] = nearest_ally.id
+		heal_dead_command["Target"] = self.nearest_heal_ally.id
 		self.helper_execute_failure(heal_dead_command, "You cannot heal dead units.")
 
 		# Trying to heal target too far away
 		distance = 4
-		nearest_ally.hp = 3 			# He not died :)
-		nearest_ally.x = self.healer.x
-		nearest_ally.y = self.healer.y + distance
-		nearest_ally.save()
+		self.nearest_heal_ally.hp = 3 			# He not died :)
+		self.nearest_heal_ally.x = self.healer.x
+		self.nearest_heal_ally.y = self.healer.y + distance
+		self.nearest_heal_ally.save()
 		heal_far_command = copy.deepcopy(self.heal_cmd)
 		heal_far_command["X"] = self.healer.x
 		heal_far_command["Y"] = self.healer.y
-		heal_far_command["Target"] = nearest_ally.id
+		heal_far_command["Target"] = self.nearest_heal_ally.id
 		self.helper_execute_failure(heal_dead_command, 
 			"Must be within 2 range.  Target is {0} away.".format(distance))
 
@@ -1364,9 +1365,6 @@ class TestTakeAction(TestGame):
 		self.helper_execute_failure(heal_far_command, "Cannot heal the enemy units!")
 
 	def test_ta_11_bad_attack(self):
-		nearest_ally = Unit.objects.filter(owner=self.user, 
-			x=self.attacker.x - 1 if self.attacker.x != 0 else 1).first()
-
 		# Trying to attack self
 		atk_self_command = copy.deepcopy(self.atk_cmd)
 		atk_self_command["Target"] = self.attacker.id
@@ -1376,7 +1374,7 @@ class TestTakeAction(TestGame):
 		atk_ally_command = copy.deepcopy(self.atk_cmd)
 		atk_ally_command["X"] = self.attacker.x
 		atk_ally_command["Y"] = self.attacker.y
-		atk_ally_command["Target"] = nearest_ally.id
+		atk_ally_command["Target"] = self.nearest_atk_ally.id
 		self.helper_execute_failure(atk_ally_command, "Cannot attack your own units!")
 
 		# Move a little closer to the enemy
@@ -1529,8 +1527,8 @@ class TestTakeAction(TestGame):
 	def test_ta_17_heal_fully_success(self):
 		# Simulate target losing 1 health
 		hp_lost = 1
-		self.nearest_ally.hp -= hp_lost
-		self.nearest_ally.save()
+		self.nearest_heal_ally.hp -= hp_lost
+		self.nearest_heal_ally.save()
 
 		# Move onto self
 		self.heal_cmd["X"] = self.healer.x
@@ -1552,8 +1550,8 @@ class TestTakeAction(TestGame):
 
 	def test_ta_18_heal_partial_success(self):
 		# Simulate target losing all but 1 health
-		self.nearest_ally.hp = 1
-		self.nearest_ally.save()
+		self.nearest_heal_ally.hp = 1
+		self.nearest_heal_ally.save()
 
 		# Move onto self
 		self.heal_cmd["X"] = self.healer.x
@@ -1578,11 +1576,11 @@ class TestTakeAction(TestGame):
 	def test_ta_19_heal_exact_full_success(self):
 		# Determine how much HP would be healed
 		heal_data = self.get_expected_attack_result(self.healer.unit_class,
-			self.nearest_ally.unit_class)
+			self.nearest_heal_ally.unit_class)
 
 		# Simulate target losing the amount to be exactly, fully healed
-		self.nearest_ally.hp -= heal_data["Tgt"]["Heal"]
-		self.nearest_ally.save()
+		self.nearest_heal_ally.hp -= heal_data["Tgt"]["Heal"]
+		self.nearest_heal_ally.save()
 
 		# Move onto self
 		self.heal_cmd["X"] = self.healer.x
