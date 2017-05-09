@@ -134,6 +134,7 @@ def queryGamesUser(data):
 					                   "Prev_HP": 109,\n
 					                   "X": 7,\n
 					                   "Y": 8,\n
+					                   "Acted":True\n
 					                }\n
 					          ],\n
 					          "Your_Leader": {\n
@@ -154,6 +155,7 @@ def queryGamesUser(data):
 					                   "Prev_HP": 109,\n
 					                   "X": 7,\n
 					                   "Y": 8,\n
+					                   "Acted":False\n
 					               }\n
 					          ],\n
 					          "Enemy_Leader": {\n
@@ -237,22 +239,24 @@ def queryGamesUser(data):
 				# Store information about each of the player's units
 				for your_unit in your_units:
 					unit = {}
-					unit["ID"] = your_unit.id
-					unit["Name"] = your_unit.unit_class.name
-					unit["HP"] = your_unit.hp
-					unit["X"] = your_unit.x
-					unit["Y"] = your_unit.y
+					unit["ID"]    = your_unit.id
+					unit["Name"]  = your_unit.unit_class.name
+					unit["HP"]    = your_unit.hp
+					unit["X"]     = your_unit.x
+					unit["Y"]     = your_unit.y
+					unit["Acted"] = your_unit.acted
 
 					game_response["Your_Units"].append(unit)
 
 				# Store information about each of the enemy's units
 				for enemy_unit in enemy_units:
 					unit = {}
-					unit["ID"] = enemy_unit.id
-					unit["Name"] = enemy_unit.unit_class.name
-					unit["HP"] = enemy_unit.hp
-					unit["X"] = enemy_unit.x
-					unit["Y"] = enemy_unit.y
+					unit["ID"]    = enemy_unit.id
+					unit["Name"]  = enemy_unit.unit_class.name
+					unit["HP"]    = enemy_unit.hp
+					unit["X"]     = enemy_unit.x
+					unit["Y"]     = enemy_unit.y
+					unit["Acted"] = enemy_unit.acted
 
 					game_response["Enemy_Units"].append(unit)
 
