@@ -69,6 +69,7 @@ public class SpawnController : MonoBehaviour {
 			unit.X = x; unit.Y = y; unit.HP = GameData.GetUnit(unit.Name).GetStat("HP").Value;
 		}
 		ret.Info = unit;
+		ret.TakenAction = unit.Acted;
 		ret.MyTeam = myTeam;
 		GameController.Tokens[x][y].CurrentUnit = ret;
 		GameController.Units.Add(ret);
