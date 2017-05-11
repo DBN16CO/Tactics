@@ -71,26 +71,46 @@ public class Token : MonoBehaviour {
 				}
 			}else{ // Normal actions if not placing units
 				if(CurrentUnit != null) {
-					if(CurrentUnit.MyTeam && GameController.SelectedToken != null) {
-						if(this != GameController.SelectedToken) {
-							GameController.SelectedToken.CurrentUnit.UnselectUnit();
+					if(CanAttack) {
+
+					}else {
+						if(GameController.SelectedToken != null) {
+							if(this != GameController.SelectedToken) {
+								GameController.SelectedToken.CurrentUnit.UnselectUnit();
+							}
 						}
+						CurrentUnit.Clicked(this);
 					}
-					CurrentUnit.Clicked(this);
 				}else if(CanMove) {
-					MoveUnit(GameController.SelectedToken);
+					if(GameController.IntendedMove != this) {
+						SetIntendedMove();
+					}else {
+						ConfirmMove(GameController.SelectedToken);
+					}
+				}else {
+					if(GameController.SelectedToken != null) {
+						GameController.SelectedToken.CurrentUnit.UnselectUnit();
+					}
 				}
 			}
 		}
 	}
 
 	// Move unit from input prevToken to this token and unselect after
-	private void MoveUnit(Token prevToken) {
-		Unit unit = prevToken.CurrentUnit;
-		CurrentUnit = unit;
-		prevToken.CurrentUnit = null;
-		unit.transform.position = gameObject.transform.position;
-		unit.UnselectUnit();
+	private void SetIntendedMove() {
+		GameController.IntendedMove = this;
+		GameController.SelectedToken.CurrentUnit.transform.position = gameObject.transform.position;
+	}
+	// Move unit from input prevToken to this token and unselect after
+	private void ConfirmMove(Token prevToken) {
+		if(Server.TakeAction(prevToken.CurrentUnit.Info,"Wait", X, Y)) {
+			CurrentUnit = prevToken.CurrentUnit;
+			prevToken.CurrentUnit = null;
+			CurrentUnit.UpdateInfo(X: X, Y: Y);
+			CurrentUnit.TakenAction = true;
+			GameController.SelectedToken = null;
+			CurrentUnit.UnselectUnit();
+		}
 	}
 
 	// Token actions when unit is placed

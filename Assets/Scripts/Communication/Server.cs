@@ -242,13 +242,10 @@ public static class Server {
 		request["Perks"] = perks;
 
 		Dictionary<string, object> response = SendCommand(request);
-
 		if (response == null){
 			return false;
 		}
-
 		bool success = (bool)response["Success"];
-
 		return success;
 	}
 
@@ -282,7 +279,9 @@ public static class Server {
 		request["Units"] = unitsDict;
 
 		Dictionary<string, object> response = SendCommand(request);
-
+		if (response == null){
+			return false;
+		}
 		bool success = (bool)response["Success"];
 		return success;
 	}
@@ -291,14 +290,47 @@ public static class Server {
 	public static bool CancelQueue() {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "CS";
-		Dictionary<string, object> response = SendCommand(request);
 
+		Dictionary<string, object> response = SendCommand(request);
 		if (response == null){
 			return false;
 		}
-
 		bool success = (bool)response["Success"];
+		return success;
+	}
 
+	// Called to have a unit take an action on the game map (attacking/moving/etc.)
+	public static bool TakeAction(MatchUnit unit, string action, int X = -1, int Y = -1, int targetID = -1) {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "TA";
+		request["Game"] = GameData.CurrentMatch.Name;
+		request["Action"] = action;
+		request["Unit"] = unit.ID;
+		request["X"] = (X == -1)? unit.X : X;
+		request["Y"] = (Y == -1)? unit.Y : Y;
+		if(targetID != -1) {
+			request["Target"] = targetID;
+		}
+
+		Dictionary<string, object> response = SendCommand(request);
+		if(response == null) {
+			return false;
+		}
+		bool success = (bool)response["Success"];
+		return success;
+	}
+
+	//Called to end a player's turn (clearly lolol)
+	public static bool EndTurn() {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "ET";
+		request["Game"] = GameData.CurrentMatch.Name;
+
+		Dictionary<string, object> response = SendCommand(request);
+		if(response == null) {
+			return false;
+		}
+		bool success = (bool)response["Success"];
 		return success;
 	}
 
