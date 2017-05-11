@@ -320,7 +320,7 @@ public static class Server {
 		return success;
 	}
 
-	//Called to end a player's turn (clearly lolol)
+	//Called to end a player's turn
 	public static bool EndTurn() {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "ET";
