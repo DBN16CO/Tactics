@@ -1,4 +1,3 @@
-import os
 import celery
 import logging
 import datetime
@@ -61,14 +60,12 @@ def process_message_queue():
 					logging.debug("Message response received, deleting message")
 					message.delete()
 				else:
-					
 					if is_message_expired(message):
 						logger.debug("Message with id {} has expired.".format(message.id))
 						# TODO: Send an email once email notifications are implemented
 
 						# Delete the expired message
 						message.delete()
-
 
 	except Exception as e:
 		logging.exception(e)
