@@ -46,6 +46,17 @@ class TestCommunication(CommonTestHelper):
 	def test_cm_06_reload_static_maps(self):
 		Game.maphelper.maps = {}
 
+		self.assertTrue(self.testHelper.createUserAndLogin(
+			{"username":"bad_cmd_usr","password":self.testHelper.generateValidPassword(),"email":"bcu@email.com"}))
+
+		# Run a command that reloads the map object
+		self.helper_execute_failure({"Command":"TA"}, "Internal Error: Game Key missing.")
+
+		version = Version.objects.latest('pk')
+ 
+		# Ensure that the map object was reloaded
+		self.assertTrue(version.name in Game.maphelper.maps)
+
 class TestReceivedMessage(TestGame):
 	"""
 	Tests the following:
