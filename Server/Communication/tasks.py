@@ -23,17 +23,22 @@ def process_message_queue():
 				sent = message.sent
 				if not sent:
 					channel_name = message.user.channel
-					msg = message.message
+					msg = message.message_key
+					data = message.data
+
+					msg = {"ID": message.id, "Key": msg, "Data": data}
 
 					# Send message to user
+					logging.debug("Sending {} message: {}".format(message.user.username, msg))
 					channel = Channel(channel_name)
-					channel.send({u'bytes': msg, u'reply_channel': channel.name})
+					channel.send({u'text': msg, u'bytes': msg, u'reply_channel': channel.name})
 
 					message.sent = True
 					message.save()
 					continue
 
 				if message.received:
+					logging.debug("Message response received, deleting message")
 					message.delete()
 				else:
 					updated = message.updated

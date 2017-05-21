@@ -1,8 +1,11 @@
 from testhelper import *
 from router import *
 import json
+from Game.tests import TestGame
 import Game.maphelper
 from Static.models import Version
+from tasks import process_message_queue
+from models import AsyncMessages
 
 class TestCommunication(CommonTestHelper):
 	"""
@@ -43,7 +46,7 @@ class TestCommunication(CommonTestHelper):
 	def test_cm_06_reload_static_maps(self):
 		Game.maphelper.maps = {}
 
-class TestReceivedMessage(CommonTestHelper):
+class TestReceivedMessage(TestGame):
 	"""
 	Tests the following:
 	- \n
@@ -51,36 +54,39 @@ class TestReceivedMessage(CommonTestHelper):
 	def setUp(self):
 		super(TestReceivedMessage, self).setUp()
 
-		self.version = Version.objects.latest('pk')
-
-		# Credentials for user 1
-		self.credentials = {
-			"username" : "game_user_1",
-			"password" : self.testHelper.generateValidPassword(),
-			"email"    : "userOne@email.com"
-		}
-
-		# Credentials for user 2
-		self.credentials2 = {
-			"username" : "game_user_2",
-			"password" : self.testHelper.generateValidPassword(),
-			"email"    : "userTwo@email.com"
-		}
-
-		self.assertTrue(self.testHelper.createUserAndLogin(self.credentials))
-		self.user = Users.objects.filter(username=self.credentials["username"]).first()
-
-		# Generate the expected successful Set Team dictionary
-		self.st_cmd = {
-			"Command" : "ST",
-			"Ability" : "Extra Range",
-			"Leader"  : "Sniper",
-			"Perks"   : [],							# None are required, just the key
-			"Units"   : self.create_valid_team_list()
-		}
-
-		self.fm_cmd = {"Command":"FM"}
-		self.cs_cmd = {"Command":"CS"}
+		self.get_both_users_in_queue()
 
 	def test_rm_01_received_message_success(self):
-		pass
+		processMatchmakingQueue()
+		process_message_queue()
+
+		async_messages = AsyncMessages.objects
+		self.assertTrue(async_messages.count() == 2)
+
+		for async_message in async_messages.filter():
+			self.assertTrue(async_message.sent)
+
+		async_first = self.testHelper.receive()
+		async_second = self.testHelper.receive(2)
+		expected_first = {"Key": "MATCH_FOUND", "Data": {}}
+		expected_second = {"Key": "MATCH_FOUND", "Data": {}}
+
+		self.assertDictContainsSubset(expected_first, async_first, "Received: {} Expected: {}".format(async_first, expected_first))
+		self.assertDictContainsSubset(expected_second, async_second, "Received: {} Expected: {}".format(async_second, expected_second))
+
+		self.testHelper.send(json.dumps({"Command": "RM", "message_id": async_first['ID']}))
+		success = json.loads(self.testHelper.receive())
+		self.assertTrue({"Success": True} == success, "RM Response: {}".format(success))
+
+		self.testHelper.send(json.dumps({"Command": "RM", "message_id": async_second['ID']}), 2)
+		success = json.loads(self.testHelper.receive(2))
+		self.assertTrue({"Success": True} == success, "RM Response: {}".format(success))
+
+		self.assertTrue(async_messages.count() == 2)
+		for async_message in async_messages.filter():
+			self.assertTrue(async_message.received)
+
+		process_message_queue()
+		self.assertTrue(async_messages.count() == 0)
+
+

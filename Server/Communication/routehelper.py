@@ -7,6 +7,7 @@ which will detail the success or failure of the command
 as well as any other necessary information regarding the command.
 """
 import logging
+from models import AsyncMessages
 
 def receivedMessage(data):
 	"""

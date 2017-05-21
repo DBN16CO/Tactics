@@ -36,12 +36,23 @@ class TestHelper(ChannelTestCase):
 		# Test Channels
 		self.channel = Channel(u'Test')
 		self.channel2 = Channel(u'Test2')
+		self.clear_messages()
 
 		# Create database, with version 1.0 data
 		self.initStaticData("1.0")
 
 		# Load all of the map data for the most-recent version
 		loadMaps()
+
+	def clear_messages(self):
+		"""
+		To Avoid having messages already in the channel, clear it
+		"""
+		first_message = ''
+		second_message = ''
+		while first_message is not None or second_message is not None:
+			first_message = self.get_next_message(self.channel.name)
+			second_message = self.get_next_message(self.channel2.name)
 
 	def setupConfig(self):
 		"""
@@ -58,7 +69,7 @@ class TestHelper(ChannelTestCase):
 		elif channel_num == 2:
 			chn = self.channel2
 
-		chn.send({u'bytes': payload, u'reply_channel': chn.name})
+		chn.send({u'bytes': payload, u'reply_channel': chn.name + str(channel_num)})
 		logging.debug("Chn.name={0}".format(chn.name))
 		message = self.get_next_message(chn.name, require=True)
 		processRequest(message)
@@ -72,7 +83,7 @@ class TestHelper(ChannelTestCase):
 		elif channel_num == 2:
 			chn = self.channel2
 
-		result = self.get_next_message(chn.name, require=True)
+		result = self.get_next_message(chn.name + str(channel_num), require=True)
 		return result.content['text']
 
 	def generateValidPassword(self):

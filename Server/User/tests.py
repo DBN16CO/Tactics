@@ -24,7 +24,7 @@ class TestCreateUser(CommonTestHelper):
 		self.assertTrue(result["Token"] != None)
 		user = Users.objects.get(username="successUsr1")
 		self.assertTrue(user.token != None)
-		self.assertTrue(user.channel == self.testHelper.channel.name)
+		self.assertTrue(user.channel == self.testHelper.channel.name + str(1))
 
 	def test_cu_02_duplicate_username(self):
 		# Create user once
@@ -150,7 +150,7 @@ class TestLoginLogout(CommonTestHelper):
 
 		user = Users.objects.get(username=self.credentials["username"])
 		self.assertTrue(user.token != None)
-		self.assertTrue(user.channel == self.testHelper.channel.name)
+		self.assertTrue(user.channel == self.testHelper.channel.name + str(1))
 
 		self.testHelper.send('{"Command": "PA"}')
 		result = json.loads(self.testHelper.receive())

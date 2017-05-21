@@ -16,7 +16,7 @@ GAME_QUEUE_LOG_LEVEL = logging.DEBUG
 # How often celery workers upload logs to google drive (in seconds)
 UPLOAD_LOGS_INTERVAL = 86400
 
-# How often celery works process asynchronous messages from the queue (in seconds)
+# How often celery workers process asynchronous messages from the queue (in seconds)
 MESSAGE_QUEUE_INTERVAL = 10
 MESSAGE_QUEUE_LOG_NAME = 'message_queue.log'
 MESSAGE_QUEUE_LOG_LEVEL = logging.DEBUG

@@ -137,11 +137,12 @@ def processMatchmakingQueue():
             logger.debug("Creating async notification messages")
 
             # Create the async messages to notify the user's that a match has been found
-            notify_message = "Match Found"
-            first_player_message = AsyncMessages(user=first_player.user, message=notify_message)
+            notify_message_key = "MATCH_FOUND"
+            data = {}
+            first_player_message = AsyncMessages(user=first_player.user, message_key=notify_message_key, data=data)
             first_player_message.save()
 
-            second_player_message = AsyncMessages(user=second_player.user, message=notify_message)
+            second_player_message = AsyncMessages(user=second_player.user, message_key=notify_message_key, data=data)
             second_player_message.save()
 
             logger.debug("Deleting players from the queue")
