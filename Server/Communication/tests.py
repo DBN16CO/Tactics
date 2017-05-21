@@ -48,5 +48,39 @@ class TestReceivedMessage(CommonTestHelper):
 	Tests the following:
 	- \n
 	"""
+	def setUp(self):
+		super(TestReceivedMessage, self).setUp()
+
+		self.version = Version.objects.latest('pk')
+
+		# Credentials for user 1
+		self.credentials = {
+			"username" : "game_user_1",
+			"password" : self.testHelper.generateValidPassword(),
+			"email"    : "userOne@email.com"
+		}
+
+		# Credentials for user 2
+		self.credentials2 = {
+			"username" : "game_user_2",
+			"password" : self.testHelper.generateValidPassword(),
+			"email"    : "userTwo@email.com"
+		}
+
+		self.assertTrue(self.testHelper.createUserAndLogin(self.credentials))
+		self.user = Users.objects.filter(username=self.credentials["username"]).first()
+
+		# Generate the expected successful Set Team dictionary
+		self.st_cmd = {
+			"Command" : "ST",
+			"Ability" : "Extra Range",
+			"Leader"  : "Sniper",
+			"Perks"   : [],							# None are required, just the key
+			"Units"   : self.create_valid_team_list()
+		}
+
+		self.fm_cmd = {"Command":"FM"}
+		self.cs_cmd = {"Command":"CS"}
+
 	def test_rm_01_received_message_success(self):
 		pass
