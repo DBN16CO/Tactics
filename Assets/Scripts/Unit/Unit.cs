@@ -69,15 +69,29 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
+	// Updates matchunit info, defaulting each parameter to itself
+	// Pass in optional paramters via declaration: UpdateInfo(X: 5, Y: 7) to keep HP constant
+	public void UpdateInfo(int HP = -1, int X = -1, int Y = -1) {
+		MatchUnit tempUnit = new MatchUnit();
+		tempUnit = Info;
+		tempUnit.HP = (HP == -1)? tempUnit.HP : HP;
+		tempUnit.X = (X == -1)? tempUnit.X : X;
+		tempUnit.Y = (Y == -1)? tempUnit.Y : Y;
+		Info = tempUnit;
+	}
+
 	// Public function to deselect this unit
 	public void UnselectUnit() {
 		_selected = false;
+		GameController.IntendedMove = null;
+		if(GameController.SelectedToken != null) {
+			gameObject.transform.position = GameController.SelectedToken.gameObject.transform.position;
+		}
 		_gc.UnselectUnit();
 	}
 
 	// Resets unit at start of turn
 	public void Reset() {
-		_takenAction = false;
 		RemainingMoveRange = GameData.GetUnit(name).GetStat("Move").Value;
 	}
 

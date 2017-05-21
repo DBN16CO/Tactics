@@ -49,6 +49,7 @@ public class MatchData {
 			alliedUnit.PrevHP = 0;		// TODO - QGU doesn't send it
 			alliedUnit.X      = int.Parse(unit["X"].ToString());
 			alliedUnit.Y      = int.Parse(unit["Y"].ToString());
+			alliedUnit.Acted  = (bool)unit["Acted"];
 
 			AlliedUnits.Add(alliedUnit);
 		}
@@ -84,6 +85,7 @@ public class MatchData {
 			enemyUnit.PrevHP = 0;		// TODO - QGU doesn't send it
 			enemyUnit.X      = int.Parse(unit["X"].ToString());
 			enemyUnit.Y      = int.Parse(unit["Y"].ToString());
+			enemyUnit.Acted  = (bool)unit["Acted"];
 
 			EnemyUnits.Add(enemyUnit);
 		}
@@ -126,7 +128,8 @@ public class MatchData {
 			currAction.UnitNewHP     = int.Parse(actn["New_HP"].ToString());
 			currAction.UnitCrit      = (bool)actn["Crit"];
 			currAction.UnitMiss      = (bool)actn["Miss"];
-			currAction.TargetID      = int.Parse(actn["Target"].ToString());
+			// This is likely an inconsistency on the backend - but for now this fixes QGU errors
+			currAction.TargetID      = (actn["Target"] == null)? -1 : int.Parse(actn["Target"].ToString());
 			currAction.TargetOldHP   = int.Parse(actn["Tgt_Old_HP"].ToString());
 			currAction.TargetNewHP   = int.Parse(actn["Tgt_New_HP"].ToString());
 			currAction.TargetCounter = (bool)actn["Tgt_Counter"];
@@ -167,6 +170,7 @@ public struct MatchUnit {
 	public int    PrevHP;
 	public int    X;
 	public int    Y;
+	public bool   Acted;
 }
 
 public struct MatchLeader {

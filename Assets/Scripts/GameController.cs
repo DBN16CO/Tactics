@@ -24,6 +24,11 @@ public class GameController : MonoBehaviour {
 	public static PlaceUnitsController PU;
 	public static bool PlacingUnits;
 	public static PUUnit UnitBeingPlaced;
+	public static Token IntendedMove;		// If the player has selected a token to move to but hasn't confirmed the move yet
+
+
+	// vars for development
+	private bool _endTurn;
 
 
 #region Setters and Getters
@@ -118,7 +123,7 @@ public class GameController : MonoBehaviour {
 	public void SelectUnit(Token token) {
 		Unit unit = token.CurrentUnit;
 		SelectedToken = token;
-		if(unit.MyTeam && !unit.TakenAction) {
+		if(unit.MyTeam && !unit.TakenAction && GameData.CurrentMatch.UserTurn) {
 			SetValidActions(token);
 		}else{
 			ShowUnitInfo(unit);
@@ -127,7 +132,7 @@ public class GameController : MonoBehaviour {
 
 	// Placeholder for what will contain code to show unit's info on UI
 	public void ShowUnitInfo(Unit unit) {
-
+		Debug.Log(((unit.MyTeam)? "Your " : "Opponent's ") + unit.Info.Name);
 	}
 
 	// Runs when a unit is unselected (i.e. user clicks other unit, or unit takes turn)
@@ -343,6 +348,25 @@ public class GameController : MonoBehaviour {
 		}
 		if(Input.GetKey("o")){
 			Camera.main.orthographicSize /= 0.95f;
+		}
+		if(Input.GetKeyDown("e")){
+			if(GameData.CurrentMatch.UserTurn) {
+				_endTurn = true;
+				Debug.Log("Press 'y' to confirm endturn, otherwise press 'n'");
+			}else {
+				Debug.Log("It's not your turn to end...");
+			}
+		}
+		if(_endTurn) {
+			if(Input.GetKeyDown("y")) {
+				if(Server.EndTurn()) {
+					Debug.Log("Turn ended");
+				}
+				_endTurn = false;
+			}else if(Input.GetKeyDown("n")) {
+				_endTurn = false;
+				Debug.Log("Endturn canceled");
+			}
 		}
 	}
 #endregion
