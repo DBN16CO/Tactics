@@ -22,7 +22,9 @@ class TestCreateUser(CommonTestHelper):
 		result = self.testHelper.createTestUser({"username":"successUsr1","password":self.testHelper.generateValidPassword(),"email":"success@a.com"})
 		self.assertTrue(result["Success"])
 		self.assertTrue(result["Token"] != None)
-		self.assertTrue(Users.objects.get(username="successUsr1").token != None)
+		user = Users.objects.get(username="successUsr1")
+		self.assertTrue(user.token != None)
+		self.assertTrue(user.channel == self.testHelper.channel.name + str(1))
 
 	def test_cu_02_duplicate_username(self):
 		# Create user once
@@ -145,7 +147,10 @@ class TestLoginLogout(CommonTestHelper):
 			"password": self.credentials["password"]})
 		self.assertTrue(result["Success"])
 		self.assertTrue(result["Token"] != None)
-		self.assertTrue(Users.objects.get(username=self.credentials["username"]).token != None)
+
+		user = Users.objects.get(username=self.credentials["username"])
+		self.assertTrue(user.token != None)
+		self.assertTrue(user.channel == self.testHelper.channel.name + str(1))
 
 		self.testHelper.send('{"Command": "PA"}')
 		result = json.loads(self.testHelper.receive())
@@ -179,7 +184,9 @@ class TestLoginLogout(CommonTestHelper):
 
 		self.helper_execute_success(self.logout)
 
-		self.assertTrue(Users.objects.get(username=self.credentials["username"]).token == None)
+		user = Users.objects.get(username=self.credentials["username"])
+		self.assertTrue(user.token == None)
+		self.assertTrue(user.channel == None)
 
 		self.helper_execute_failure(self.pa, "User is not authenticated, please login.")
 

@@ -51,6 +51,7 @@ def login(data):
 		if user:
 			verified = User.userhelper.verifyPassword(password, user.password)
 			if verified:
+				User.userhelper.refreshChannel(user, data['channel_name'])
 				return {"Success": True, "Token": User.userhelper.generateLoginToken(user), "Username": user.username}
 
 	elif "token" in data:
@@ -62,6 +63,7 @@ def login(data):
 			if isExpired:
 				return {"Success": False, "Error": "Login token has expired, please login again using your username/password."}
 
+			User.userhelper.refreshChannel(user, data['channel_name'])
 			User.userhelper.refreshToken(user)
 
 			return {"Success": True, "Token": token, "Username": user.username}
@@ -113,7 +115,7 @@ def createUser(data):
 
 	# Try to add the user to the database
 	try:
-		usr1 = User.userhelper.createUser(username, pw, email)
+		usr1 = User.userhelper.createUser(username, pw, email, data['channel_name'])
 	except Exception, e:
 		logging.error("Error occurred while creating user:" + str(e))
 		error = str(e)

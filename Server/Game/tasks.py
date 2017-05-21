@@ -5,6 +5,7 @@ import celery
 import datetime
 import random
 from Game.models import Game, Game_Queue, Game_User, Unit
+from Communication.models import AsyncMessages
 from Static.models import Version, Map
 from Static.log_uploader import upload_logs
 import logging
@@ -13,9 +14,9 @@ from celery.utils.log import get_task_logger
 from django.db import transaction
 
 logger = get_task_logger(__name__)
-fh = logging.FileHandler('./matchmaking.log', mode='a')
+fh = logging.FileHandler('./{0}'.format(config.GAME_QUEUE_LOG_NAME), mode='a')
 logger.addHandler(fh)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(config.GAME_QUEUE_LOG_LEVEL)
 
 @celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=config.UPLOAD_LOGS_INTERVAL))
 def uploadServerLogs():
@@ -132,6 +133,17 @@ def processMatchmakingQueue():
             for unit in Unit.objects.filter(owner__in=[first_player.user, second_player.user], game=None):
                 unit.game = game
                 unit.save()
+
+            logger.debug("Creating async notification messages")
+
+            # Create the async messages to notify the user's that a match has been found
+            notify_message_key = "MATCH_FOUND"
+            data = {}
+            first_player_message = AsyncMessages(user=first_player.user, message_key=notify_message_key, data=data)
+            first_player_message.save()
+
+            second_player_message = AsyncMessages(user=second_player.user, message_key=notify_message_key, data=data)
+            second_player_message.save()
 
             logger.debug("Deleting players from the queue")
 

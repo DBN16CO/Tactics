@@ -54,7 +54,7 @@ def findMatch(data):
 		error = "You must set a team before starting a match."
 	else:
 		# Add the user to the game queue
-		game_queue = Game_Queue(user=user, channel_name=data['channel_name'])
+		game_queue = Game_Queue(user=user)
 		game_queue.save()
 
 	return formJsonResult(error)

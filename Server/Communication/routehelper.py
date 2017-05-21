@@ -7,6 +7,31 @@ which will detail the success or failure of the command
 as well as any other necessary information regarding the command.
 """
 import logging
+from models import AsyncMessages
+
+def receivedMessage(data):
+	"""
+	A message acknowledging that the Async Message was received
+
+	Command: RM (Received Message)
+
+	:type data: Dictionary
+	:param data: The inputted JSON command which should include the 'session_username' provided in :fun:`processRequest`,
+	             if not, then the session is invalid
+
+	:rtype: Dictionary
+	:return: The response to be sent back to the front end
+	"""
+	username = data['session_username']
+	message_id = data['message_id']
+
+	async_message = AsyncMessages.objects.filter(user__username=username, id=message_id).first()
+	if async_message:
+		async_message.received = True
+		async_message.save()
+		return formJsonResult(None)
+	else:
+		return formJsonResult("Could not find the server message to mark as received.")
 
 def pingAuthentication(data):
 	"""

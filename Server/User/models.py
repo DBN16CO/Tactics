@@ -5,6 +5,7 @@ from django.db import models
 # Create your models here.
 class Users(models.Model):
 	username   = models.CharField(max_length=16, unique=True)
+	channel    = models.CharField(max_length=100, default=None, null=True)
 	password   = models.CharField(max_length=100)
 	email      = models.EmailField(unique=True)
 	verified   = models.BooleanField(default=False)
