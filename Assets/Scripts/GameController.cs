@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
-
+using System.Diagnostics;
+using System;
 
 public class GameController : MonoBehaviour {
 
@@ -10,7 +11,9 @@ public class GameController : MonoBehaviour {
 
 	private static List<Unit> _units;
 	private static Token _selectedToken;
-	private List<ValidAction> _actions;		// Array of valid moves
+	//private List<ValidAction> _actions;		// Array of valid moves
+	// Collection of valid moves
+	private Dictionary<Twople<int, int>, int> _actions;
 
 	// Game vars
 	private MapData _currentMap;
@@ -29,6 +32,7 @@ public class GameController : MonoBehaviour {
 
 	// vars for development
 	private bool _endTurn;
+	public static long count;
 
 
 #region Setters and Getters
@@ -52,7 +56,8 @@ public class GameController : MonoBehaviour {
 		get{return _selectedToken;}
 		set{_selectedToken = value;}
 	}
-	public List<ValidAction> Actions {
+	//public List<ValidAction> Actions {
+	public Dictionary<Twople<int, int>, int> Actions {
 		get{return _actions;}
 		set{_actions = value;}
 	}
@@ -80,7 +85,7 @@ public class GameController : MonoBehaviour {
 	// Development - place anything we need to initialize for dev/test here
 	void Start() {
 		// Initialize match variables
-		Actions = new List<ValidAction>();
+		Actions = new Dictionary<Twople<int, int>, int>();
 		Units = new List<Unit>();
 		SC = gameObject.AddComponent<SpawnController>();
 		// Map game vars from QGU match data and determine if place units is necessary
@@ -132,7 +137,7 @@ public class GameController : MonoBehaviour {
 
 	// Placeholder for what will contain code to show unit's info on UI
 	public void ShowUnitInfo(Unit unit) {
-		Debug.Log(((unit.MyTeam)? "Your " : "Opponent's ") + unit.Info.Name);
+		UnityEngine.Debug.Log(((unit.MyTeam)? "Your " : "Opponent's ") + unit.Info.Name);
 	}
 
 	// Runs when a unit is unselected (i.e. user clicks other unit, or unit takes turn)
@@ -145,18 +150,113 @@ public class GameController : MonoBehaviour {
 	// Set range to unit's remaining range (in case we make units able to move twice if it has leftover)
 	// After all actions have been assessed, paint the tokens
 	private void SetValidActions(Token token) {
-		Unit unit = token.CurrentUnit;
-		float range = unit.RemainingMoveRange;
-		AddValidAction("move", token);
-		EvalSurroundingTokenActions(unit, token, range, "move");
+		Stopwatch timePerParse = Stopwatch.StartNew();
 
-		foreach(ValidAction action in Actions) {
-			Tokens[action.col][action.row].PaintAction(action.action);
+		// Reset valid actions and queue of remaining tokens to check
+		ClearValidActions();
+
+		// Info about the unit beinc checked
+		Unit movingUnit = token.CurrentUnit;
+		string unitName = movingUnit.name;
+
+		// Initial movement remaining is root token weight + total move range
+		// since the weight will be subtracted within while loop
+		float terrainWeight = GameData.TerrainWeight(unitName, token.CurrentTerrain.shortName);
+		float movementRemaining = token.CurrentUnit.RemainingMoveRange;
+
+		// HashSet of elements already checked, the int is X + (Length * Y)
+		HashSet<int> checkedTokens = new HashSet<int>();
+		HashSet<int> queuedTokens = new HashSet<int>();
+
+		// Queue of elements to be processed, Tuple elements are:
+		// Item1 - This token
+		// Item2 - Remaining movement
+		// Item3 - UnitAction ID (move or attack)
+		Queue<Threeple<Token, float, int> > uncheckedTokens = new Queue<Threeple<Token, float, int> >();
+
+		// Insert root token (unit's location) into the queue
+		Threeple<Token, float, int> firstToken = Threeple.Create(token, movementRemaining + terrainWeight, (int)UnitAction.move);
+		uncheckedTokens.Enqueue(firstToken);
+
+		// Declare while loop vars once
+		Threeple<Token, float, int> currElement;
+		Twople<int, int> coord;
+		int newCoord;
+		int currX;
+		int currY;
+		Twople<int, int>[] neighbors = {
+			Twople.Create( 0,  1),
+			Twople.Create( 0, -1),
+			Twople.Create( 1,  0),
+			Twople.Create(-1,  0)
+		};
+
+		while(uncheckedTokens.Count != 0){
+			count++;
+			// Process first element in queue
+			currElement = uncheckedTokens.Dequeue();
+			currX = currElement.Item1.X;
+			currY = currElement.Item1.Y;
+			coord = Twople.Create(currX, currY);
+			
+			// Movement remaining is existing remaining movement - terrain weight
+			terrainWeight = GameData.TerrainWeight(unitName, currElement.Item1.CurrentTerrain.shortName);
+			movementRemaining = currElement.Item2 - terrainWeight;
+
+			// If the current token is occupied by an enemy, cannot move here
+			if(currElement.Item1.CurrentUnit != null && currElement.Item3 == (int)UnitAction.move && !currElement.Item1.CurrentUnit.MyTeam) {
+
+			}
+			// If movement remaining is not negative, can move here
+			else if(movementRemaining >= 0){
+				// Cannot move onto ally
+				if(currElement.Item1.CurrentUnit == null ||
+					currElement.Item1.CurrentUnit.Info.ID == movingUnit.Info.ID){
+					Actions.Add(coord, currElement.Item3);
+					currElement.Item1.SetActionProperties(((UnitAction)currElement.Item3).ToString());
+				}
+
+				// Add the 4 neighbors to the queue to be checked
+				foreach(Twople<int, int> nbr in neighbors){
+					if(currX + nbr.Item1 < GridLength && currX + nbr.Item1 >= 0 &&
+					   currY + nbr.Item2 < GridHeight && currY + nbr.Item2 >= 0) {
+						newCoord = currX + nbr.Item1 + (GridLength * (currY + nbr.Item2));
+						if(!checkedTokens.Contains(newCoord) && !queuedTokens.Contains(newCoord)){
+							queuedTokens.Add(newCoord);
+							uncheckedTokens.Enqueue(Threeple.Create(
+								Tokens[currX + nbr.Item1][currY + nbr.Item2],
+								movementRemaining, currElement.Item3
+							));
+						}
+					}
+				}
+			}
+			// Else, cannot move to neighbors either
+			//TODO: attacking
+			else{
+				//continue;
+			}
+
+			// Do not check this token again
+			checkedTokens.Add(currX + (GridLength * currY));
+		}
+
+		long ticksThisTime = timePerParse.ElapsedTicks;
+		long msThisTime = timePerParse.ElapsedMilliseconds;
+
+		UnityEngine.Debug.Log("Count:" + count);
+		UnityEngine.Debug.Log("Ticks:" + ticksThisTime);
+		UnityEngine.Debug.Log("MS:" + msThisTime);
+
+
+		foreach(KeyValuePair<Twople<int, int>, int> action in Actions) {
+			Tokens[action.Key.Item1][action.Key.Item2].PaintAction(((UnitAction)action.Value).ToString());
 		}
 	}
-
+/*
 	// Evaluates the surrounding tokens for valid actions
 	private void EvalSurroundingTokenActions(Unit unit, Token token, float range, string action) {
+		count++;
 		Token nextToken;
 		// Start with above token
 		if(token.Y < GridHeight) {
@@ -264,6 +364,14 @@ public class GameController : MonoBehaviour {
 		token.SetActionProperties(act);
 		return action;
 	}
+*/
+	// Clears the token vars and actions list
+	private void ClearValidActions() {
+		foreach(KeyValuePair<Twople<int, int>, int> action in Actions) {
+			Tokens[action.Key.Item1][action.Key.Item2].SetActionProperties("clear");
+		}
+		Actions.Clear();
+	}
 
 	// Initializes the game map when opening after place units has already been completed
 	private void InitializeMap() {
@@ -352,20 +460,20 @@ public class GameController : MonoBehaviour {
 		if(Input.GetKeyDown("e")){
 			if(GameData.CurrentMatch.UserTurn) {
 				_endTurn = true;
-				Debug.Log("Press 'y' to confirm endturn, otherwise press 'n'");
+				UnityEngine.Debug.Log("Press 'y' to confirm endturn, otherwise press 'n'");
 			}else {
-				Debug.Log("It's not your turn to end...");
+				UnityEngine.Debug.Log("It's not your turn to end...");
 			}
 		}
 		if(_endTurn) {
 			if(Input.GetKeyDown("y")) {
 				if(Server.EndTurn()) {
-					Debug.Log("Turn ended");
+					UnityEngine.Debug.Log("Turn ended");
 				}
 				_endTurn = false;
 			}else if(Input.GetKeyDown("n")) {
 				_endTurn = false;
-				Debug.Log("Endturn canceled");
+				UnityEngine.Debug.Log("Endturn canceled");
 			}
 		}
 	}
@@ -379,3 +487,5 @@ public struct ValidAction {
 	public int col;
 	public int row;
 }
+
+enum UnitAction{ move = 0, attack = 1, none = 2 };
