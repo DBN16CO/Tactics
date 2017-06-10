@@ -19,7 +19,6 @@ public class StartupController : MonoBehaviour {
 	// Runs on app startup - start server connection, login, load game data
 	void Start () {
 		PlayerPrefs.DeleteKey("session"); // Uncomment this to test from login screen
-		Server.Connect();
 		// If session token works, go to game, otherwise remove token and init login UI
 		if(PlayerPrefs.HasKey("session")) {
 			if(!Server.RetryLogin()) {
@@ -35,7 +34,7 @@ public class StartupController : MonoBehaviour {
 
 	// Runs when the app is closed - attempt to close the websocket cleanly
 	void OnApplicationQuit() {
-		Server.Disconnect();
+		
 	}
 
 	// Runs every frame, lerps objects if _expanding or _collapsing
