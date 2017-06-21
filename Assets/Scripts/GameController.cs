@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections.Generic;
 
 
@@ -18,7 +19,6 @@ public class GameController : MonoBehaviour {
 	public List<MatchUnit> enemyUnits;
 	public int myTeam;
 
-
 	// Static Game vars
 	public static SpawnController SC;
 	public static PlaceUnitsController PU;
@@ -26,9 +26,14 @@ public class GameController : MonoBehaviour {
 	public static PUUnit UnitBeingPlaced;
 	public static Token IntendedMove;		// If the player has selected a token to move to but hasn't confirmed the move yet
 
+	// Buttons and Objects
+	public GameObject EndTurnGO;
 
 	// vars for development
 	private bool _endTurn;
+
+	private int eval;
+	private int next;
 
 
 #region Setters and Getters
@@ -93,6 +98,7 @@ public class GameController : MonoBehaviour {
 		if(PlacingUnits) {
 			PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();
 		}else{
+			InitializeUI();
 			InitializeMap();
 			StartTurn();
 		}
@@ -148,7 +154,13 @@ public class GameController : MonoBehaviour {
 		Unit unit = token.CurrentUnit;
 		float range = unit.RemainingMoveRange;
 		AddValidAction("move", token);
+
+		eval = 0; next = 0;
+
 		EvalSurroundingTokenActions(unit, token, range, "move");
+
+		Debug.Log("eval: " + eval);
+		Debug.Log("next: " + next);
 
 		foreach(ValidAction action in Actions) {
 			Tokens[action.col][action.row].PaintAction(action.action);
@@ -157,6 +169,7 @@ public class GameController : MonoBehaviour {
 
 	// Evaluates the surrounding tokens for valid actions
 	private void EvalSurroundingTokenActions(Unit unit, Token token, float range, string action) {
+		eval++;
 		Token nextToken;
 		// Start with above token
 		if(token.Y < GridHeight) {
@@ -184,6 +197,7 @@ public class GameController : MonoBehaviour {
 	// If there is range remaining, evaluate surrounding tokens with whatever the current action is (move or attack)
 	// If there is no range remaining, switch to attack action or end
 	private void EvalNextToken(Unit unit, Token token, Token prevToken, float range, string action) {
+		next++;
 		float remainingRange;
 		remainingRange = EvalToken(unit.name, token, range, action);
 		if(remainingRange >= 0f) {
@@ -263,6 +277,29 @@ public class GameController : MonoBehaviour {
 		action.row = token.Y;
 		token.SetActionProperties(act);
 		return action;
+	}
+
+	public void ConfirmEndTurn() {
+		if(!_endTurn) {
+			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(true);
+			_endTurn = true;
+		}
+	}
+	public void EndTurn() {
+		if(Server.EndTurn()) {
+			_endTurn = false;
+
+			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+		}
+	}
+	public void CancelEndTurn() {
+		_endTurn = false;
+		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+	}
+
+	// Initializes the game UI when opening after place units has already been completed
+	private void InitializeUI() {
+		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
 	}
 
 	// Initializes the game map when opening after place units has already been completed
