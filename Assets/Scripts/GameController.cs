@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 
@@ -31,9 +32,9 @@ public class GameController : MonoBehaviour {
 
 	// vars for development
 	private bool _endTurn;
+	private float _qguTimer;
+	private float _qguInterval;
 
-	private int eval;
-	private int next;
 
 
 #region Setters and Getters
@@ -108,6 +109,8 @@ public class GameController : MonoBehaviour {
 		// Block for testing -------------------------------------------
 		// For any gameplay vars and functions
 //		TestGamePlay();
+		_qguTimer = 0f;
+		_qguInterval = 5f;
 		// End testing block -------------------------------------------
 	}
 
@@ -154,13 +157,7 @@ public class GameController : MonoBehaviour {
 		Unit unit = token.CurrentUnit;
 		float range = unit.RemainingMoveRange;
 		AddValidAction("move", token);
-
-		eval = 0; next = 0;
-
 		EvalSurroundingTokenActions(unit, token, range, "move");
-
-		Debug.Log("eval: " + eval);
-		Debug.Log("next: " + next);
 
 		foreach(ValidAction action in Actions) {
 			Tokens[action.col][action.row].PaintAction(action.action);
@@ -169,7 +166,6 @@ public class GameController : MonoBehaviour {
 
 	// Evaluates the surrounding tokens for valid actions
 	private void EvalSurroundingTokenActions(Unit unit, Token token, float range, string action) {
-		eval++;
 		Token nextToken;
 		// Start with above token
 		if(token.Y < GridHeight) {
@@ -197,7 +193,6 @@ public class GameController : MonoBehaviour {
 	// If there is range remaining, evaluate surrounding tokens with whatever the current action is (move or attack)
 	// If there is no range remaining, switch to attack action or end
 	private void EvalNextToken(Unit unit, Token token, Token prevToken, float range, string action) {
-		next++;
 		float remainingRange;
 		remainingRange = EvalToken(unit.name, token, range, action);
 		if(remainingRange >= 0f) {
@@ -288,8 +283,9 @@ public class GameController : MonoBehaviour {
 	public void EndTurn() {
 		if(Server.EndTurn()) {
 			_endTurn = false;
-
+			GameData.CurrentMatch.UserTurn = false;
 			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+			EndTurnGO.SetActive(false);
 		}
 	}
 	public void CancelEndTurn() {
@@ -300,6 +296,9 @@ public class GameController : MonoBehaviour {
 	// Initializes the game UI when opening after place units has already been completed
 	private void InitializeUI() {
 		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+		if(!GameData.CurrentMatch.UserTurn) {
+			EndTurnGO.SetActive(false);
+		}
 	}
 
 	// Initializes the game map when opening after place units has already been completed
@@ -314,6 +313,11 @@ public class GameController : MonoBehaviour {
 				SC.CreateUnit(unit, unit.X, unit.Y, false);
 			}
 		}
+	}
+
+	// Returns user to the main menu
+	public void BackToMenu() {
+		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 	}
 
 
@@ -367,7 +371,7 @@ public class GameController : MonoBehaviour {
 
 	// Runs every frame
 	void Update() {
-		// Testing move/zoom
+		// Computer move/zoom
 		if(Input.GetKey("up")){
 			Camera.main.transform.position += Vector3.up * 0.1f;
 		}
@@ -404,6 +408,26 @@ public class GameController : MonoBehaviour {
 				_endTurn = false;
 				Debug.Log("Endturn canceled");
 			}
+		}
+		if(!GameData.CurrentMatch.UserTurn) {
+			_qguTimer += Time.deltaTime;
+			if(_qguTimer >= _qguInterval) {
+				CheckForTurn();
+				_qguTimer = 0f;
+			}
+		}
+	}
+
+	// Loads active games
+	private void CheckForTurn() {
+		if(!(bool)Server.QueryGames()["Success"]) {
+			Debug.Log("Query Games failed");
+		}
+		int _matchID = GameData.CurrentMatch.MatchID;
+		if(GameData.GetMatches[_matchID].UserTurn) {
+			Debug.Log("It's now your turn");
+			GameData.CurrentMatch = GameData.GetMatches[_matchID];
+			SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 		}
 	}
 #endregion
