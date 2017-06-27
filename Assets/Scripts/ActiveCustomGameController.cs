@@ -43,7 +43,7 @@ public class ActiveCustomGameController : MonoBehaviour {
 	// Since can't pass params into Awake constructor, set detailed properties after instantiation
 	public void SetDetailedProperties(MatchData matchData) {
 		_matchID = matchData.MatchID;
- 		btn.transform.FindChild("Text").GetComponent<Text>().text = matchData.Name;
+ 		btn.transform.Find("Text").GetComponent<Text>().text = matchData.Name;
  	}
 
 	// Toggles whether to collapse or expand the detailedview

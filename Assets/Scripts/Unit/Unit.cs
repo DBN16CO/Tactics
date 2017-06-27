@@ -93,6 +93,7 @@ public class Unit : MonoBehaviour {
 	// Resets unit at start of turn
 	public void Reset() {
 		RemainingMoveRange = GameData.GetUnit(name).GetStat("Move").Value;
+		TakenAction = false;
 	}
 
 }

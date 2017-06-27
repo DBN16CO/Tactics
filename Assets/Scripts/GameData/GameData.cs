@@ -84,7 +84,7 @@ public static class GameData {
 		matchData = Json.ToList(matchDict["Games"].ToString());
 		foreach(object match in matchData) {
 			matches.Add(new MatchData(Json.ToDict(match.ToString())));
-			matches[matches.Count-1].MatchID = matches.Count -1;
+			matches[matches.Count-1].MatchID = matches.Count-1;
 		}
 	}
 

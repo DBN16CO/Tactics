@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 
@@ -18,7 +20,6 @@ public class GameController : MonoBehaviour {
 	public List<MatchUnit> enemyUnits;
 	public int myTeam;
 
-
 	// Static Game vars
 	public static SpawnController SC;
 	public static PlaceUnitsController PU;
@@ -26,9 +27,14 @@ public class GameController : MonoBehaviour {
 	public static PUUnit UnitBeingPlaced;
 	public static Token IntendedMove;		// If the player has selected a token to move to but hasn't confirmed the move yet
 
+	// Buttons and Objects
+	public GameObject EndTurnGO;
 
 	// vars for development
 	private bool _endTurn;
+	private float _qguTimer;
+	private float _qguInterval;
+
 
 
 #region Setters and Getters
@@ -93,6 +99,7 @@ public class GameController : MonoBehaviour {
 		if(PlacingUnits) {
 			PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();
 		}else{
+			InitializeUI();
 			InitializeMap();
 			StartTurn();
 		}
@@ -102,6 +109,8 @@ public class GameController : MonoBehaviour {
 		// Block for testing -------------------------------------------
 		// For any gameplay vars and functions
 //		TestGamePlay();
+		_qguTimer = 0f;
+		_qguInterval = 5f;
 		// End testing block -------------------------------------------
 	}
 
@@ -265,6 +274,33 @@ public class GameController : MonoBehaviour {
 		return action;
 	}
 
+	public void ConfirmEndTurn() {
+		if(!_endTurn) {
+			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(true);
+			_endTurn = true;
+		}
+	}
+	public void EndTurn() {
+		if(Server.EndTurn()) {
+			_endTurn = false;
+			GameData.CurrentMatch.UserTurn = false;
+			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+			EndTurnGO.SetActive(false);
+		}
+	}
+	public void CancelEndTurn() {
+		_endTurn = false;
+		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+	}
+
+	// Initializes the game UI when opening after place units has already been completed
+	private void InitializeUI() {
+		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+		if(!GameData.CurrentMatch.UserTurn) {
+			EndTurnGO.SetActive(false);
+		}
+	}
+
 	// Initializes the game map when opening after place units has already been completed
 	private void InitializeMap() {
 		foreach(MatchUnit unit in myUnits) {
@@ -277,6 +313,11 @@ public class GameController : MonoBehaviour {
 				SC.CreateUnit(unit, unit.X, unit.Y, false);
 			}
 		}
+	}
+
+	// Returns user to the main menu
+	public void BackToMenu() {
+		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 	}
 
 
@@ -330,7 +371,7 @@ public class GameController : MonoBehaviour {
 
 	// Runs every frame
 	void Update() {
-		// Testing move/zoom
+		// Computer move/zoom
 		if(Input.GetKey("up")){
 			Camera.main.transform.position += Vector3.up * 0.1f;
 		}
@@ -367,6 +408,27 @@ public class GameController : MonoBehaviour {
 				_endTurn = false;
 				Debug.Log("Endturn canceled");
 			}
+		}
+		if(!GameData.CurrentMatch.UserTurn) {
+			_qguTimer += Time.deltaTime;
+			if(_qguTimer >= _qguInterval) {
+				CheckForTurn();
+				_qguTimer = 0f;
+			}
+		}
+	}
+
+	// Loads active games
+	private void CheckForTurn() {
+		if(!(bool)Server.QueryGames()["Success"]) {
+			Debug.Log("Query Games failed");
+			return;
+		}
+		int _matchID = GameData.CurrentMatch.MatchID;
+		if(GameData.GetMatches[_matchID].UserTurn) {
+			Debug.Log("It's now your turn");
+			GameData.CurrentMatch = GameData.GetMatches[_matchID];
+			SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 		}
 	}
 #endregion
