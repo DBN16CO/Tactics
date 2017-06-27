@@ -320,6 +320,20 @@ public class GameController : MonoBehaviour {
 		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 	}
 
+	public static Color HexToColor(string hex) {
+		hex = hex.Replace ("0x", "");//in case the string is formatted 0xFFFFFF
+    	hex = hex.Replace ("#", "");//in case the string is formatted #FFFFFF
+        byte a = 255;//assume fully visible unless specified in hex
+        byte r = byte.Parse(hex.Substring(0,2), System.Globalization.NumberStyles.HexNumber);
+        byte g = byte.Parse(hex.Substring(2,2), System.Globalization.NumberStyles.HexNumber);
+        byte b = byte.Parse(hex.Substring(4,2), System.Globalization.NumberStyles.HexNumber);
+        //Only use alpha if the string has enough characters
+        if(hex.Length == 8){
+            a = byte.Parse(hex.Substring(6,2), System.Globalization.NumberStyles.HexNumber);
+        }
+        return new Color32(r,g,b,a);
+	}
+
 
 
 #region Development
@@ -389,25 +403,6 @@ public class GameController : MonoBehaviour {
 		}
 		if(Input.GetKey("o")){
 			Camera.main.orthographicSize /= 0.95f;
-		}
-		if(Input.GetKeyDown("e")){
-			if(GameData.CurrentMatch.UserTurn) {
-				_endTurn = true;
-				Debug.Log("Press 'y' to confirm endturn, otherwise press 'n'");
-			}else {
-				Debug.Log("It's not your turn to end...");
-			}
-		}
-		if(_endTurn) {
-			if(Input.GetKeyDown("y")) {
-				if(Server.EndTurn()) {
-					Debug.Log("Turn ended");
-				}
-				_endTurn = false;
-			}else if(Input.GetKeyDown("n")) {
-				_endTurn = false;
-				Debug.Log("Endturn canceled");
-			}
 		}
 		if(!GameData.CurrentMatch.UserTurn) {
 			_qguTimer += Time.deltaTime;
