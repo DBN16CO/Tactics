@@ -90,10 +90,23 @@ public class Unit : MonoBehaviour {
 		_gc.UnselectUnit();
 	}
 
+	public void PaintUnit(string type) {
+		switch(type) {
+			case "enemy":
+				gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor("FF9C9CFF");
+				break;
+			case "move":
+				gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor("3A64FFFF");
+				break;
+			case "disable":
+				gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor("1D233CFF");
+				break;
+		}
+	}
+
 	// Resets unit at start of turn
 	public void Reset() {
 		RemainingMoveRange = GameData.GetUnit(name).GetStat("Move").Value;
-		TakenAction = false;
 	}
 
 }
