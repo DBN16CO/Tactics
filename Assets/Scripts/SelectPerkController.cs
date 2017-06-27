@@ -9,13 +9,13 @@ public class SelectPerkController : MonoBehaviour {
 
 	// Controls the image of the selectable GameObject
 	public Sprite PerkIcon {
-		get{return gameObject.transform.FindChild("Icon").GetComponent<Image>().sprite;}
-		set{gameObject.transform.FindChild("Icon").GetComponent<Image>().sprite = value;}
+		get{return gameObject.transform.Find("Icon").GetComponent<Image>().sprite;}
+		set{gameObject.transform.Find("Icon").GetComponent<Image>().sprite = value;}
 	}
 	// Controls the description text of the selectable GameObject
 	public string Description {
-		get{return gameObject.transform.FindChild("Text").GetComponent<Text>().text;}
-		set{gameObject.transform.FindChild("Text").GetComponent<Text>().text = value;}
+		get{return gameObject.transform.Find("Text").GetComponent<Text>().text;}
+		set{gameObject.transform.Find("Text").GetComponent<Text>().text = value;}
 	}
 	// Returns the index of the perk tier
 	public int ListTier {
