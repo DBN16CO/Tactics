@@ -71,6 +71,7 @@ public class SpawnController : MonoBehaviour {
 		ret.Info = unit;
 		ret.TakenAction = unit.Acted;
 		ret.MyTeam = myTeam;
+		ret.PaintUnit((ret.MyTeam)? ((ret.TakenAction)? "disable" : "move") : "enemy");
 		GameController.Tokens[x][y].CurrentUnit = ret;
 		GameController.Units.Add(ret);
 		if(GameController.PlacingUnits) {

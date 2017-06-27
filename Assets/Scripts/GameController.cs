@@ -14,8 +14,9 @@ public class GameController : MonoBehaviour {
 
 	private static List<Unit> _units;
 	private static Token _selectedToken;
-	//private List<ValidAction> _actions;		// Array of valid moves
-	// Collection of valid moves
+
+	// Collection of valid moves - Key is (x,y) coordinate, Value is
+	// UnitAction Enum Index
 	private Dictionary<Twople<int, int>, int> _actions;
 
 	// Game vars
@@ -36,8 +37,6 @@ public class GameController : MonoBehaviour {
 
 	// vars for development
 	private bool _endTurn;
-
-	public static long count;
 
 	private float _qguTimer;
 	private float _qguInterval;
@@ -157,11 +156,9 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Begins the process to assess valid moves for the selected unit
-	// Set range to unit's remaining range (in case we make units able to move twice if it has leftover)
+	// Set range to unit's remaining range (in case we make units able to move twice if it has leftover) - I think this concept should be removed (B)
 	// After all actions have been assessed, paint the tokens
 	private void SetValidActions(Token token) {
-		Stopwatch timePerParse = Stopwatch.StartNew();
-
 		// Reset valid actions and queue of remaining tokens to check
 		ClearValidActions();
 
@@ -171,26 +168,25 @@ public class GameController : MonoBehaviour {
 
 		// Initial movement remaining is root terrain weight + total move range
 		// because the terrain weight will be subtracted within while loop
-		float terrainWeight = GameData.TerrainWeight(unitName, token.CurrentTerrain.shortName);
-		float movementRemaining = token.CurrentUnit.RemainingMoveRange;
+		int terrainWeight = GameData.TerrainWeight(unitName, token.CurrentTerrain.shortName);
+		int movementRemaining = token.CurrentUnit.RemainingMoveRange;
 
-		// Elements queued to be, or already checked, the index is X + (Height * Y)
+		// Elements queued to be (or already) checked.  The index is X + (Height * Y)
 		bool[] queuedTokens  = new bool[GridHeight*GridLength];
-		int currIndex;
 
 		// Queue of elements to be processed, Tuple elements are:
 		// Item1 - This token
 		// Item2 - Remaining range (movement or attack/heal)
-		Queue<Twople<Token, float> > uncheckedMoveTokens   = new Queue<Twople<Token, float> >();
-		Queue<Twople<Token, float> > uncheckedAttackTokens = new Queue<Twople<Token, float> >();
-		Queue<Twople<Token, float> > uncheckedHealTokens   = new Queue<Twople<Token, float> >();
+		Queue<Twople<Token, int> > uncheckedMoveTokens   = new Queue<Twople<Token, int> >();
+		Queue<Twople<Token, int> > uncheckedAttackTokens = new Queue<Twople<Token, int> >();
+		Queue<Twople<Token, int> > uncheckedHealTokens   = new Queue<Twople<Token, int> >();
 
 		// Insert root token (unit's location) into the queue
-		Twople<Token, float> firstToken = Twople.Create(token, movementRemaining + terrainWeight);
+		Twople<Token, int> firstToken = Twople.Create(token, movementRemaining + terrainWeight);
 		uncheckedMoveTokens.Enqueue(firstToken);
 
 		// Declare while loop vars once
-		Twople<Token, float> currElement;
+		Twople<Token, int> currElement;
 		Twople<int, int> coord;
 		int newCoord;
 		int currX;
@@ -204,15 +200,12 @@ public class GameController : MonoBehaviour {
 		bool checkNeighbors = false;
 
 		// Determmine if the unit can attack before entering loop
-		bool canAttack = true;
-		bool canHeal = false;
+		bool canAttack = GameData.GetUnit(unitName).GetAction("Attack");
+		bool canHeal = GameData.GetUnit(unitName).GetAction("Heal");;
 		//TODO: When unit's abilities are included in their data check if can attack and heal
 		//FOR NOW: Assume all units can attack and not heal
 
-		float startingAttackRange = GameData.GetUnit(unitName).GetStat("Attack Range").Value;
-		int currAttackRange;
-
-		count = 0;
+		int startingAttackRange = GameData.GetUnit(unitName).GetStat("Attack Range").Value;
 
 		List<int> validActionIds = new List<int>();
 		validActionIds.Add((int)UnitAction.move);
@@ -224,7 +217,7 @@ public class GameController : MonoBehaviour {
 			validActionIds.Add((int)UnitAction.heal);
 		}
 
-		Queue<Twople<Token, float> > currQueue;
+		Queue<Twople<Token, int> > currQueue;
 		int phase;
 		for(int i = 0; i<validActionIds.Count; i++){
 			if(validActionIds[i] == (int)UnitAction.move){
@@ -244,13 +237,11 @@ public class GameController : MonoBehaviour {
 			}
 
 			while(currQueue.Count != 0){
-				count++;
 				// Process first element in queue
 				currElement = currQueue.Dequeue();
 				currX = currElement.Item1.X;
 				currY = currElement.Item1.Y;
 				coord = Twople.Create(currX, currY);
-				currIndex = currX + (GridHeight * currY);
 
 				// Movement remaining is existing remaining movement - terrain weight
 				terrainWeight = GameData.TerrainWeight(unitName, currElement.Item1.CurrentTerrain.shortName);
@@ -340,14 +331,6 @@ public class GameController : MonoBehaviour {
 			}
 		}
 
-		long ticksThisTime = timePerParse.ElapsedTicks;
-		long msThisTime = timePerParse.ElapsedMilliseconds;
-
-		UnityEngine.Debug.Log("Count:" + count);
-		UnityEngine.Debug.Log("Ticks:" + ticksThisTime);
-		UnityEngine.Debug.Log("MS:" + msThisTime);
-
-
 		foreach(KeyValuePair<Twople<int, int>, int> action in Actions) {
 			Tokens[action.Key.Item1][action.Key.Item2].PaintAction(((UnitAction)action.Value).ToString());
 		}
@@ -407,7 +390,19 @@ public class GameController : MonoBehaviour {
 		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 	}
 
-
+	public static Color HexToColor(string hex) {
+		hex = hex.Replace ("0x", "");//in case the string is formatted 0xFFFFFF
+		hex = hex.Replace ("#", "");//in case the string is formatted #FFFFFF
+		byte a = 255;//assume fully visible unless specified in hex
+		byte r = byte.Parse(hex.Substring(0,2), System.Globalization.NumberStyles.HexNumber);
+		byte g = byte.Parse(hex.Substring(2,2), System.Globalization.NumberStyles.HexNumber);
+		byte b = byte.Parse(hex.Substring(4,2), System.Globalization.NumberStyles.HexNumber);
+		//Only use alpha if the string has enough characters
+		if(hex.Length == 8){
+			a = byte.Parse(hex.Substring(6,2), System.Globalization.NumberStyles.HexNumber);
+		}
+		return new Color32(r,g,b,a);
+	}
 
 #region Development
 	// For testing - gameplay variables and functionality
@@ -476,25 +471,6 @@ public class GameController : MonoBehaviour {
 		}
 		if(Input.GetKey("o")){
 			Camera.main.orthographicSize /= 0.95f;
-		}
-		if(Input.GetKeyDown("e")){
-			if(GameData.CurrentMatch.UserTurn) {
-				_endTurn = true;
-				UnityEngine.Debug.Log("Press 'y' to confirm endturn, otherwise press 'n'");
-			}else {
-				UnityEngine.Debug.Log("It's not your turn to end...");
-			}
-		}
-		if(_endTurn) {
-			if(Input.GetKeyDown("y")) {
-				if(Server.EndTurn()) {
-					UnityEngine.Debug.Log("Turn ended");
-				}
-				_endTurn = false;
-			}else if(Input.GetKeyDown("n")) {
-				_endTurn = false;
-				UnityEngine.Debug.Log("Endturn canceled");
-			}
 		}
 		if(!GameData.CurrentMatch.UserTurn) {
 			_qguTimer += Time.deltaTime;

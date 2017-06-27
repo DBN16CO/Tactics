@@ -108,6 +108,7 @@ public class Token : MonoBehaviour {
 			prevToken.CurrentUnit = null;
 			CurrentUnit.UpdateInfo(X: X, Y: Y);
 			CurrentUnit.TakenAction = true;
+			CurrentUnit.PaintUnit("disable");
 			GameController.SelectedToken = null;
 			CurrentUnit.UnselectUnit();
 		}
