@@ -146,7 +146,7 @@ public class GameController : MonoBehaviour {
 		ClearValidActions();
 	}
 
-	// Begins the process to asses valid moves for the selected unit
+	// Begins the process to assess valid moves for the selected unit
 	// Set range to unit's remaining range (in case we make units able to move twice if it has leftover)
 	// After all actions have been assessed, paint the tokens
 	private void SetValidActions(Token token) {
@@ -155,7 +155,7 @@ public class GameController : MonoBehaviour {
 		// Reset valid actions and queue of remaining tokens to check
 		ClearValidActions();
 
-		// Info about the unit beinc checked
+		// Info about the unit being checked
 		Unit movingUnit = token.CurrentUnit;
 		string unitName = movingUnit.name;
 
@@ -164,19 +164,26 @@ public class GameController : MonoBehaviour {
 		float terrainWeight = GameData.TerrainWeight(unitName, token.CurrentTerrain.shortName);
 		float movementRemaining = token.CurrentUnit.RemainingMoveRange;
 
-		// HashSet of elements already checked, the int is X + (Length * Y)
-		HashSet<int> checkedTokens = new HashSet<int>();
-		HashSet<int> queuedTokens = new HashSet<int>();
+		// Elements already checked, the index is X + (Height * Y)
+		bool[] checkedTokens      = new bool[GridHeight*GridLength];
+		bool[] queuedMoveTokens   = new bool[GridHeight*GridLength];
+		bool[] queuedAttackTokens = new bool[GridHeight*GridLength];
+		bool[] queuedHealTokens   = new bool[GridHeight*GridLength];
+		bool[] canMoveTokens      = new bool[GridHeight*GridLength];
+		bool[] canActTokens       = new bool[GridHeight*GridLength];
+		int currHash;
 
 		// Queue of elements to be processed, Tuple elements are:
 		// Item1 - This token
-		// Item2 - Remaining movement
+		// Item2 - Remaining range (movement or attack)
 		// Item3 - UnitAction ID (move or attack)
-		Queue<Threeple<Token, float, int> > uncheckedTokens = new Queue<Threeple<Token, float, int> >();
+		Queue<Threeple<Token, float, int> > uncheckedMoveTokens   = new Queue<Threeple<Token, float, int> >();
+		Queue<Threeple<Token, float, int> > uncheckedAttackTokens = new Queue<Threeple<Token, float, int> >();
+		Queue<Threeple<Token, float, int> > uncheckedHealTokens   = new Queue<Threeple<Token, float, int> >();
 
 		// Insert root token (unit's location) into the queue
 		Threeple<Token, float, int> firstToken = Threeple.Create(token, movementRemaining + terrainWeight, (int)UnitAction.move);
-		uncheckedTokens.Enqueue(firstToken);
+		uncheckedMoveTokens.Enqueue(firstToken);
 
 		// Declare while loop vars once
 		Threeple<Token, float, int> currElement;
@@ -191,21 +198,42 @@ public class GameController : MonoBehaviour {
 			Twople.Create(-1,  0)
 		};
 
-		while(uncheckedTokens.Count != 0){
+		// Determmine if the unit can attack before entering loop
+		bool canAttack = true;
+		bool canHeal = false;
+		//TODO: When unit's abilities are included in their data check if can attack and heal
+		//FOR NOW: Assume all units can attack and not heal
+
+		float startingAttackRange = GameData.GetUnit(unitName).GetStat("Attack Range").Value;
+		int currAttackRange;
+
+		count = 0;
+
+		/*
+		 * Check for movement
+		 */
+		while(uncheckedMoveTokens.Count != 0){
 			count++;
 			// Process first element in queue
-			currElement = uncheckedTokens.Dequeue();
+			currElement = uncheckedMoveTokens.Dequeue();
 			currX = currElement.Item1.X;
 			currY = currElement.Item1.Y;
 			coord = Twople.Create(currX, currY);
-			
+			currHash = currX + (GridHeight * currY);
+
 			// Movement remaining is existing remaining movement - terrain weight
 			terrainWeight = GameData.TerrainWeight(unitName, currElement.Item1.CurrentTerrain.shortName);
-			movementRemaining = currElement.Item2 - terrainWeight;
+			movementRemaining = (currElement.Item3 == (int)UnitAction.move)?
+				currElement.Item2 - terrainWeight: currElement.Item2 - 1;
 
 			// If the current token is occupied by an enemy, cannot move here
 			if(currElement.Item1.CurrentUnit != null && currElement.Item3 == (int)UnitAction.move && !currElement.Item1.CurrentUnit.MyTeam) {
-
+				if(canAttack && startingAttackRange > 0){
+					uncheckedAttackTokens.Enqueue(Threeple.Create(
+						Tokens[currX][currY], startingAttackRange,
+						(int) UnitAction.attack)
+					);
+				}
 			}
 			// If movement remaining is not negative, can move here
 			else if(movementRemaining >= 0){
@@ -213,6 +241,7 @@ public class GameController : MonoBehaviour {
 				if(currElement.Item1.CurrentUnit == null ||
 					currElement.Item1.CurrentUnit.Info.ID == movingUnit.Info.ID){
 					Actions.Add(coord, currElement.Item3);
+					canMoveTokens[currHash] = true;
 					currElement.Item1.SetActionProperties(((UnitAction)currElement.Item3).ToString());
 				}
 
@@ -220,10 +249,10 @@ public class GameController : MonoBehaviour {
 				foreach(Twople<int, int> nbr in neighbors){
 					if(currX + nbr.Item1 < GridLength && currX + nbr.Item1 >= 0 &&
 					   currY + nbr.Item2 < GridHeight && currY + nbr.Item2 >= 0) {
-						newCoord = currX + nbr.Item1 + (GridLength * (currY + nbr.Item2));
-						if(!checkedTokens.Contains(newCoord) && !queuedTokens.Contains(newCoord)){
-							queuedTokens.Add(newCoord);
-							uncheckedTokens.Enqueue(Threeple.Create(
+						newCoord = currX + nbr.Item1 + (GridHeight * (currY + nbr.Item2));
+						if(!checkedTokens[newCoord] && !queuedMoveTokens[newCoord]){
+							queuedMoveTokens[newCoord] = true;
+							uncheckedMoveTokens.Enqueue(Threeple.Create(
 								Tokens[currX + nbr.Item1][currY + nbr.Item2],
 								movementRemaining, currElement.Item3
 							));
@@ -231,14 +260,35 @@ public class GameController : MonoBehaviour {
 					}
 				}
 			}
-			// Else, cannot move to neighbors either
-			//TODO: attacking
-			else{
-				//continue;
+			// Out of moves, switch to attacking
+			else if(canAttack){
+				uncheckedAttackTokens.Enqueue(Threeple.Create(
+					Tokens[currX][currY], startingAttackRange,
+					(int) UnitAction.attack)
+				);
+			}
+			else if(canHeal){
+				uncheckedHealTokens.Enqueue(Threeple.Create(
+					Tokens[currX][currY], startingAttackRange,
+					(int) UnitAction.heal)
+				);
 			}
 
 			// Do not check this token again
-			checkedTokens.Add(currX + (GridLength * currY));
+			checkedTokens[currHash] = true;
+		}
+
+		/*
+		 * Check for attacking
+		 */
+		while(uncheckedAttackTokens.Count != 0){
+			count++;
+			// Process first element in queue
+			currElement = uncheckedAttackTokens.Dequeue();
+			currX = currElement.Item1.X;
+			currY = currElement.Item1.Y;
+			coord = Twople.Create(currX, currY);
+			currHash = currX + (GridHeight * currY);
 		}
 
 		long ticksThisTime = timePerParse.ElapsedTicks;
@@ -488,4 +538,4 @@ public struct ValidAction {
 	public int row;
 }
 
-enum UnitAction{ move = 0, attack = 1, none = 2 };
+enum UnitAction{ move = 0, attack = 1, heal = 2, none = 3 };
