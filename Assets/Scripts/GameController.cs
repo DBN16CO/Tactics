@@ -422,6 +422,7 @@ public class GameController : MonoBehaviour {
 	private void CheckForTurn() {
 		if(!(bool)Server.QueryGames()["Success"]) {
 			Debug.Log("Query Games failed");
+			return;
 		}
 		int _matchID = GameData.CurrentMatch.MatchID;
 		if(GameData.GetMatches[_matchID].UserTurn) {
