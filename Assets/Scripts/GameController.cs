@@ -15,8 +15,7 @@ public class GameController : MonoBehaviour {
 	private static List<Unit> _units;
 	private static Token _selectedToken;
 
-	// Collection of valid moves - Key is (x,y) coordinate, Value is
-	// UnitAction Enum Index
+	// Collection of valid moves - Key is (x,y) coordinate, Value is UnitAction Enum Index
 	private Dictionary<Twople<int, int>, int> _actions;
 
 	// Game vars
@@ -62,7 +61,6 @@ public class GameController : MonoBehaviour {
 		get{return _selectedToken;}
 		set{_selectedToken = value;}
 	}
-	//public List<ValidAction> Actions {
 	public Dictionary<Twople<int, int>, int> Actions {
 		get{return _actions;}
 		set{_actions = value;}
@@ -171,6 +169,11 @@ public class GameController : MonoBehaviour {
 		int terrainWeight = GameData.TerrainWeight(unitName, token.CurrentTerrain.shortName);
 		int movementRemaining = token.CurrentUnit.RemainingMoveRange;
 
+		// Attack range if the unit can attack or heal
+		// As of now, for a unit that can do both, attack is determined first,
+		// meaning that unoccupied valid targets will be red, not green
+		int startingAttackRange = GameData.GetUnit(unitName).GetStat("Attack Range").Value;
+
 		// Elements queued to be (or already) checked.  The index is X + (Height * Y)
 		bool[] queuedTokens  = new bool[GridHeight*GridLength];
 
@@ -199,21 +202,17 @@ public class GameController : MonoBehaviour {
 		};
 		bool checkNeighbors = false;
 
-		// Determmine if the unit can attack before entering loop
+		// Determmine if the unit can attack or heal before entering loop
 		bool canAttack = GameData.GetUnit(unitName).GetAction("Attack");
 		bool canHeal = GameData.GetUnit(unitName).GetAction("Heal");;
-		//TODO: When unit's abilities are included in their data check if can attack and heal
-		//FOR NOW: Assume all units can attack and not heal
 
-		int startingAttackRange = GameData.GetUnit(unitName).GetStat("Attack Range").Value;
-
+		// List of valid actions that this unit can take, using the UnitActions Enum
 		List<int> validActionIds = new List<int>();
 		validActionIds.Add((int)UnitAction.move);
-
 		if(canAttack){
 			validActionIds.Add((int)UnitAction.attack);
 		}
-		else if(canHeal){
+		if(canHeal){
 			validActionIds.Add((int)UnitAction.heal);
 		}
 
@@ -271,11 +270,11 @@ public class GameController : MonoBehaviour {
 								);
 							}
 							// Cannot attack allies
-							else if(canAttack){
+							else if(phase == (int)UnitAction.attack){
 								checkNeighbors = false;
 							}
 							// Can heal allies
-							else if(canHeal){
+							else if(phase == (int)UnitAction.heal){
 								Actions.Add(coord, (int)UnitAction.heal);
 								currElement.Item1.SetActionProperties("heal");
 							}
@@ -289,11 +288,11 @@ public class GameController : MonoBehaviour {
 									Tokens[currX][currY], startingAttackRange)
 								);
 							}
-							if(canAttack){
+							if(phase == (int)UnitAction.attack){
 								Actions.Add(coord, (int)UnitAction.attack);
 								currElement.Item1.SetActionProperties("attack");
 							}
-							else if(canHeal){
+							else if(phase == (int)UnitAction.heal){
 								checkNeighbors = false;
 							}
 						}
