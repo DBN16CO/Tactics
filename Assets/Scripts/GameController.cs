@@ -1,10 +1,7 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using System;
 
 public class GameController : MonoBehaviour {
 
@@ -163,10 +160,6 @@ public class GameController : MonoBehaviour {
 		// Info about the unit being checked
 		Unit movingUnit = token.CurrentUnit;
 		string unitName = movingUnit.name;
-
-		// Initial movement remaining is root terrain weight + total move range
-		// because the terrain weight will be subtracted within while loop
-		int terrainWeight = GameData.TerrainWeight(unitName, token.CurrentTerrain.shortName);
 		int movementRemaining = token.CurrentUnit.RemainingMoveRange;
 
 		// Attack range if the unit can attack or heal
@@ -174,26 +167,27 @@ public class GameController : MonoBehaviour {
 		// meaning that unoccupied valid targets will be red, not green
 		int startingAttackRange = GameData.GetUnit(unitName).GetStat("Attack Range").Value;
 
-		// Elements queued to be (or already) checked.  The index is X + (Height * Y)
-		bool[] queuedTokens  = new bool[GridHeight*GridLength];
+		// Elements queued to be (or already) checked
+		bool[][] queuedTokens  = JaggedArray.CreateJaggedArray<bool[][]>(GridLength,GridHeight);
 
 		// Queue of elements to be processed, Tuple elements are:
 		// Item1 - This token
 		// Item2 - Remaining range (movement or attack/heal)
-		Queue<Twople<Token, int> > uncheckedMoveTokens   = new Queue<Twople<Token, int> >();
-		Queue<Twople<Token, int> > uncheckedAttackTokens = new Queue<Twople<Token, int> >();
-		Queue<Twople<Token, int> > uncheckedHealTokens   = new Queue<Twople<Token, int> >();
+		PriorityQueue<Twople<Token, int> > uncheckedMoveTokens   = new PriorityQueue<Twople<Token, int> >();
+		PriorityQueue<Twople<Token, int> > uncheckedAttackTokens = new PriorityQueue<Twople<Token, int> >();
+		PriorityQueue<Twople<Token, int> > uncheckedHealTokens   = new PriorityQueue<Twople<Token, int> >();
 
 		// Insert root token (unit's location) into the queue
-		Twople<Token, int> firstToken = Twople.Create(token, movementRemaining + terrainWeight);
-		uncheckedMoveTokens.Enqueue(firstToken);
+		Twople<Token, int> firstToken = Twople.Create(token, movementRemaining);
+		uncheckedMoveTokens.Enqueue(movementRemaining, firstToken);
+		queuedTokens[token.X][token.Y] = true;
 
 		// Declare while loop vars once
 		Twople<Token, int> currElement;
 		Twople<int, int> coord;
-		int newCoord;
 		int currX;
 		int currY;
+		int terrainWeight;
 		Twople<int, int>[] neighbors = {
 			Twople.Create( 0,  1),
 			Twople.Create( 0, -1),
@@ -204,7 +198,7 @@ public class GameController : MonoBehaviour {
 
 		// Determmine if the unit can attack or heal before entering loop
 		bool canAttack = GameData.GetUnit(unitName).GetAction("Attack");
-		bool canHeal = GameData.GetUnit(unitName).GetAction("Heal");;
+		bool canHeal = GameData.GetUnit(unitName).GetAction("Heal");
 
 		// List of valid actions that this unit can take, using the UnitActions Enum
 		List<int> validActionIds = new List<int>();
@@ -216,23 +210,24 @@ public class GameController : MonoBehaviour {
 			validActionIds.Add((int)UnitAction.heal);
 		}
 
-		Queue<Twople<Token, int> > currQueue;
+		PriorityQueue<Twople<Token, int> > currQueue;
 		int phase;
 		for(int i = 0; i<validActionIds.Count; i++){
-			if(validActionIds[i] == (int)UnitAction.move){
-				currQueue = uncheckedMoveTokens;
-				phase = (int)UnitAction.move;
-			}
-			else if(validActionIds[i] == (int)UnitAction.attack){
-				currQueue = uncheckedAttackTokens;
-				phase = (int)UnitAction.attack;
-			}
-			else if(validActionIds[i] == (int)UnitAction.heal){
-				currQueue = uncheckedHealTokens;
-				phase = (int)UnitAction.heal;
-			}
-			else{
-				continue;
+			switch(validActionIds[i]){
+				case (int)UnitAction.move:
+					currQueue = uncheckedMoveTokens;
+					phase = (int)UnitAction.move;
+					break;
+				case (int)UnitAction.attack:
+					currQueue = uncheckedAttackTokens;
+					phase = (int)UnitAction.attack;
+					break;
+				case (int)UnitAction.heal:
+					currQueue = uncheckedHealTokens;
+					phase = (int)UnitAction.heal;
+					break;
+				default:
+					continue;
 			}
 
 			while(currQueue.Count != 0){
@@ -242,12 +237,7 @@ public class GameController : MonoBehaviour {
 				currY = currElement.Item1.Y;
 				coord = Twople.Create(currX, currY);
 
-				// Movement remaining is existing remaining movement - terrain weight
-				terrainWeight = GameData.TerrainWeight(unitName, currElement.Item1.CurrentTerrain.shortName);
-				movementRemaining = (phase == (int)UnitAction.move)?
-					currElement.Item2 - terrainWeight: currElement.Item2 - 1;
-
-				if(movementRemaining >= 0){
+				if(currElement.Item2 >= 0){
 					checkNeighbors = true;
 
 					// During movement phase, can move onto self or unoccupied locations
@@ -265,8 +255,8 @@ public class GameController : MonoBehaviour {
 						if(currElement.Item1.CurrentUnit.MyTeam){
 							// If still moving, add this to heal check for after movement is done
 							if(phase == (int)UnitAction.move && canHeal){
-								uncheckedHealTokens.Enqueue(Twople.Create(
-									Tokens[currX][currY], startingAttackRange)
+								uncheckedHealTokens.Enqueue(0, Twople.Create(
+									Tokens[currX][currY], startingAttackRange-1)
 								);
 							}
 							// Cannot attack allies
@@ -282,18 +272,22 @@ public class GameController : MonoBehaviour {
 						// Logic for when the token is occupied by an enemy
 						else{
 							// If still moving, add this to attack check for after movement is done
-							if(phase == (int)UnitAction.move && canAttack){
-								checkNeighbors = false;
-								uncheckedAttackTokens.Enqueue(Twople.Create(
-									Tokens[currX][currY], startingAttackRange)
-								);
-							}
-							if(phase == (int)UnitAction.attack){
-								Actions.Add(coord, (int)UnitAction.attack);
-								currElement.Item1.SetActionProperties("attack");
-							}
-							else if(phase == (int)UnitAction.heal){
-								checkNeighbors = false;
+							switch(phase){
+								case (int)UnitAction.move:
+									if(canAttack){
+										checkNeighbors = false;
+										uncheckedAttackTokens.Enqueue(0, Twople.Create(
+											Tokens[currX][currY], startingAttackRange-1)
+										);
+									}
+									break;
+								case (int)UnitAction.attack:
+									Actions.Add(coord, (int)UnitAction.attack);
+									currElement.Item1.SetActionProperties("attack");
+									break;
+								case (int)UnitAction.heal:
+									checkNeighbors = false;
+									break;
 							}
 						}
 					}
@@ -303,10 +297,15 @@ public class GameController : MonoBehaviour {
 						foreach(Twople<int, int> nbr in neighbors){
 							if(currX + nbr.Item1 < GridLength && currX + nbr.Item1 >= 0 &&
 							   currY + nbr.Item2 < GridHeight && currY + nbr.Item2 >= 0) {
-								newCoord = currX + nbr.Item1 + (GridHeight * (currY + nbr.Item2));
-								if(!queuedTokens[newCoord]){
-									queuedTokens[newCoord] = true;
-									currQueue.Enqueue(Twople.Create(
+								if(!queuedTokens[currX + nbr.Item1][currY + nbr.Item2]){
+									queuedTokens[currX + nbr.Item1][currY + nbr.Item2] = true;
+
+									// Movement remaining is existing remaining movement - terrain weight
+									terrainWeight = GameData.TerrainWeight(unitName, Tokens[currX + nbr.Item1][currY + nbr.Item2].CurrentTerrain.shortName);
+									movementRemaining = (phase == (int)UnitAction.move)?
+									currElement.Item2 - terrainWeight: currElement.Item2 - 1;
+
+									currQueue.Enqueue(movementRemaining, Twople.Create(
 										Tokens[currX + nbr.Item1][currY + nbr.Item2],
 										movementRemaining
 									));
@@ -317,14 +316,14 @@ public class GameController : MonoBehaviour {
 				}
 				// Out of moves, switch to attacking
 				else if(phase == (int)UnitAction.move && canAttack){
-					uncheckedAttackTokens.Enqueue(Twople.Create(
-						Tokens[currX][currY], startingAttackRange)
+					uncheckedAttackTokens.Enqueue(0, Twople.Create(
+						Tokens[currX][currY], startingAttackRange-1)
 					);
 				}
 				// Out of moves, switch to healing
 				else if(phase == (int)UnitAction.move && canHeal){
-					uncheckedHealTokens.Enqueue(Twople.Create(
-						Tokens[currX][currY], startingAttackRange)
+					uncheckedHealTokens.Enqueue(0, Twople.Create(
+						Tokens[currX][currY], startingAttackRange-1)
 					);
 				}
 			}
@@ -385,7 +384,7 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Returns user to the main menu
-	public void BackToMenu() {
+	public static void BackToMenu() {
 		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 	}
 

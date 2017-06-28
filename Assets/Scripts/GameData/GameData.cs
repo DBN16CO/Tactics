@@ -28,7 +28,7 @@ public static class GameData {
 	private static List<MapData> maps;
 	private static Dictionary<string, object> mapData;
 
-	private static int[,] terrainWeight;			// int map of terrain weights for each terrain and unit class
+	private static int[][] terrainWeight;			// int map of terrain weights for each terrain and unit class
 
 	// Sets player data
 	public static void SetPlayerData(Dictionary<string, object> responseDict) {
@@ -220,7 +220,7 @@ public static class GameData {
 	// Called to easily get the terrain weight for a given terrain type and unit class
 	// TerrainWeight("Mage", "Mountain") returns 3
 	public static int TerrainWeight(string unitName, string terrainShortName) {
-		return terrainWeight[units.FindIndex(x => x.name == unitName), terrains.FindIndex(y => y.shortName == terrainShortName)];
+		return terrainWeight[units.FindIndex(x => x.name == unitName)][ terrains.FindIndex(y => y.shortName == terrainShortName)];
 	}
 #endregion
 
@@ -228,14 +228,14 @@ public static class GameData {
 
 	// Initialize the 2d array based on list counts, then extract weight from server response
 	private static void CreateWeightMap(){
-		terrainWeight = new int[units.Count, terrains.Count];
+		terrainWeight = JaggedArray.CreateJaggedArray<int[][]>(units.Count, terrains.Count);
 
 		foreach(UnitData unit in units) {
 			foreach(TerrainData terrain in terrains) {
 				Dictionary<string, object> unitDict = (Dictionary<string, object>)unitData[unit.name];
 				Dictionary<string, object> terrainDict = (Dictionary<string, object>)unitDict["Terrain"];
 				int unitTerrainWeight = int.Parse(terrainDict[terrain.shortName].ToString());
-				terrainWeight[units.IndexOf(unit), terrains.IndexOf(terrain)] = unitTerrainWeight;
+				terrainWeight[units.IndexOf(unit)][terrains.IndexOf(terrain)] = unitTerrainWeight;
 			}
 		}
 	}
