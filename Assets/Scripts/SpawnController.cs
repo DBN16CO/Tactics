@@ -51,8 +51,8 @@ public class SpawnController : MonoBehaviour {
 		}
 		GameMap.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
 		// Set game vars
-		GameController.GridLength = tokens.Length - 1;
-		GameController.GridHeight = tokens[0].Length - 1;
+		GameController.GridLength = tokens.Length;
+		GameController.GridHeight = tokens[0].Length;
 		GameController.Tokens = tokens;
 	}
 

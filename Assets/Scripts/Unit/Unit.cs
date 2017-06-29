@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 // Class governing unit options
 public class Unit : MonoBehaviour {
 
 	private MatchUnit _info;
-	private Stat[] _stats;
+	private Dictionary<string, Stat> _stats;
 	// Situational stats
-	private float _remainingMoveRange;
+	private int  _remainingMoveRange;
 
 	private bool _selected;
 	private bool _takenAction;
@@ -27,16 +28,16 @@ public class Unit : MonoBehaviour {
 		set{_myTeam = value;}
 	}
 	// Returns _stats
-	public Stat[] Stats {
+	public Dictionary<string, Stat> Stats {
 		get{return _stats;}
 		set{_stats = value;}
 	}
 	// Returns specific stat
 	public Stat GetStat(string statName) {
-		return _stats[(int)Enum.Parse(typeof(UnitStats), statName)];
+		return _stats[statName];
 	}
 	// Returns the remaining move range for this turn
-	public float RemainingMoveRange {
+	public int RemainingMoveRange {
 		get{return _remainingMoveRange;}
 		set{_remainingMoveRange = value;}
 	}
@@ -50,10 +51,7 @@ public class Unit : MonoBehaviour {
 	public virtual void Awake() {
 		// Initialize vars
 		_selected = false;
-		Stats = new Stat[Enum.GetValues(typeof(UnitStats)).Length];
-		for(int cnt = 0; cnt < Stats.Length; cnt++) {
-			Stats[cnt] = new Stat(Enum.GetName(typeof(UnitStats), cnt));
-		}
+		Stats = new Dictionary<string, Stat>();
 		name = name.Substring(0, name.Length-7);
 		_gc = GameObject.Find("GameController").GetComponent<GameController>();
 	}
