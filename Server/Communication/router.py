@@ -111,18 +111,30 @@ def processRequest(message):
 		})
 		return
 
+	# Store the Request ID
+	request_id = None
+	if 'Request_ID' in data:
+		request_id = data['Request_ID']
+
 	# Send keepalive message if the message contained a PING
 	if "PING" in data:
+		resp = {"PONG":"PONG"}
+		if request_id:
+			resp['Request_ID'] = request_id
 		message.reply_channel.send({
-			'text': json.dumps({"PONG":"PONG"})
+			'text': json.dumps(resp)
 			})
 		return
 
 	if not "Command" in data:
 		logging.debug("Missing Command Key: {0}".format(data))
+		resp = {"Success":False,
+				"Error":"The command information is incomplete."}
+		if request_id:
+			resp['Request_ID'] = request_id
+
 		message.reply_channel.send({
-			'text': json.dumps({"Success":False,
-				"Error":"The command information is incomplete."})
+			'text': json.dumps(resp)
 		})
 		return
 
@@ -137,9 +149,13 @@ def processRequest(message):
 	# If the user is not authenticated
 	if not user:
 		if cmd != 'LGN' and cmd != 'CU':
+			resp = {"Success": False,
+				"Error": "User is not authenticated, please login."}
+			if request_id:
+				resp['Request_ID'] = request_id
+
 			message.reply_channel.send({
-			'text': json.dumps({"Success": False,
-				"Error": "User is not authenticated, please login."})
+			'text': json.dumps(resp)
 			})
 			return
 	else:
@@ -157,6 +173,9 @@ def processRequest(message):
 		except Exception, e:
 			logging.error("Database update to remove the user's login token failed: {0}".format(e))
 			response = {"Success": False, "Error": "Internal Server Error during logout"}
+
+		if request_id:
+			response['Request_ID'] = request_id
 
 		message.reply_channel.send({
 			'text': json.dumps(response)
@@ -196,6 +215,9 @@ def processRequest(message):
 	# Ensure that the command exists in the list of valid commands
 	if not cmd in commands:
 		response = {"Success":False, "Error": "Invalid command."}
+		if request_id:
+			response['Request_ID'] = request_id
+
 		message.reply_channel.send({
 			'text': json.dumps(response)
 		})
@@ -207,6 +229,9 @@ def processRequest(message):
 		logging.error("Failed to execute command: {0}".format(cmd))
 		logging.exception(e)
 		response = {"Success": False, "Error": "Internal Server Error."}
+		if request_id:
+			response['Request_ID'] = request_id
+
 		message.reply_channel.send({
 			'text': json.dumps(response)
 		})
@@ -215,6 +240,9 @@ def processRequest(message):
 	# If the requested command was to create a new user or login to an existing user, set the channel session
 	if "Success" in response and response['Success'] and (cmd == 'LGN' or cmd == 'CU'):
 		message.channel_session['user'] = response.pop('Username')
+
+	if request_id:
+		response['Request_ID'] = request_id
 
 	logging.debug("Response: {0}".format(response))
 
