@@ -19,7 +19,7 @@ public class PlaceUnitsController : MonoBehaviour {
 		unitsRect = gameObject.GetComponent<ScrollRect>().content;
 
 		// Init submit button vars
-		_submit = gameObject.transform.FindChild("Submit").gameObject;
+		_submit = gameObject.transform.Find("Submit").gameObject;
 		_submit.GetComponent<Button>().onClick.AddListener(PlaceUnits);
 		_submit.SetActive(false);
 

@@ -10,23 +10,23 @@ public class SelectUnitController : MonoBehaviour {
 
 	// Controls the image of the selectable GameObject
 	public Sprite UnitImage {
-		get{return gameObject.transform.FindChild("Image").GetComponent<Image>().sprite;}
-		set{gameObject.transform.FindChild("Image").GetComponent<Image>().sprite = value;}
+		get{return gameObject.transform.Find("Image").GetComponent<Image>().sprite;}
+		set{gameObject.transform.Find("Image").GetComponent<Image>().sprite = value;}
 	}
 	// Controls the display name text of the selectable GameObject
 	public string DisplayName {
-		get{return gameObject.transform.FindChild("Name").GetComponent<Text>().text;}
-		set{gameObject.transform.FindChild("Name").GetComponent<Text>().text = value;}
+		get{return gameObject.transform.Find("Name").GetComponent<Text>().text;}
+		set{gameObject.transform.Find("Name").GetComponent<Text>().text = value;}
 	}
 	// Sets the price text of the selectable GameObject, returns the int
 	public int Price {
-		get{return Int32.Parse(gameObject.transform.FindChild("Cost").GetComponent<Text>().text.Substring(1));}
-		set{gameObject.transform.FindChild("Cost").GetComponent<Text>().text = "$" + value;}
+		get{return Int32.Parse(gameObject.transform.Find("Cost").GetComponent<Text>().text.Substring(1));}
+		set{gameObject.transform.Find("Cost").GetComponent<Text>().text = "$" + value;}
 	}
 	// Sets the amount text of the selectable GameObject, returns the int
 	public int Amount {
-		get{return Int32.Parse(gameObject.transform.FindChild("NumBackground").transform.FindChild("Num").GetComponent<Text>().text.Substring(1));}
-		set{gameObject.transform.FindChild("NumBackground").transform.FindChild("Num").GetComponent<Text>().text = "x" + value;}
+		get{return Int32.Parse(gameObject.transform.Find("NumBackground").transform.Find("Num").GetComponent<Text>().text.Substring(1));}
+		set{gameObject.transform.Find("NumBackground").transform.Find("Num").GetComponent<Text>().text = "x" + value;}
 	}
 
 	// Set specified game data on the selectable GameObject

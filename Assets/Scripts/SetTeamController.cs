@@ -19,7 +19,7 @@ public class SetTeamController : MonoBehaviour {
 	public int FundsRemaining {
 		get{return _fundsRemaining;}
 		set{_fundsRemaining = value;
-			GameObject.Find("Funds").transform.FindChild("Amount").GetComponent<Text>().text = "$" + _fundsRemaining + " / " + _maxFunds;}
+			GameObject.Find("Funds").transform.Find("Amount").GetComponent<Text>().text = "$" + _fundsRemaining + " / " + _maxFunds;}
 	}
 	// Returns whether selected team is valid or not
 	public bool IsValidTeam {

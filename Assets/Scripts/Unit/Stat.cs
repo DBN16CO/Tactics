@@ -3,23 +3,23 @@
 public class Stat {
 
 	private string _name;			// The name of the stat
-    private float _baseValue;       	// The base value of the stat
-    private float _buffValue;       	// The amount of the buff to the stat
+    private int _baseValue;       	// The base value of the stat
+    private int _buffValue;       	// The amount of the buff to the stat
 
 
 #region Setters and Getters
     // Returns _basevalue
-    public float BaseValue {
+    public int BaseValue {
         get {return _baseValue;}
         set {_baseValue = value;}
     }
     // Returns _buffValue
-    public float BuffValue {
+    public int BuffValue {
         get {return _buffValue;}
         set {_buffValue = value;}
     }
     // Return calculated total value of stat
-    public float Value {
+    public int Value {
         get {return _baseValue + _buffValue;}
     }
     // Returns _name
@@ -34,22 +34,8 @@ public class Stat {
     public Stat(string nam) {
     	// Set name and initialize stat values to 0
     	Name = nam;
-        _baseValue = 0f;
-        _buffValue = 0f;
+        _baseValue = 0;
+        _buffValue = 0;
     }
 
-}
-
-// List of stats for a unit
-// Used when instantiating a list of stats to display on the UI
-public enum UnitStats {
-    Health,		// Health of the unit
-	Armor,		// Physical Defense
-	MagArmor,	// Magic Defense
-	Strength,	// Physical Damage
-	Magic,		// Magic Damage
-	AttackRange,// Attack Range
-	MoveRange,	// Spaces a unit can move
-	Agility,	// Who attacks first // 2x attack?
-	Luck		// Feeling lucky punk?
 }

@@ -8,6 +8,7 @@ public class UnitData {
 	public string description;
 	public int price;
 	public string spritePath;
+	public Dictionary<string, bool> actions;
 
 	private List<StatData> stats;
 
@@ -22,10 +23,27 @@ public class UnitData {
 		foreach(KeyValuePair<string, object> stat in (Dictionary<string, object>)unitData["Stats"]) {
 			stats.Add(new StatData(stat, true));
 		}
+
+		actions = new Dictionary<string, bool>();
+		foreach(KeyValuePair<string, object> actn in (Dictionary<string, object>)unitData["Actions"]) {
+			actions[actn.Key] = (bool)actn.Value;
+		}
+		
 	}
 
 	public StatData GetStat(string nameKey) {
 		return stats.Find(x => x.name == nameKey);
+	}
+
+	public bool GetAction(string nameKey) {
+		if(nameKey == null){
+			return false;
+		}
+
+		bool canAct;
+		actions.TryGetValue(nameKey, out canAct);
+
+		return canAct;
 	}
 
 }
