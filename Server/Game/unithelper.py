@@ -7,7 +7,7 @@
 .. moduleauthor:: Drew, Brennan, and Nick
 
 """
-import logging, math
+import logging, math, Queue
 from random import randint
 
 from Game.models import Action_History, Game, Game_User, Unit
@@ -468,13 +468,15 @@ def validateMove(unit, game, user, newX, newY):
 	# - Not occupied by ally
 	# - Current X,Y equals target X,Y
 	# Uses:
-	# valid_move_queue - List of tokens to check in queue, has the X, Y, and the remaining movement range
+	# valid_move_queue - Priority Queue of tokens to check in queue, has the X, Y, and the remaining movement range
+	#					 Elements are inserted with negative movement remaining to provide reversed priority
 	# checked_tokens_dict - Dictionary of checked tokens, to ensure the same token is not checked twice
-	valid_move_queue = [{"X":unit.x, "Y":unit.y, "Remaining":move_range}]
+	valid_move_queue = Queue.PriorityQueue()
+	valid_move_queue.put((-move_range, {"X":unit.x, "Y":unit.y, "Remaining":move_range}))
 	checked_tokens_dict = {unit.x:{unit.y:True}}
-	while len(valid_move_queue) > 0:
+	while not valid_move_queue.empty():
 		# Get next list element and prepare for processing
-		token = valid_move_queue.pop(0)
+		token = valid_move_queue.get()[1]
 		x = token["X"]
 		y = token["Y"]
 		logging.debug("Checking location ({0},{1}).".format(x, y))
@@ -526,7 +528,7 @@ def validateMove(unit, game, user, newX, newY):
 
 				# If the unit can move to this location
 				if rem_mvmt >= 0:
-					valid_move_queue.append({"X":deltX,"Y":deltY,"Remaining":rem_mvmt})
+					valid_move_queue.put((-rem_mvmt,{"X":deltX,"Y":deltY,"Remaining":rem_mvmt}))
 
 	# If exited the while loop, target token was not found
 	error = "Target location ({0},{1}) was out of reach for {2} at location ({3},{4}).".format(newX, newY, class_name, unit.x, unit.y)
