@@ -469,6 +469,7 @@ def validateMove(unit, game, user, newX, newY):
 	# - Current X,Y equals target X,Y
 	# Uses:
 	# valid_move_queue - Priority Queue of tokens to check in queue, has the X, Y, and the remaining movement range
+	#					 Elements are inserted with negative movement remaining to provide reversed priority
 	# checked_tokens_dict - Dictionary of checked tokens, to ensure the same token is not checked twice
 	valid_move_queue = Queue.PriorityQueue()
 	valid_move_queue.put((-move_range, {"X":unit.x, "Y":unit.y, "Remaining":move_range}))

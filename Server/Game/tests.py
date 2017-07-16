@@ -792,7 +792,6 @@ class TestTakeAction(TestGame):
 		self.heal_class = Class.objects.filter(name="Cleric", version=self.version).first()
 		self.attacker  = Unit.objects.filter(game=self.game, owner=self.user).exclude(
 			unit_class=self.heal_class).exclude(unit_class__in=self.melee_units).first()
-		self.assertEqual(self.attacker.unit_class.name,"Archer")
 		self.healer  = Unit.objects.filter(game=self.game, owner=self.user,
 			unit_class=self.heal_class).first()
 		self.enemy_tgt = Unit.objects.filter(game=self.game, owner=self.user2, unit_class__in=self.melee_units).exclude(
@@ -1719,7 +1718,38 @@ class TestTakeAction(TestGame):
 				self.attacker.unit_class.name,
 				self.attacker.x, self.attacker.y))
 
-	def test_ta_23_move_priority_queue_checker(self):
+	def test_ta_23_move_to_enter_not_leave_reverse(self):
+		# Set the map to the forest
+		map_obj = Map.objects.filter(version=self.version, name="Forest Pattern").first()
+		self.game.map_path = map_obj
+		self.game.save()
+
+		# Ensure the unit is an archer
+		archer_class = Class.objects.filter(name="Archer", version=self.version).first()
+		self.attacker.unit_class = archer_class
+
+		# Move the unit such that moving fully north will stop short of a forest
+		self.attacker.x = 15
+		self.attacker.y = 7
+		self.attacker.save()
+
+		# Move full distance north
+		self.no_tgt_cmd["X"] = self.attacker.x
+		self.no_tgt_cmd["Y"] = self.attacker.y + self.attacker_mv_rng
+
+		self.helper_execute_move_success(self.no_tgt_cmd)
+
+	def test_ta_24_move_priority_queue_checker(self):
+		# Test being performed:
+		# With map: G(x)	F
+		#			G 		F
+		#			G 		F(s)
+		# Where s is the start location and x is the target location.
+		# Since north is (normally) checked first this test verifyies that
+		# the priority queue is working.  A unit with 3 movement couldn't pass
+		# through the forest going Up, Up, Left, or even Up, Left, Up
+		# But going Left, Up, Up should be successful.
+
 		# Set the map to the forest
 		map_obj = Map.objects.filter(version=self.version, name="Forest Pattern").first()
 		self.game.map_path = map_obj
