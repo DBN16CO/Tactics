@@ -8,9 +8,9 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Text;
 
-public class CommunicationManager : MonoBehaviour
+public class CommunicationManager
 {
-	private Thread _manager;
+	private static Thread _manager;
     private static bool _threadRunning;
 
     private static object asyncMessagesLock;
@@ -25,11 +25,9 @@ public class CommunicationManager : MonoBehaviour
 	//private static string url = "ws://localhost:8000";
 	//private static string url = ""ws://tactics-production.herokuapp.com/""
 
-    /********************************************
-     * Thread logic and Unity specific functions
-     ********************************************/
-	void Start()
+	public static void Start()
 	{
+		Debug.Log("Starting Communication Manager");
         //Create the communication data structures
 		asyncMessagesQueue = new Queue<Dictionary<string, object>>();
 		requestQueue = new Queue<Dictionary<string, object>>();
@@ -46,46 +44,97 @@ public class CommunicationManager : MonoBehaviour
         //Start the communicator thread
         _manager = new Thread(ProcessRequests);
         _manager.Start();
+        Debug.Log("Communication Manager has started successfully");
 	}
 
     static void ProcessRequests(){
         _threadRunning = true;
 
-        while (_threadRunning){
-            Dictionary<string, object> request = null;
-            Dictionary<string, object> response = null;
+        try{
+        	while (_threadRunning){
+        		//Thread.Sleep(3000);
+	            Dictionary<string, object> request = null;
+	            Dictionary<string, object> response = null;
 
-            //Take a request off the queue
-            lock(requestQueueLock){
-                request = requestQueue.Dequeue();
-            }
+	            //Take a request off the queue
+	            //Debug.Log("Manager Thread Requesting requestQueue lock");
+	            lock(requestQueueLock){
+	            	//Debug.Log("Manager Thread Obtained requestQueue lock");
+	            	if (requestQueue.Count > 0){
+	            		request = requestQueue.Dequeue();
+	            	}
+	            }
 
-            if (request == null){
-                continue;
-            }
+	            string requestID = "";
+	            if (request != null){
+	            	//Send the request to the server
+	            	requestID = (string)request["Request_ID"];
+	            	Debug.Log("Manager Thread Sending Request: " + requestID);
+	            	SendCommand(request);
+	            }
+	            
+	            bool done = false;
+	            while (!done){
+	            	Dictionary<string, object> resp = null;
+	            	try{
+	            		resp = GetNextResponse();
+	            	} catch (Exception e){
+	            		if (e.ToString().Contains("unauthenticated")){
+	            			if (request != null){
+	            				SendCommand(request);
+	            			}
+	            		}
+	            		Debug.Log("Exception getting response: " + e.ToString());
+	            		throw e;
+	            	}
+	            	
+	            	if (resp == null){
+	            		break;
+	            	}
 
-            //Send the request to the server
-            string requestID = (string)request["Request_ID"];
-            response = SendCommand(request);
+	            	if (resp.ContainsKey("Request_ID") && (string) resp["Request_ID"] == requestID){
+	            		response = resp;
+	            	}
+	            	else{
+	            		lock(asyncMessagesLock){
+	            			Debug.Log("Found an async message");
+	            			//LogDictionary(resp);
+	            			asyncMessagesQueue.Enqueue(resp);
+	            		}
+	            	}
+	            }
+	            
+	            //Debug.Log("Manager Thread Obtained Response: " + response.ToString());
 
 
-            if (response != null){
-                //Add the response to the common dictionary
-                lock(responseDictLock){
-                    responseDict[requestID] = response;
-                }
-            }
-            else{
-                //Unable to process request, re-add it to process it later
-                lock(requestQueueLock){
-                    requestQueue.Enqueue(request);
-                }
-            }
+	            if (response != null){
+	                //Add the response to the common dictionary
+	                //Debug.Log("Manager Thread Requesting responseDict lock to save response");
+	                lock(responseDictLock){
+	                	//Debug.Log("Manager Thread Obtained responseDict lock");
+	                    responseDict[requestID] = response;
+	                }
+	            }
+	            else if (request == null){
 
+	            }
+	            else{
+	                //Unable to process request, re-add it to process it later
+	                //Debug.Log("Manager Thread Requesting requestQueue lock to re-queue failed request");
+	                lock(requestQueueLock){
+	                	//Debug.Log("Manager Thread Obtained requestQueue lock to re-queue failed request");
+	                    requestQueue.Enqueue(request);
+	                }
+	            }
+	        }
+        } catch (Exception e){
+        	Debug.Log("Manager Thread crashed: " + e.ToString());
         }
+
+        
     }
 
-	void OnDisable()
+	public static void OnDisable()
 	{
         // If the thread is still running, we should shut it down,
         if (_threadRunning)
@@ -119,7 +168,13 @@ public class CommunicationManager : MonoBehaviour
 		return g.ToString();
 	}
 
-	public static Dictionary<string, object> GetResponse(string request_id, bool blocking = true, int timeout = 5, int sleep_time = 200)
+	public static Dictionary<string, object> RequestAndGetResponse(Dictionary<string, object> data){
+		string requestID = Request(data);
+
+		return GetResponse(requestID);
+	}
+
+	public static Dictionary<string, object> GetResponse(string request_id, bool blocking = true, int timeout = 2, int sleep_time = 100)
 	{
 		int elapsed_time = 0;
 		Dictionary<string, object> response = null;
@@ -128,9 +183,9 @@ public class CommunicationManager : MonoBehaviour
 		{
 			lock (responseDictLock)
 			{
-				response = responseDict[request_id];
-				if (response != null)
+				if (responseDict.ContainsKey(request_id))
 				{
+					response = responseDict[request_id];
 					responseDict.Remove(request_id);
 				}
 			}
@@ -142,21 +197,25 @@ public class CommunicationManager : MonoBehaviour
 		{
 			lock (responseDictLock)
 			{
-				response = responseDict[request_id];
-				if (response != null)
+				//Debug.Log("Checking if a response exists for request: " + request_id.ToString());
+				if (responseDict.ContainsKey(request_id))
 				{
+					response = responseDict[request_id];
+					Debug.Log("Response: ");
+					//LogDictionary(response);
 					responseDict.Remove(request_id);
 				}
 			}
 
 			if (response != null)
 			{
+				Debug.Log("Returning non-null response: " + response.ToString());
 				return response;
 			}
 			else
 			{
 				Thread.Sleep(sleep_time);
-				elapsed_time += sleep_time;
+				elapsed_time += sleep_time / 1000;
 			}
 		}
 
@@ -179,6 +238,10 @@ public class CommunicationManager : MonoBehaviour
 
 	private static bool IsUnauthenticated(Dictionary<string, object> response)
 	{
+		if (!response.ContainsKey("Success")){
+			return false;
+		}
+
 		bool success = (bool)response["Success"];
 		if (!success)
 		{
@@ -194,7 +257,7 @@ public class CommunicationManager : MonoBehaviour
 	}
 
 	// Used to login to server with cached session token
-	private static bool RetryLogin()
+	public static bool RetryLogin()
 	{
 		// Create the request, decrypt session token, and send it
 		var request = new Dictionary<string, object>();
@@ -210,6 +273,7 @@ public class CommunicationManager : MonoBehaviour
 			strResponse = Communication.RecvString();
 		}
 		var response = Json.ToDict(strResponse);
+		Debug.Log("Response to Retry Login: " + response.ToString());
 		// Error Handling
 		bool success = (bool)response["Success"];
 		if (success)
@@ -225,10 +289,8 @@ public class CommunicationManager : MonoBehaviour
 		return success;
 	}
 
-	private static Dictionary<string, object> SendCommand(Dictionary<string, object> request)
+	private static bool SendCommand(Dictionary<string, object> request)
 	{
-		string[] noLoginReqCommands = { "LGN", "CU" };
-
 		// Verify the websocket is still connected and try to reconnect if it isn't
 		if (!Communication.IsConnected())
 		{
@@ -239,12 +301,16 @@ public class CommunicationManager : MonoBehaviour
 		// Failed to reconnect with the server
 		if (!Communication.IsConnected())
 		{
-			return null;
+			return false;
 		}
 
 		// Send the request
 		Communication.SendString(Json.ToString(request));
 
+		return true;
+	}
+
+	private static Dictionary<string, object> GetCommandResponse(){
 		// Wait for the response
 		string strResponse = null;
 		Dictionary<string, object> response = null;
@@ -257,13 +323,13 @@ public class CommunicationManager : MonoBehaviour
 			if (strResponse != null)
 			{
 				response = Json.ToDict(strResponse);
-				if (!noLoginReqCommands.All(request["Command"].ToString().Contains) && IsUnauthenticated(response))
+				if (IsUnauthenticated(response))
 				{
 					// Server says we are not logged in, re-authenticate
 					RetryLogin();
 					strResponse = null;
 					response = null;
-					Communication.SendString(Json.ToString(request));
+					throw new Exception("Response indicates user was unauthenticated please try again");
 				}
 
 
@@ -281,17 +347,23 @@ public class CommunicationManager : MonoBehaviour
 			return null;
 		}
 
-		bool success = (bool)response["Success"];
-		if (!success)
-		{
-			Debug.Log("Request (" + request["Command"] + ") Failed");
-		}
-
 		return response;
 	}
 
+	private static void LogDictionary(Dictionary<string, object> dict){
+		Debug.Log("{");
+		foreach (KeyValuePair<string, object> kvp in dict)
+		{
+			Debug.Log(string.Format("Key = {0}, Value = {1}", kvp.Key.ToString(), kvp.Value.ToString()));
+			if (kvp.Value.GetType() == typeof(Dictionary<string, object>)){
+				LogDictionary((Dictionary<string, object>)kvp.Value);
+			}
+		}
+		Debug.Log("}");
+	}
+
     // Generates the key to use for AES encryption
-    private static string GenerateAESKey()
+    public static string GenerateAESKey()
     {
         MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
         byte[] tmpSource;

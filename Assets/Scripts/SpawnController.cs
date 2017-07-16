@@ -13,6 +13,10 @@ public class SpawnController : MonoBehaviour {
 	}
 #endregion
 
+	// Runs when the app is closed - attempt to close the websocket cleanly
+	void OnApplicationQuit() {
+		CommunicationManager.OnDisable();
+	}
 
 	// Call this to instantiate a new game grid
 	public void CreateMap(string mapKey) {

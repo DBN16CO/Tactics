@@ -116,7 +116,7 @@ public class GameController : MonoBehaviour {
 
 	// Runs when the app is closed - attempt to close the websocket cleanly
 	void OnApplicationQuit() {
-		
+		CommunicationManager.OnDisable();
 	}
 
 	// Run when turn starts to reset units, etc

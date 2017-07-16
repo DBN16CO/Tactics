@@ -11,7 +11,7 @@ public class MainMenuController : MonoBehaviour {
 
 	// Runs when the app is closed - attempt to close the websocket cleanly
 	void OnApplicationQuit() {
-		
+		CommunicationManager.OnDisable();
 	}
 
 	public void LoadSetTeam() {

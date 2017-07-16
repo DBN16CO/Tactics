@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Text;
 using System.Collections.Generic;
+using Common.Cryptography;
+using System.Security.Cryptography;
 
 // This class contains all of the Server call functions
 public static class Server {
@@ -19,7 +21,7 @@ public static class Server {
 	public static bool GetUserInfo() {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "GUI";
-		Dictionary<string, object> response = CommunicationManager.Request(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
 		if (response == null){
 			return false;
@@ -38,7 +40,7 @@ public static class Server {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "LGO";
 
-		Dictionary<string, object> response = CommunicationManager.Request(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
 		if (response == null){
 			return false;
@@ -62,7 +64,7 @@ public static class Server {
 		request["pw"]		= pw;
 		request["email"]	= email;
 
-		Dictionary<string, object> response = CommunicationManager.Request(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
 		if (response == null){
 			return false;
@@ -78,7 +80,7 @@ public static class Server {
 	public static Dictionary<string, object> QueryGames() {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "QGU";
-		Dictionary<string, object> response = CommunicationManager.Request(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 		bool success = (bool)response["Success"];
 		if(success) {
 			GameData.SetMatchData(response);
@@ -95,7 +97,7 @@ public static class Server {
 		request["Units"] = units;
 		request["Perks"] = perks;
 
-		Dictionary<string, object> response = CommunicationManager.Request(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 		if (response == null){
 			return false;
 		}
@@ -107,7 +109,7 @@ public static class Server {
 	public static bool FindMatch() {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "FM";
-		Dictionary<string, object> response = CommunicationManager.Request(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
 		bool success = (bool)response["Success"];
 
@@ -132,7 +134,7 @@ public static class Server {
 		}
 		request["Units"] = unitsDict;
 
-		Dictionary<string, object> response = CommunicationManager.Request(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 		if (response == null){
 			return false;
 		}
@@ -145,7 +147,7 @@ public static class Server {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "CS";
 
-		Dictionary<string, object> response = CommunicationManager.Request(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 		if (response == null){
 			return false;
 		}
@@ -166,7 +168,7 @@ public static class Server {
 			request["Target"] = targetID;
 		}
 
-		Dictionary<string, object> response = CommunicationManager.Request(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 		if(response == null) {
 			return false;
 		}
@@ -180,7 +182,7 @@ public static class Server {
 		request["Command"] = "ET";
 		request["Game"] = GameData.CurrentMatch.Name;
 
-		Dictionary<string, object> response = CommunicationManager.Request(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 		if(response == null) {
 			return false;
 		}
@@ -188,26 +190,47 @@ public static class Server {
 		return success;
 	}
 
-	// Generates the key to use for AES encryption
-	public static string GenerateAESKey() {
-	    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-	    byte[] tmpSource;
-	    byte[] tmpHash;
+	public static bool InitialLoad() {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "IL";
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-	    // Get unique identifier for device
-	    string source = SystemInfo.deviceUniqueIdentifier;
-		Regex regX = new Regex(@"([<>""'%;()&])");
-    	source = regX.Replace(source, "");
+		if (response == null){
+			return false;
+		}
 
-    	// Convert to byte[] and compute MD5 hash
-	    tmpSource = ASCIIEncoding.ASCII.GetBytes(source);
-	    tmpHash = md5.ComputeHash(tmpSource);
+		bool success = (bool)response["Success"];
+		if(success) {
+			GameData.SetGameData(response);
+		}
 
-	    // Convert to hexadecimal to ensure valid characters
-	    StringBuilder sOutput = new StringBuilder(tmpHash.Length);
-	    for (int i = 0; i < tmpHash.Length; i++) {
-	        sOutput.Append(tmpHash[i].ToString("X2"));  // X2 formats to hexadecimal
-	    }
-	    return sOutput.ToString();
+		return success;
+	}
+
+	// Used to login to server with username and password
+	public static bool Login(string username, string pw) {
+		Debug.Log("Sending Login Request");
+		var request = new Dictionary<string, object>();
+		request["Command"] 	= "LGN";
+		request["username"]	= username;
+		request["pw"]		= pw;
+
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
+		Debug.Log("Obtained response: " + response.ToString());
+
+		if (response == null){
+			return false;
+		}
+
+		bool success = (bool)response["Success"];
+		if(success) {
+			string _loginToken = response["Token"].ToString();
+			string _encryptedToken = AES.Encrypt(_loginToken, CommunicationManager.GenerateAESKey());
+			PlayerPrefs.SetString("session", _encryptedToken);
+			PlayerPrefs.Save();
+			Debug.Log("user '" + username + "' logged in with token: " + _loginToken);
+		}
+
+		return success;
 	}
 }

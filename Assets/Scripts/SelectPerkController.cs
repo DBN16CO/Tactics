@@ -7,6 +7,11 @@ public class SelectPerkController : MonoBehaviour {
 	public PerkData data;
 	private SetTeamController stc;
 
+	// Runs when the app is closed - attempt to close the websocket cleanly
+	void OnApplicationQuit() {
+		CommunicationManager.OnDisable();
+	}
+
 	// Controls the image of the selectable GameObject
 	public Sprite PerkIcon {
 		get{return gameObject.transform.Find("Icon").GetComponent<Image>().sprite;}
