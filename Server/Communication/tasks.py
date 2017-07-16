@@ -1,6 +1,7 @@
 import celery
 import logging
 import datetime
+import json
 from Server import config
 from channels import Channel
 from Communication.models import AsyncMessages
@@ -50,7 +51,7 @@ def process_message_queue():
 					# Send message to user
 					logging.debug("Sending {} message: {}".format(message.user.username, msg))
 					channel = Channel(channel_name)
-					channel.send({u'text': msg, u'bytes': msg, u'reply_channel': channel.name})
+					channel.send({u'text': json.dumps(msg), u'bytes': json.dumps(msg)})
 
 					message.sent = True
 					message.save()
