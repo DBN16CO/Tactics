@@ -11,11 +11,11 @@ using System.Text;
 public class CommunicationManager
 {
 	private static Thread _manager;
-    private static bool _threadRunning;
+	private static bool _threadRunning;
 
-    private static object asyncMessagesLock;
-    private static object requestQueueLock;
-    private static object responseDictLock;
+	private static object asyncMessagesLock;
+	private static object requestQueueLock;
+	private static object responseDictLock;
 
 	private static Queue<Dictionary<string, object>> asyncMessagesQueue;
 	private static Queue<Dictionary<string, object>> requestQueue;
@@ -28,132 +28,127 @@ public class CommunicationManager
 	public static void Start()
 	{
 		Debug.Log("Starting Communication Manager");
-        //Create the communication data structures
+		//Create the communication data structures
 		asyncMessagesQueue = new Queue<Dictionary<string, object>>();
 		requestQueue = new Queue<Dictionary<string, object>>();
 		responseDict = new Dictionary<string, Dictionary<string, object>>();
 
-        //Create the communication lock objects
-        asyncMessagesLock = new object();
-        requestQueueLock = new object();
-        responseDictLock = new object();
+		//Create the communication lock objects
+		asyncMessagesLock = new object();
+		requestQueueLock = new object();
+		responseDictLock = new object();
 
-        //Create the server connection
-        Connect();
+		//Create the server connection
+		Connect();
 
-        //Start the communicator thread
-        _manager = new Thread(ProcessRequests);
-        _manager.Start();
-        Debug.Log("Communication Manager has started successfully");
+		//Start the communicator thread
+		_manager = new Thread(ProcessRequests);
+		_manager.Start();
+		Debug.Log("Communication Manager has started successfully");
 	}
 
-    static void ProcessRequests(){
-        _threadRunning = true;
+	static void ProcessRequests(){
+		_threadRunning = true;
 
-        try{
-        	while (_threadRunning){
-        		//Thread.Sleep(3000);
-	            Dictionary<string, object> request = null;
-	            Dictionary<string, object> response = null;
+		try{
+			while (_threadRunning){
+				Dictionary<string, object> request = null;
+				Dictionary<string, object> response = null;
 
-	            //Take a request off the queue
-	            //Debug.Log("Manager Thread Requesting requestQueue lock");
-	            lock(requestQueueLock){
-	            	//Debug.Log("Manager Thread Obtained requestQueue lock");
-	            	if (requestQueue.Count > 0){
-	            		request = requestQueue.Dequeue();
-	            	}
-	            }
+				//Take a request off the queue
+				lock(requestQueueLock){
+					if (requestQueue.Count > 0){
+						request = requestQueue.Dequeue();
+					}
+				}
 
-	            string requestID = "";
-	            if (request != null){
-	            	//Send the request to the server
-	            	requestID = (string)request["Request_ID"];
-	            	Debug.Log("Manager Thread Sending Request: " + requestID);
-	            	SendCommand(request);
-	            }
-	            
-	            bool done = false;
-	            while (!done){
-	            	Dictionary<string, object> resp = null;
-	            	try{
-	            		resp = GetNextResponse();
-	            	} catch (Exception e){
-	            		if (e.ToString().Contains("unauthenticated")){
-	            			if (request != null){
-	            				SendCommand(request);
-	            			}
-	            		}
-	            		Debug.Log("Exception getting response: " + e.ToString());
-	            		throw e;
-	            	}
-	            	
-	            	if (resp == null){
-	            		break;
-	            	}
+				string requestID = "";
+				if (request != null){
+					//Send the request to the server
+					requestID = (string)request["Request_ID"];
+					Debug.Log("Manager Thread Sending Request: " + requestID);
+					SendCommand(request);
+				}
+				
+				bool done = false;
+				while (!done){
+					Dictionary<string, object> resp = null;
+					try{
+						resp = GetNextResponse();
+					} catch (Exception e){
+						if (e.ToString().Contains("unauthenticated")){
+							if (request != null){
+								SendCommand(request);
+							}
+						}
+						Debug.Log("Exception getting response: " + e.ToString());
+						throw e;
+					}
+					
+					if (resp == null){
+						break;
+					}
 
-	            	if (resp.ContainsKey("Request_ID") && (string) resp["Request_ID"] == requestID){
-	            		response = resp;
-	            	}
-	            	else{
-	            		lock(asyncMessagesLock){
-	            			Debug.Log("Found an async message");
-	            			//LogDictionary(resp);
-	            			asyncMessagesQueue.Enqueue(resp);
-	            		}
-	            	}
-	            }
-	            
-	            //Debug.Log("Manager Thread Obtained Response: " + response.ToString());
+					if (resp.ContainsKey("Request_ID") && (string) resp["Request_ID"] == requestID){
+						response = resp;
+					}
+					else{
+						lock(asyncMessagesLock){
+							Debug.Log("Found an async message");
+							LogDictionary(resp);
+							asyncMessagesQueue.Enqueue(resp);
+						}
+					}
+				}
+				
+				if (response != null){
+					//Add the response to the common dictionary
+					lock(responseDictLock){
+						responseDict[requestID] = response;
+					}
+				}
+				else if (request == null){
+					//No Request or response found, just continue looping
+				}
+				else{
+					//Unable to process request, re-add it to process it later
+					lock(requestQueueLock){
+						requestQueue.Enqueue(request);
+					}
+				}
+			}
+		} catch (Exception e){
+			Debug.Log("Manager Thread crashed: " + e.ToString());
+		}
 
-
-	            if (response != null){
-	                //Add the response to the common dictionary
-	                //Debug.Log("Manager Thread Requesting responseDict lock to save response");
-	                lock(responseDictLock){
-	                	//Debug.Log("Manager Thread Obtained responseDict lock");
-	                    responseDict[requestID] = response;
-	                }
-	            }
-	            else if (request == null){
-
-	            }
-	            else{
-	                //Unable to process request, re-add it to process it later
-	                //Debug.Log("Manager Thread Requesting requestQueue lock to re-queue failed request");
-	                lock(requestQueueLock){
-	                	//Debug.Log("Manager Thread Obtained requestQueue lock to re-queue failed request");
-	                    requestQueue.Enqueue(request);
-	                }
-	            }
-	        }
-        } catch (Exception e){
-        	Debug.Log("Manager Thread crashed: " + e.ToString());
-        }
-
-        
-    }
+		
+	}
 
 	public static void OnDisable()
 	{
-        // If the thread is still running, we should shut it down,
-        if (_threadRunning)
-        {
-            // This forces the while loop of the thread to exit
-            _threadRunning = false;
+		// If the thread is still running, we should shut it down,
+		if (_threadRunning)
+		{
+			// This forces the while loop of the thread to exit
+			_threadRunning = false;
 
-            // This waits until the thread exits
-            _manager.Join();
-        }
+			// This waits until the thread exits
+			_manager.Join();
+		}
 
-        Disconnect();
+		Disconnect();
 	}
 
 	/********************************************
-     * Public Interface functions
-     ********************************************/
+	 * Public Interface functions
+	 ********************************************/
 	public static string Request(Dictionary<string, object> data)
 	{
+		//Communication Manager Thread crashed, restart it
+		if (!_threadRunning){
+			CommunicationManager.Start();
+		}
+
 		//Generate a request id
 		Guid g = Guid.NewGuid();
 		data["Request_ID"] = g.ToString();
@@ -201,15 +196,12 @@ public class CommunicationManager
 				if (responseDict.ContainsKey(request_id))
 				{
 					response = responseDict[request_id];
-					Debug.Log("Response: ");
-					//LogDictionary(response);
 					responseDict.Remove(request_id);
 				}
 			}
 
 			if (response != null)
 			{
-				Debug.Log("Returning non-null response: " + response.ToString());
 				return response;
 			}
 			else
@@ -222,10 +214,21 @@ public class CommunicationManager
 		return response;
 	}
 
+	public static Dictionary<string, object> GetNextAsyncMessage(){
+		Dictionary<string, object> message = null;
+		lock(asyncMessagesLock){
+			if (asyncMessagesQueue.Count > 0){
+				message = asyncMessagesQueue.Dequeue();
+			}
+		}
+
+		return message;
+	}
+
 
 	/********************************************
-     * Private communication helper logic
-     ********************************************/
+	 * Private communication helper logic
+	 ********************************************/
 	private static void Connect()
 	{
 		Communication.Connect(new Uri(url));
@@ -310,7 +313,7 @@ public class CommunicationManager
 		return true;
 	}
 
-	private static Dictionary<string, object> GetCommandResponse(){
+	private static Dictionary<string, object> GetNextResponse(){
 		// Wait for the response
 		string strResponse = null;
 		Dictionary<string, object> response = null;
@@ -362,28 +365,28 @@ public class CommunicationManager
 		Debug.Log("}");
 	}
 
-    // Generates the key to use for AES encryption
-    public static string GenerateAESKey()
-    {
-        MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-        byte[] tmpSource;
-        byte[] tmpHash;
+	// Generates the key to use for AES encryption
+	public static string GenerateAESKey()
+	{
+		MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+		byte[] tmpSource;
+		byte[] tmpHash;
 
-        // Get unique identifier for device
-        string source = SystemInfo.deviceUniqueIdentifier;
-        Regex regX = new Regex(@"([<>""'%;()&])");
-        source = regX.Replace(source, "");
+		// Get unique identifier for device
+		string source = SystemInfo.deviceUniqueIdentifier;
+		Regex regX = new Regex(@"([<>""'%;()&])");
+		source = regX.Replace(source, "");
 
-        // Convert to byte[] and compute MD5 hash
-        tmpSource = ASCIIEncoding.ASCII.GetBytes(source);
-        tmpHash = md5.ComputeHash(tmpSource);
+		// Convert to byte[] and compute MD5 hash
+		tmpSource = ASCIIEncoding.ASCII.GetBytes(source);
+		tmpHash = md5.ComputeHash(tmpSource);
 
-        // Convert to hexadecimal to ensure valid characters
-        StringBuilder sOutput = new StringBuilder(tmpHash.Length);
-        for (int i = 0; i < tmpHash.Length; i++)
-        {
-            sOutput.Append(tmpHash[i].ToString("X2"));  // X2 formats to hexadecimal
-        }
-        return sOutput.ToString();
-    }
+		// Convert to hexadecimal to ensure valid characters
+		StringBuilder sOutput = new StringBuilder(tmpHash.Length);
+		for (int i = 0; i < tmpHash.Length; i++)
+		{
+			sOutput.Append(tmpHash[i].ToString("X2"));  // X2 formats to hexadecimal
+		}
+		return sOutput.ToString();
+	}
 }
