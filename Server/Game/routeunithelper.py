@@ -7,11 +7,13 @@ which will detail the success or failure of the command
 as well as any other necessary information regarding the command.
 
 """
+import logging
 import Game.unithelper
 import Static.statichelper
 from Communication.routehelper import formJsonResult
 from Game.models import Unit, Game_Queue
 from Static.models import Version
+from Communication.models import AsyncMessages
 
 def setTeam(data):
 	"""
@@ -21,27 +23,27 @@ def setTeam(data):
 
 	:type  data: Dictionary
 	:param data: The necessary input information to process the command, should
-	             be of the following format:\n
-	             {\n
-	             	"Leader":"Sniper",\n
-	             	"Ability":"Increased Range"\n
-	             	"Units":["Archer","Archer","Mage","Flier","Swordsman","Swordsman","Swordsman","Swordsman"],\n
-	             	"Perks":["Extra Money","Strong Arrows","Mountain Fighter"]\n
-	             }\n
-	             Notes:\n
-	             	- All of the values provided for each key are the X{Name} chosen for that key.\n
-	             	- If no perks are chosen an empty list should still still be sent for that key
+				 be of the following format:\n
+				 {\n
+					"Leader":"Sniper",\n
+					"Ability":"Increased Range"\n
+					"Units":["Archer","Archer","Mage","Flier","Swordsman","Swordsman","Swordsman","Swordsman"],\n
+					"Perks":["Extra Money","Strong Arrows","Mountain Fighter"]\n
+				 }\n
+				 Notes:\n
+					- All of the values provided for each key are the X{Name} chosen for that key.\n
+					- If no perks are chosen an empty list should still still be sent for that key
 
 	:rtype: 	 Dictionary
 	:return: 	 A JSON object noting the success of the method call:\n
 				 If Successful:\n
 				 {"Success":True}\n
 				 If Unsuccessful:\n
-				 	{"Successful":False,\n
-				 	 "Error":"You did not provide the necessary information."}\n
+					{"Successful":False,\n
+					 "Error":"You did not provide the necessary information."}\n
 				 Notes:\n
-				 	- The error message provided should be of an acceptable form such that
-				 	  errors can be directly displayed for the user.
+					- The error message provided should be of an acceptable form such that
+					  errors can be directly displayed for the user.
 	"""
 	username = data["session_username"]
 
@@ -132,49 +134,49 @@ def takeAction(data):
 				 {\n
 					"Action":"Attack",\n
 					"Game":"vs. opponent #1",\n
-				 	"Unit":1,\n
-				 	"X":3,\n
-				 	"Y":4,\n
-				 	"Target":9\n
+					"Unit":1,\n
+					"X":3,\n
+					"Y":4,\n
+					"Target":9\n
 				 }\n
 				 Notes:\n
-				 	- Action is the NAME of a valid action\n
-				 	- The value for Unit and Target are the unit's ID\n
-				 	- The X and Y values are the new location for the unit\n
-				 	- Depending on the action, the Target may be optional\n
-				 	- Both X AND Y are required
+					- Action is the NAME of a valid action\n
+					- The value for Unit and Target are the unit's ID\n
+					- The X and Y values are the new location for the unit\n
+					- Depending on the action, the Target may be optional\n
+					- Both X AND Y are required
 
 	:rtype: 	 Dictionary
 	:return: 	 A JSON object noting the success of the method call:\n
 				 If Successful:\n
 				 {\n
-				 	"Success":True\n
-				 	"Unit"{\n
+					"Success":True\n
+					"Unit"{\n
 						"ID":1,\n
 						"HP":10,\n
 						"NewHP":10,\n
 						"Miss":True,\n
 						"Crit":False\n
-				 	},\n
-				 	"Target":{\n
+					},\n
+					"Target":{\n
 						"ID":9,\n
 						"HP":10,\n
 						"NewHP":0,\n
 						"Counter":True,\n
 						"Miss":True,\n
 						"Crit":False,\n
-				 	}\n
+					}\n
 				 }\n
 				 Notes:\n
-				 	- The "Target" object could be omitted if the action did not involve a target.\n
-				 	- The HP for the unit could be omitted if the action is "Wait" or "Heal"\n
-				 	- The HP is the previous HP
+					- The "Target" object could be omitted if the action did not involve a target.\n
+					- The HP for the unit could be omitted if the action is "Wait" or "Heal"\n
+					- The HP is the previous HP
 				 If Unsuccessful:\n
-				 	{"Successful":False,\n
-				 	 "Error":"You did not provide the necessary information."}\n
+					{"Successful":False,\n
+					 "Error":"You did not provide the necessary information."}\n
 				 Notes:\n
-				 	- The error message provided should be of an acceptable form such that
-				 	  errors can be directly displayed for the user.
+					- The error message provided should be of an acceptable form such that
+					  errors can be directly displayed for the user.
 	"""
 	game_data = Game.unithelper.validateGameStarted(data)
 	if "Error" in game_data:
@@ -261,5 +263,16 @@ def takeAction(data):
 	if "Target" in action_result:
 		target_unit = action_result["Target"]
 		response["Target"] = target_unit
+
+
+	try:
+		notify_message_key = "ACTION_TAKEN"
+		data = {"request": data, "response": response}
+		opp_user = Game_User.objects.filter(name=game).exclude(user=user).first()
+		async_message = AsyncMessages(user=opp_user.user, message_key=notify_message_key, data=data)
+		async_message.save()
+	except Exception as e:
+		logging.error("Failed to save async message to notify opponent user of action taken")
+		logging.exception(e)
 
 	return response
