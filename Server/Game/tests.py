@@ -787,10 +787,11 @@ class TestTakeAction(TestGame):
 		self.game.save()
 
 		# Commonly used units
+		# Note: By default 'attacker' will be ranged
 		self.melee_units = Unit_Stat.objects.filter(stat__name="Attack Range", value=1).values('unit')
 		self.heal_class = Class.objects.filter(name="Cleric", version=self.version).first()
 		self.attacker  = Unit.objects.filter(game=self.game, owner=self.user).exclude(
-			unit_class=self.heal_class).exclude(id__in=self.melee_units).first()
+			unit_class=self.heal_class).exclude(unit_class__in=self.melee_units).first()
 		self.healer  = Unit.objects.filter(game=self.game, owner=self.user,
 			unit_class=self.heal_class).first()
 		self.enemy_tgt = Unit.objects.filter(game=self.game, owner=self.user2, unit_class__in=self.melee_units).exclude(
@@ -1432,8 +1433,13 @@ class TestTakeAction(TestGame):
 		self.helper_execute_failure(atk_dead_command, "You cannot attack dead units.")
 
 	def test_ta_12_crit_attack_success(self):
-		# Ensure the attacker always crits and always hits
+		# Ensure the attacker always crits and always hits - should kill the unit so it cannot counter
 		self.set_luck_and_agil(self.attacker.unit_class, 100, 15)
+
+		# Ensure attacking a unit that would be killed by a counter attack
+		flier_class = Class.objects.filter(name="Flier", version=self.version).first()
+		self.enemy_tgt.unit_class = flier_class
+		self.enemy_tgt.save()
 
 		# Move unit near target
 		self.atk_cmd = self.move_unit_near_target(self.atk_cmd, self.attacker, self.enemy_tgt)
@@ -1686,6 +1692,84 @@ class TestTakeAction(TestGame):
 			"Tgt_Crit":    True
 		}
 		self.helper_verify_crit_miss(result, unit, tgt, attack_data, action_history, crit_miss)
+
+	def test_ta_22_move_to_enter_not_leave(self):
+		# Set the map to the forest
+		map_obj = Map.objects.filter(version=self.version, name="Forest Pattern").first()
+		self.game.map_path = map_obj
+		self.game.save()
+
+		# Ensure the unit is an archer
+		archer_class = Class.objects.filter(name="Archer", version=self.version).first()
+		self.attacker.unit_class = archer_class
+
+		# Move the unit such that moving fully north will stop short of a forest
+		self.attacker.x = 15
+		self.attacker.y = 13
+		self.attacker.save()
+
+		# Move full distance north
+		self.no_tgt_cmd["X"] = self.attacker.x
+		self.no_tgt_cmd["Y"] = self.attacker.y - self.attacker_mv_rng
+
+		self.helper_execute_failure(self.no_tgt_cmd,
+			"Target location ({0},{1}) was out of reach for {2} at location ({3},{4}).".format(
+				self.no_tgt_cmd["X"], self.no_tgt_cmd["Y"],
+				self.attacker.unit_class.name,
+				self.attacker.x, self.attacker.y))
+
+	def test_ta_23_move_to_enter_not_leave_reverse(self):
+		# Set the map to the forest
+		map_obj = Map.objects.filter(version=self.version, name="Forest Pattern").first()
+		self.game.map_path = map_obj
+		self.game.save()
+
+		# Ensure the unit is an archer
+		archer_class = Class.objects.filter(name="Archer", version=self.version).first()
+		self.attacker.unit_class = archer_class
+
+		# Move the unit such that moving fully north will stop short of a forest
+		self.attacker.x = 15
+		self.attacker.y = 7
+		self.attacker.save()
+
+		# Move full distance north
+		self.no_tgt_cmd["X"] = self.attacker.x
+		self.no_tgt_cmd["Y"] = self.attacker.y + self.attacker_mv_rng
+
+		self.helper_execute_move_success(self.no_tgt_cmd)
+
+	def test_ta_24_move_priority_queue_checker(self):
+		# Test being performed:
+		# With map: G(x)	F
+		#			G 		F
+		#			G 		F(s)
+		# Where s is the start location and x is the target location.
+		# Since north is (normally) checked first this test verifyies that
+		# the priority queue is working.  A unit with 3 movement couldn't pass
+		# through the forest going Up, Up, Left, or even Up, Left, Up
+		# But going Left, Up, Up should be successful.
+
+		# Set the map to the forest
+		map_obj = Map.objects.filter(version=self.version, name="Forest Pattern").first()
+		self.game.map_path = map_obj
+		self.game.save()
+
+		# Ensure the unit is an archer
+		archer_class = Class.objects.filter(name="Armor", version=self.version).first()
+		self.attacker.unit_class = archer_class
+
+		# Move the unit such that moving fully north will stop short of a forest
+		self.attacker.x = 10
+		self.attacker.y = 13
+		self.attacker.save()
+
+		# Move full distance north
+		self.no_tgt_cmd["X"] = 9
+		self.no_tgt_cmd["Y"] = 11
+
+		self.helper_execute_move_success(self.no_tgt_cmd)
+
 
 class TestEndTurn(TestGame):
 	"""
