@@ -646,7 +646,7 @@ class TestQueryGames(TestGame):
 		self.assertEquals(result["Games"][0]["Action_History"][0]["Crit"],        action_history.unit_crit)
 		self.assertEquals(result["Games"][0]["Action_History"][0]["Miss"],        action_history.unit_missed)
 		if action_history.target is None:
-			self.assertEquals(result["Games"][0]["Action_History"][0]["Target"],  'None')
+			self.assertEquals(result["Games"][0]["Action_History"][0]["Target"],  None)
 		else:
 			self.assertEquals(result["Games"][0]["Action_History"][0]["Target"],  action_history.target.name)
 		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Old_HP"],  action_history.tgt_old_hp)
