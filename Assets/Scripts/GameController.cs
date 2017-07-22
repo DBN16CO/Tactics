@@ -27,9 +27,12 @@ public class GameController : MonoBehaviour {
 	public static bool PlacingUnits;
 	public static PUUnit UnitBeingPlaced;
 	public static Token IntendedMove;		// If the player has selected a token to move to but hasn't confirmed the move yet
+	public static Token IntendedAttack;
+	public static GameController Main;
 
-	// Buttons and Objects
+	// UI variables
 	public GameObject EndTurnGO;
+	public UnitInfoController UnitInfo; 
 
 	// vars for development
 	private bool _endTurn;
@@ -89,6 +92,7 @@ public class GameController : MonoBehaviour {
 		Actions = new Dictionary<Twople<int, int>, int>();
 		Units = new List<Unit>();
 		SC = gameObject.AddComponent<SpawnController>();
+		Main = this;
 		// Map game vars from QGU match data and determine if place units is necessary
 		myTeam = GameData.CurrentMatch.UserTeam;
 		myUnits = GameData.CurrentMatch.AlliedUnits;
@@ -128,26 +132,97 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
+	// Token actions when unit is placed
+	public void PlaceUnit(Token token) {
+		token.CurrentUnit = SC.CreateUnit(UnitBeingPlaced.matchUnit,token.X,token.Y, true);
+	}
+
 	// Runs when a unit is selected. Take action if possible, otherwise show unit info
 	public void SelectUnit(Token token) {
 		Unit unit = token.CurrentUnit;
+		ShowUnitInfo(unit);
 		SelectedToken = token;
 		if(unit.MyTeam && !unit.TakenAction && GameData.CurrentMatch.UserTurn) {
 			SetValidActions(token);
 		}else{
-			ShowUnitInfo(unit);
+			
 		}
 	}
 
 	// Placeholder for what will contain code to show unit's info on UI
 	public void ShowUnitInfo(Unit unit) {
-		UnityEngine.Debug.Log(((unit.MyTeam)? "Your " : "Opponent's ") + unit.Info.Name);
+		UnitInfo.SetUnitInfo(unit.Info);
 	}
 
 	// Runs when a unit is unselected (i.e. user clicks other unit, or unit takes turn)
 	public void UnselectUnit() {
+		UnitInfo.RemoveUnitInfo();
 		SelectedToken = null;
+		IntendedMove = null;
+		IntendedAttack = null;
 		ClearValidActions();
+	}
+
+	// Repaints the available actions after a unit's intended move is set
+	public void PaintIntendedMoveActions() {
+		foreach(KeyValuePair<Twople<int, int>, int> action in Actions) {
+			Token currToken = Tokens[action.Key.Item1][action.Key.Item2];
+			if(currToken == IntendedMove || CanAttackFromToken(currToken)) {
+				continue;
+			}
+			currToken.SetActionProperties("clear");
+		}
+	}
+
+	public bool CanAttackFromToken(Token currToken) {
+		if(currToken.CanAttack && currToken.HasEnemy) {
+			int _x = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - currToken.X) : Mathf.Abs(SelectedToken.X - currToken.X);
+			int _y = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - currToken.Y) : Mathf.Abs(SelectedToken.Y - currToken.Y);
+			int atkRange = GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value;
+			return atkRange >= _x + _y;
+		}
+		return false;
+	}
+
+	// Move unit to new token and paint new actions
+	public void SetIntendedMove(Token token) {
+		IntendedMove = token;
+		SelectedToken.CurrentUnit.transform.position = token.gameObject.transform.position;
+		PaintIntendedMoveActions();
+	}
+	// Confirm move unit to new token and unselect after
+	public void ConfirmMove() {
+		if(Server.TakeMoveAction(SelectedToken.CurrentUnit,"Wait", IntendedMove.X, IntendedMove.Y)) {
+			MoveUnit();
+		}
+	}
+	// All the actions when moving a unit
+	public void MoveUnit() {
+		IntendedMove.CurrentUnit = SelectedToken.CurrentUnit;
+		SelectedToken.CurrentUnit = null;
+		IntendedMove.CurrentUnit.ConfirmMove();
+	}
+	public void SetIntendedAttack(Token token) {
+		IntendedAttack = token;
+		//Insert function to show attack info
+	}
+	// Confirms attack target and moves to intended token if applicable
+	public void ConfirmAttack(Unit targetUnit) {
+		Dictionary<string, object> unitDict;
+		Dictionary<string, object> targetDict;
+		if(Server.TakeTargetAction(SelectedToken.CurrentUnit, "Attack", targetUnit.Info.ID, out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y)) {
+			// Update unit infos
+			SelectedToken.CurrentUnit.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
+			targetUnit.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
+			if(SelectedToken.CurrentUnit.Info.HP <= 0) {
+				SelectedToken.CurrentUnit.DestroyUnit();
+				UnselectUnit();
+			}
+			if(targetUnit.Info.HP <= 0) {
+				targetUnit.DestroyUnit();
+			}
+			MoveUnit();
+		}
 	}
 
 	// Begins the process to assess valid moves for the selected unit
@@ -254,19 +329,32 @@ public class GameController : MonoBehaviour {
 						// Logic for when the token is occupied by an ally
 						if(currElement.Item1.CurrentUnit.MyTeam){
 							// If still moving, add this to heal check for after movement is done
-							if(phase == (int)UnitAction.move && canHeal){
-								uncheckedHealTokens.Enqueue(0, Twople.Create(
-									Tokens[currX][currY], startingAttackRange-1)
-								);
-							}
-							// Cannot attack allies
-							else if(phase == (int)UnitAction.attack){
-								checkNeighbors = false;
-							}
-							// Can heal allies
-							else if(phase == (int)UnitAction.heal){
-								Actions.Add(coord, (int)UnitAction.heal);
-								currElement.Item1.SetActionProperties("heal");
+							switch(phase){
+								case (int)UnitAction.move:
+									if(currElement.Item2 == 0){
+										checkNeighbors = false;
+										if(canAttack){
+											uncheckedAttackTokens.Enqueue(0, Twople.Create(
+												Tokens[currX][currY], startingAttackRange-1)
+											);
+										}
+										if(canHeal){
+											uncheckedHealTokens.Enqueue(0, Twople.Create(
+												Tokens[currX][currY], startingAttackRange-1)
+											);
+										}
+									}
+									if(canHeal){
+										uncheckedHealTokens.Enqueue(0, Twople.Create(
+											Tokens[currX][currY], startingAttackRange-1)
+										);
+									}
+									break;
+								// Can heal allies
+								case (int)UnitAction.heal:
+									Actions.Add(coord, (int)UnitAction.heal);
+									currElement.Item1.SetActionProperties("heal");
+									break;
 							}
 						}
 						// Logic for when the token is occupied by an enemy
@@ -274,6 +362,19 @@ public class GameController : MonoBehaviour {
 							// If still moving, add this to attack check for after movement is done
 							switch(phase){
 								case (int)UnitAction.move:
+									if(currElement.Item2 == 0){
+										checkNeighbors = false;
+										if(canAttack){
+											uncheckedAttackTokens.Enqueue(0, Twople.Create(
+												Tokens[currX][currY], startingAttackRange-1)
+											);
+										}
+										if(canHeal){
+											uncheckedHealTokens.Enqueue(0, Twople.Create(
+												Tokens[currX][currY], startingAttackRange-1)
+											);
+										}
+									}
 									if(canAttack){
 										checkNeighbors = false;
 										uncheckedAttackTokens.Enqueue(0, Twople.Create(
@@ -284,9 +385,6 @@ public class GameController : MonoBehaviour {
 								case (int)UnitAction.attack:
 									Actions.Add(coord, (int)UnitAction.attack);
 									currElement.Item1.SetActionProperties("attack");
-									break;
-								case (int)UnitAction.heal:
-									checkNeighbors = false;
 									break;
 							}
 						}
@@ -372,19 +470,19 @@ public class GameController : MonoBehaviour {
 	// Initializes the game map when opening after place units has already been completed
 	private void InitializeMap() {
 		foreach(MatchUnit unit in myUnits) {
-			if(unit.X != -1) {
+			if(unit.X != -1 && unit.HP > 0) {
 				SC.CreateUnit(unit, unit.X, unit.Y, true);
 			}
 		}
 		foreach(MatchUnit unit in enemyUnits) {
-			if(unit.X != -1) {
+			if(unit.X != -1 && unit.HP > 0) {
 				SC.CreateUnit(unit, unit.X, unit.Y, false);
 			}
 		}
 	}
 
 	// Returns user to the main menu
-	public static void BackToMenu() {
+	public void BackToMenu() {
 		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 	}
 

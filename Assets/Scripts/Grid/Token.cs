@@ -50,6 +50,9 @@ public class Token : MonoBehaviour {
 	private bool SelectingPlacedUnit {
 		get{return CurrentUnit != null && GameController.UnitBeingPlaced == null;}
 	}
+	public bool HasEnemy {
+		get{return (CurrentUnit != null)? ((!CurrentUnit.MyTeam)? true : false) : false;}
+	}
 #endregion
 
 
@@ -65,14 +68,20 @@ public class Token : MonoBehaviour {
 		if(!EventSystem.current.IsPointerOverGameObject()) { // This stops token action if other UI is over it
 			if(GameController.PlacingUnits) {
 				if(IsValidPlacement) {
-					PlaceUnit();
+					GameController.Main.PlaceUnit(this);
 				}else if(SelectingPlacedUnit) {
 					SpawnController.ReturnPlacedUnit(CurrentUnit);
 				}
 			}else{ // Normal actions if not placing units
 				if(CurrentUnit != null) {
 					if(CanAttack) {
-
+						if(GameController.IntendedAttack != this) {
+							if(GameController.Main.CanAttackFromToken(this)) {
+								GameController.Main.SetIntendedAttack(this);
+							}
+						}else{
+							GameController.Main.ConfirmAttack(CurrentUnit);
+						}
 					}else {
 						if(GameController.SelectedToken != null) {
 							if(this != GameController.SelectedToken) {
@@ -83,9 +92,9 @@ public class Token : MonoBehaviour {
 					}
 				}else if(CanMove) {
 					if(GameController.IntendedMove != this) {
-						SetIntendedMove();
+						GameController.Main.SetIntendedMove(this);
 					}else {
-						ConfirmMove(GameController.SelectedToken);
+						GameController.Main.ConfirmMove();
 					}
 				}else {
 					if(GameController.SelectedToken != null) {
@@ -94,29 +103,6 @@ public class Token : MonoBehaviour {
 				}
 			}
 		}
-	}
-
-	// Move unit from input prevToken to this token and unselect after
-	private void SetIntendedMove() {
-		GameController.IntendedMove = this;
-		GameController.SelectedToken.CurrentUnit.transform.position = gameObject.transform.position;
-	}
-	// Move unit from input prevToken to this token and unselect after
-	private void ConfirmMove(Token prevToken) {
-		if(Server.TakeAction(prevToken.CurrentUnit.Info,"Wait", X, Y)) {
-			CurrentUnit = prevToken.CurrentUnit;
-			prevToken.CurrentUnit = null;
-			CurrentUnit.UpdateInfo(X: X, Y: Y);
-			CurrentUnit.TakenAction = true;
-			CurrentUnit.PaintUnit("disable");
-			GameController.SelectedToken = null;
-			CurrentUnit.UnselectUnit();
-		}
-	}
-
-	// Token actions when unit is placed
-	private void PlaceUnit() {
-		CurrentUnit = GameController.SC.CreateUnit(GameController.UnitBeingPlaced.matchUnit,X,Y, true);
 	}
 
 	// Sets properties based on action
