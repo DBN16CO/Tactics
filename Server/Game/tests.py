@@ -648,7 +648,7 @@ class TestQueryGames(TestGame):
 		if action_history.target is None:
 			self.assertEquals(result["Games"][0]["Action_History"][0]["Target"],  None)
 		else:
-			self.assertEquals(result["Games"][0]["Action_History"][0]["Target"],  action_history.target.name)
+			self.assertEquals(result["Games"][0]["Action_History"][0]["Target"],  action_history.target.id)
 		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Old_HP"],  action_history.tgt_old_hp)
 		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_New_HP"],  action_history.tgt_new_hp)
 		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Counter"], action_history.tgt_counter)
@@ -931,7 +931,7 @@ class TestTakeAction(TestGame):
 		self.assertEqual(game_user.game,               action_history.game)
 		self.assertEqual(game_user.game.game_round,    action_history.turn_number)
 		self.assertEqual(game_user.user,               action_history.acting_user)
-		self.assertEqual(moved_unit.unit_class,        action_history.acting_unit)
+		self.assertEqual(moved_unit,                   action_history.acting_unit)
 		self.assertEqual(command["Action"],            action_history.action.name)
 		self.assertEqual(pre_action["X"],              action_history.old_x)
 		self.assertEqual(moved_unit.x,                 action_history.new_x)
