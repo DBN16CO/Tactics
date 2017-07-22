@@ -307,7 +307,10 @@ def queryGamesUser(data):
 					this_action["New_HP"]      = actn.new_hp
 					this_action["Crit"]        = actn.unit_crit
 					this_action["Miss"]        = actn.unit_missed
-					this_action["Target"]      = actn.target
+					if actn.target is None:
+						this_action["Target"]  = None
+					else:
+						this_action["Target"]  = actn.target.id
 					this_action["Tgt_Old_HP"]  = actn.tgt_old_hp
 					this_action["Tgt_New_HP"]  = actn.tgt_new_hp
 					this_action["Tgt_Counter"] = actn.tgt_counter
