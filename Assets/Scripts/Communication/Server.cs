@@ -300,12 +300,13 @@ public static class Server {
 	}
 
 	// Called to have a unit take a move action on the game map
-	public static bool TakeMoveAction(Unit unit, string action, int X = -1, int Y = -1) {
+	public static bool TakeNonTargetAction(Unit unit, string action, int X = -1, int Y = -1) {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "TA";
 		request["Game"] = GameData.CurrentMatch.Name;
 		request["Action"] = action;
 		request["Unit"] = unit.Info.ID;
+		// Wait at current position if optional params not passed in
 		request["X"] = (X == -1)? unit.Info.X : X;
 		request["Y"] = (Y == -1)? unit.Info.Y : Y;
 
@@ -324,6 +325,7 @@ public static class Server {
 		request["Game"] = GameData.CurrentMatch.Name;
 		request["Action"] = action;
 		request["Unit"] = unit.Info.ID;
+		// Wait at current position if optional params not passed in
 		request["X"] = (X == -1)? unit.Info.X : X;
 		request["Y"] = (Y == -1)? unit.Info.Y : Y;
 		request["Target"] = targetID;
@@ -336,6 +338,7 @@ public static class Server {
 		}
 		bool success = (bool)response["Success"];
 		if(success) {
+			// Set out params
 			unitDict = (Dictionary<string, object>)response["Unit"];
 			targetDict = (Dictionary<string, object>)response["Target"];
 		}

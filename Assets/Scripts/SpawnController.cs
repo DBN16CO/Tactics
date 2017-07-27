@@ -58,6 +58,7 @@ public class SpawnController : MonoBehaviour {
 
 	// Call this to create a unit for a token
 	public Unit CreateUnit(MatchUnit unit,int x, int y, bool myTeam) {
+		// Initialize return unit as null in case it's dead
 		Unit ret = null;
 		// Instantiate the specified unit if not dead
 		if(unit.HP > 0 || GameController.PlacingUnits) {
@@ -79,8 +80,6 @@ public class SpawnController : MonoBehaviour {
 			if(GameController.PlacingUnits) {
 				GameController.UnitBeingPlaced.RemoveUnit();
 			}
-		}else{
-			ret.Info = unit;
 		}
 		return ret;
 	}

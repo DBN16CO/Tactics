@@ -192,7 +192,7 @@ public class GameController : MonoBehaviour {
 	}
 	// Confirm move unit to new token and unselect after
 	public void ConfirmMove() {
-		if(Server.TakeMoveAction(SelectedToken.CurrentUnit,"Wait", IntendedMove.X, IntendedMove.Y)) {
+		if(Server.TakeNonTargetAction(SelectedToken.CurrentUnit,"Wait", IntendedMove.X, IntendedMove.Y)) {
 			MoveUnit();
 		}
 	}
