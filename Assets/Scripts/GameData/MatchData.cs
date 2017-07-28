@@ -139,6 +139,16 @@ public class MatchData {
 			GameActions.Add(currAction);
 		}
 	}
+
+	public Unit GetUnit(int ID) {
+		foreach(Unit unit in GameController.Units) {
+			if(ID == unit.Info.ID) {
+				return unit;
+			}
+		}
+		return null;
+	}
+
 }
 
 public struct MatchAction {

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System;
 using System.Collections.Generic;
 
 // Class governing unit options
@@ -13,7 +12,6 @@ public class Unit : MonoBehaviour {
 	private bool _selected;
 	private bool _takenAction;
 	private bool _myTeam;
-	private GameController _gc;
 
 
 #region Setters and Getters
@@ -53,7 +51,6 @@ public class Unit : MonoBehaviour {
 		_selected = false;
 		Stats = new Dictionary<string, Stat>();
 		name = name.Substring(0, name.Length-7);
-		_gc = GameObject.Find("GameController").GetComponent<GameController>();
 	}
 
 	// Called from the clicked token - deselect if already selected
@@ -63,7 +60,7 @@ public class Unit : MonoBehaviour {
 		}else {
 			_selected = true;
 		// UI Options in GameController
-			_gc.SelectUnit(token);
+			GameController.Main.SelectUnit(token);
 		}
 	}
 
@@ -81,11 +78,22 @@ public class Unit : MonoBehaviour {
 	// Public function to deselect this unit
 	public void UnselectUnit() {
 		_selected = false;
-		GameController.IntendedMove = null;
 		if(GameController.SelectedToken != null) {
 			gameObject.transform.position = GameController.SelectedToken.gameObject.transform.position;
 		}
-		_gc.UnselectUnit();
+		GameController.Main.UnselectUnit();
+	}
+
+	public void ConfirmMove() {
+		_selected = false;
+		UpdateInfo(X: GameController.IntendedMove.X, Y: GameController.IntendedMove.Y);
+		TakenAction = true;
+		PaintUnit("disable");
+		GameController.Main.UnselectUnit();
+	}
+
+	public void DestroyUnit() {
+		Destroy(gameObject);
 	}
 
 	public void PaintUnit(string type) {

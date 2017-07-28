@@ -299,24 +299,49 @@ public static class Server {
 		return success;
 	}
 
-	// Called to have a unit take an action on the game map (attacking/moving/etc.)
-	public static bool TakeAction(MatchUnit unit, string action, int X = -1, int Y = -1, int targetID = -1) {
+	// Called to have a unit take a move action on the game map
+	public static bool TakeNonTargetAction(Unit unit, string action, int X = -1, int Y = -1) {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "TA";
 		request["Game"] = GameData.CurrentMatch.Name;
 		request["Action"] = action;
-		request["Unit"] = unit.ID;
-		request["X"] = (X == -1)? unit.X : X;
-		request["Y"] = (Y == -1)? unit.Y : Y;
-		if(targetID != -1) {
-			request["Target"] = targetID;
-		}
+		request["Unit"] = unit.Info.ID;
+		// Wait at current position if optional params not passed in
+		request["X"] = (X == -1)? unit.Info.X : X;
+		request["Y"] = (Y == -1)? unit.Info.Y : Y;
 
 		Dictionary<string, object> response = SendCommand(request);
 		if(response == null) {
 			return false;
 		}
 		bool success = (bool)response["Success"];
+		return success;
+	}
+
+	// Called to have a unit take an attack/heal action on the game map
+	public static bool TakeTargetAction(Unit unit, string action, int targetID, out Dictionary<string, object> unitDict, out Dictionary<string, object> targetDict, int X = -1, int Y = -1) {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "TA";
+		request["Game"] = GameData.CurrentMatch.Name;
+		request["Action"] = action;
+		request["Unit"] = unit.Info.ID;
+		// Wait at current position if optional params not passed in
+		request["X"] = (X == -1)? unit.Info.X : X;
+		request["Y"] = (Y == -1)? unit.Info.Y : Y;
+		request["Target"] = targetID;
+
+		Dictionary<string, object> response = SendCommand(request);
+		unitDict = null;
+		targetDict = null;
+		if(response == null) {
+			return false;
+		}
+		bool success = (bool)response["Success"];
+		if(success) {
+			// Set out params
+			unitDict = (Dictionary<string, object>)response["Unit"];
+			targetDict = (Dictionary<string, object>)response["Target"];
+		}
 		return success;
 	}
 
