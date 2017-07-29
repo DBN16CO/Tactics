@@ -62,24 +62,28 @@ public class SpawnController : MonoBehaviour {
 
 	// Call this to create a unit for a token
 	public Unit CreateUnit(MatchUnit unit,int x, int y, bool myTeam) {
-		// Instantiate the specified unit
-		Unit ret = (Instantiate(Resources.Load("Units/" + unit.Name),Vector3.zero,Quaternion.identity) as GameObject).GetComponent<Unit>();
-		// Set the position to the token's position
-		ret.transform.position = GameController.Tokens[x][y].transform.position;
-		ret.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
-		// Add to GameController Units and Return final unit
-		if(unit.X == -1 || unit.Y == -1) {
-			// Set initial params if new unit
-			unit.X = x; unit.Y = y; unit.HP = GameData.GetUnit(unit.Name).GetStat("HP").Value;
-		}
-		ret.Info = unit;
-		ret.TakenAction = unit.Acted;
-		ret.MyTeam = myTeam;
-		ret.PaintUnit((ret.MyTeam)? ((ret.TakenAction)? "disable" : "move") : "enemy");
-		GameController.Tokens[x][y].CurrentUnit = ret;
-		GameController.Units.Add(ret);
-		if(GameController.PlacingUnits) {
-			GameController.UnitBeingPlaced.RemoveUnit();
+		// Initialize return unit as null in case it's dead
+		Unit ret = null;
+		// Instantiate the specified unit if not dead
+		if(unit.HP > 0 || GameController.PlacingUnits) {
+			ret = (Instantiate(Resources.Load("Units/" + unit.Name),Vector3.zero,Quaternion.identity) as GameObject).GetComponent<Unit>();
+			// Set the position to the token's position
+			ret.transform.position = GameController.Tokens[x][y].transform.position;
+			ret.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
+			// Add to GameController Units and Return final unit
+			if(unit.X == -1 || unit.Y == -1) {
+				// Set initial params if new unit
+				unit.X = x; unit.Y = y; unit.HP = GameData.GetUnit(unit.Name).GetStat("HP").Value;
+			}
+			ret.Info = unit;
+			ret.TakenAction = unit.Acted;
+			ret.MyTeam = myTeam;
+			ret.PaintUnit((ret.MyTeam)? ((ret.TakenAction)? "disable" : "move") : "enemy");
+			GameController.Tokens[x][y].CurrentUnit = ret;
+			GameController.Units.Add(ret);
+			if(GameController.PlacingUnits) {
+				GameController.UnitBeingPlaced.RemoveUnit();
+			}
 		}
 		return ret;
 	}

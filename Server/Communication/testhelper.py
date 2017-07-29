@@ -211,7 +211,7 @@ class CommonTestHelper(TestCase):
 		self.testHelper.send(json.dumps(command), channel_num)
 		result = json.loads(self.testHelper.receive(channel_num))
 
-		self.assertFalse(result["Success"])
+		self.assertFalse(result["Success"], "Success was not FALSE: {0}".format(result))
 		self.assertEqual(result["Error"], message)
 		self.assertEqual(result['Request_ID'], request_id)
 		self.counter += 1
@@ -227,7 +227,8 @@ class CommonTestHelper(TestCase):
 		self.testHelper.send(json.dumps(command), channel_num)
 		result = json.loads(self.testHelper.receive(channel_num))
 
-		self.assertTrue(result["Success"])
+		self.assertTrue(result["Success"], "Success was not TRUE: {0}".format(result))
 		self.assertEqual(result['Request_ID'], request_id)
 		self.counter += 1
+
 		return result

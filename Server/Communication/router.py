@@ -246,6 +246,17 @@ def processRequest(message):
 
 	logging.debug("Response: {0}".format(response))
 
+	try:
+		json_test = json.dumps(response)
+		json.loads(json_test)
+	except Exception, e:
+		logging.error("Attempting to pass bad JSON for above response.")
+		response = {"Success": False, "Error": "Internal Server Error."}
+		message.reply_channel.send({
+			'text': json.dumps(response)
+		})
+		return
+
 	# Reply back
 	message.reply_channel.send({
 		'text': json.dumps(response)
