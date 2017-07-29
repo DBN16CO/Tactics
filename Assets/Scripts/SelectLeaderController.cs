@@ -7,6 +7,11 @@ public class SelectLeaderController : MonoBehaviour {
 	public LeaderData data;
 	private SetTeamController stc;
 
+	// Runs when the app is closed - attempt to close the websocket cleanly
+	void OnApplicationQuit() {
+		CommunicationManager.OnDisable();
+	}
+
 	// Controls the image of the selectable GameObject
 	public Sprite LeaderImage {
 		get{return gameObject.transform.Find("Image").GetComponent<Image>().sprite;}

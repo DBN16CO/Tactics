@@ -8,6 +8,11 @@ public class SelectUnitController : MonoBehaviour {
 	public UnitData data;
 	private SetTeamController stc;
 
+	// Runs when the app is closed - attempt to close the websocket cleanly
+	void OnApplicationQuit() {
+		CommunicationManager.OnDisable();
+	}
+
 	// Controls the image of the selectable GameObject
 	public Sprite UnitImage {
 		get{return gameObject.transform.Find("Image").GetComponent<Image>().sprite;}

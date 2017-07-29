@@ -28,6 +28,11 @@ public class PlaceUnitsController : MonoBehaviour {
 		InitPlaceUnits();
 	}
 
+	// Runs when the app is closed - attempt to close the websocket cleanly
+	void OnApplicationQuit() {
+		CommunicationManager.OnDisable();
+	}
+
 	// Init the place units UI
 	private void InitPlaceUnits() {
 		for(int i = 0; i < _gc.myUnits.Count; i ++) {

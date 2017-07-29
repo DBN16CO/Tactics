@@ -81,6 +81,9 @@ class TestReceivedMessage(TestGame):
 		async_first = self.testHelper.receive()
 		async_second = self.testHelper.receive(2)
 
+		async_first = json.loads(async_first)
+		async_second = json.loads(async_second)
+
 		return async_first, async_second
 
 	def test_rm_01_received_message_success(self):

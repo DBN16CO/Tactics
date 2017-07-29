@@ -5,6 +5,7 @@
 .. moduleauthor:: Drew, Brennan, and Nick
 """
 import os
+import time
 from channels import Channel
 from channels.tests import ChannelTestCase
 from django.test import TestCase
@@ -189,6 +190,7 @@ class CommonTestHelper(TestCase):
 	"""
 	def setUp(self):
 		self.testHelper = TestHelper(self._testMethodName)
+		self.counter = 0
 
 		# Clear the cached static DB data since IDs change between tests
 		Static.statichelper.static_data = {}
@@ -204,11 +206,15 @@ class CommonTestHelper(TestCase):
 		
 		NOTE: The provided command a dictionary that will need to be converted to a string here
 		"""
+		request_id = str(self.counter)
+		command['Request_ID'] = request_id
 		self.testHelper.send(json.dumps(command), channel_num)
 		result = json.loads(self.testHelper.receive(channel_num))
 
 		self.assertFalse(result["Success"], "Success was not FALSE: {0}".format(result))
 		self.assertEqual(result["Error"], message)
+		self.assertEqual(result['Request_ID'], request_id)
+		self.counter += 1
 
 	def helper_execute_success(self, command, channel_num=1):
 		"""
@@ -216,8 +222,13 @@ class CommonTestHelper(TestCase):
 		ensure that the 'Success' is returned TRUE,
 		and then return the result for further testing
 		"""
+		request_id = str(self.counter)
+		command['Request_ID'] = request_id
 		self.testHelper.send(json.dumps(command), channel_num)
 		result = json.loads(self.testHelper.receive(channel_num))
 
 		self.assertTrue(result["Success"], "Success was not TRUE: {0}".format(result))
+		self.assertEqual(result['Request_ID'], request_id)
+		self.counter += 1
+
 		return result
