@@ -166,7 +166,7 @@ public static class Server {
 		request["X"] = (X == -1)? unit.Info.X : X;
 		request["Y"] = (Y == -1)? unit.Info.Y : Y;
 
-		Dictionary<string, object> response = SendCommand(request);
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 		if(response == null) {
 			return false;
 		}

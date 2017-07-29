@@ -49,11 +49,14 @@ public class CommunicationManager
 
 	static void ProcessRequests(){
 		_threadRunning = true;
+		Dictionary<string, object> request = null;
+		Dictionary<string, object> response = null;
+		bool done = false;
 
 		try{
 			while (_threadRunning){
-				Dictionary<string, object> request = null;
-				Dictionary<string, object> response = null;
+				request = null;
+				response = null;
 
 				//Take a request off the queue
 				lock(requestQueueLock){
@@ -70,7 +73,7 @@ public class CommunicationManager
 					SendCommand(request);
 				}
 				
-				bool done = false;
+				done = false;
 				while (!done){
 					Dictionary<string, object> resp = null;
 					try{
@@ -97,6 +100,7 @@ public class CommunicationManager
 							Debug.Log("Found an async message");
 							LogDictionary(resp);
 							asyncMessagesQueue.Enqueue(resp);
+							Debug.Log("Async Queue Size: " + asyncMessagesQueue.Count.ToString());
 						}
 					}
 				}
@@ -173,6 +177,10 @@ public class CommunicationManager
 	{
 		int elapsed_time = 0;
 		Dictionary<string, object> response = null;
+
+		if (sleep_time <= 0){
+			sleep_time = 100;
+		}
 
 		if (!blocking)
 		{
@@ -341,7 +349,7 @@ public class CommunicationManager
 			if (strResponse == null)
 			{
 				retryCount++;
-				Thread.Sleep(100);
+				Thread.Sleep(30);
 			}
 		}
 
