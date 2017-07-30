@@ -27,7 +27,7 @@ public class GameController : MonoBehaviour {
 	public static bool PlacingUnits;
 	public static PUUnit UnitBeingPlaced;
 	public static Token IntendedMove;		// If the player has selected a token to move to but hasn't confirmed the move yet
-	public static Token IntendedAttack;
+	public static Token IntendedTarget;
 	public static GameController Main;
 
 	// UI variables
@@ -159,7 +159,7 @@ public class GameController : MonoBehaviour {
 		UnitInfo.RemoveUnitInfo();
 		SelectedToken = null;
 		IntendedMove = null;
-		IntendedAttack = null;
+		UnselectTarget();
 		ClearValidActions();
 	}
 
@@ -167,25 +167,29 @@ public class GameController : MonoBehaviour {
 	public void PaintIntendedMoveActions() {
 		foreach(KeyValuePair<Twople<int, int>, int> action in Actions) {
 			Token currToken = Tokens[action.Key.Item1][action.Key.Item2];
-			if(currToken == IntendedMove || CanAttackFromToken(currToken)) {
+			if(currToken == IntendedMove || CanTargetFromToken(currToken)) {
 				continue;
 			}
 			currToken.SetActionProperties("clear");
 		}
 	}
 
-	public bool CanAttackFromToken(Token currToken) {
-		if(currToken.CanAttack && currToken.HasEnemy) {
-			int _x = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - currToken.X) : Mathf.Abs(SelectedToken.X - currToken.X);
-			int _y = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - currToken.Y) : Mathf.Abs(SelectedToken.Y - currToken.Y);
-			int atkRange = GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value;
-			return atkRange >= _x + _y;
+	public bool CanTargetFromToken(Token currToken) {
+		int _x = 0;
+		int _y = 0;
+		if((currToken.CanAttack && currToken.HasEnemy) || (currToken.CanHeal && currToken.HasAlly)) {
+			_x = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - currToken.X) : Mathf.Abs(SelectedToken.X - currToken.X);
+			_y = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - currToken.Y) : Mathf.Abs(SelectedToken.Y - currToken.Y);
+			int range = GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value; 
+			//int range = (currToken.CanAttack)? GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value : GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Heal Range").Value;
+			return range >= _x + _y;
 		}
 		return false;
 	}
 
 	// Move unit to new token and paint new actions
 	public void SetIntendedMove(Token token) {
+		UnselectTarget();
 		IntendedMove = token;
 		SelectedToken.CurrentUnit.transform.position = token.gameObject.transform.position;
 		PaintIntendedMoveActions();
@@ -202,15 +206,24 @@ public class GameController : MonoBehaviour {
 		SelectedToken.CurrentUnit = null;
 		IntendedMove.CurrentUnit.ConfirmMove();
 	}
-	public void SetIntendedAttack(Token token) {
-		IntendedAttack = token;
+	public void SetIntendedTarget(Token token) {
+		UnselectTarget();
+		IntendedTarget = token;
+		IntendedTarget.gameObject.GetComponent<SpriteRenderer>().color = HexToColor("000000FF");
 		//Insert function to show attack info
 	}
+	public void UnselectTarget() {
+		if(IntendedTarget != null) {
+			IntendedTarget.gameObject.GetComponent<SpriteRenderer>().color = HexToColor("FFFFFFFF");
+			IntendedTarget = null;
+		}
+	}
 	// Confirms attack target and moves to intended token if applicable
-	public void ConfirmAttack(Unit targetUnit) {
+	public void ConfirmTargetAction(Unit targetUnit) {
 		Dictionary<string, object> unitDict;
 		Dictionary<string, object> targetDict;
-		if(Server.TakeTargetAction(SelectedToken.CurrentUnit, "Attack", targetUnit.Info.ID, out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y)) {
+		string action = (IntendedTarget.CanAttack)? "Attack" : "Heal";
+		if(Server.TakeTargetAction(SelectedToken.CurrentUnit, action, targetUnit.Info.ID, out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y)) {
 			// Update unit infos
 			SelectedToken.CurrentUnit.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
 			targetUnit.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
