@@ -11,7 +11,7 @@ import logging
 import Game.unithelper
 import Static.statichelper
 from Communication.routehelper import formJsonResult
-from Game.models import Unit, Game_Queue
+from Game.models import Unit, Game_Queue, Game_User
 from Static.models import Version
 from Communication.models import AsyncMessages
 
