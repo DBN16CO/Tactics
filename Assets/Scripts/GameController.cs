@@ -181,7 +181,6 @@ public class GameController : MonoBehaviour {
 			_x = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - currToken.X) : Mathf.Abs(SelectedToken.X - currToken.X);
 			_y = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - currToken.Y) : Mathf.Abs(SelectedToken.Y - currToken.Y);
 			int range = GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value; 
-			//int range = (currToken.CanAttack)? GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value : GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Heal Range").Value;
 			return range >= _x + _y;
 		}
 		return false;
