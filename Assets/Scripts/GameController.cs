@@ -222,6 +222,7 @@ public class GameController : MonoBehaviour {
 	public void ConfirmTargetAction(Unit targetUnit) {
 		Dictionary<string, object> unitDict;
 		Dictionary<string, object> targetDict;
+		// Below confirms whether the target token is red or green (attack or heal)
 		string action = (IntendedTarget.CanAttack)? "Attack" : "Heal";
 		if(Server.TakeTargetAction(SelectedToken.CurrentUnit, action, targetUnit.Info.ID, out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y)) {
 			// Update unit infos
