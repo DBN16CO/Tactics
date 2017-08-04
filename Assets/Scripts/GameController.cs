@@ -32,10 +32,12 @@ public class GameController : MonoBehaviour {
 
 	// UI variables
 	public GameObject EndTurnGO;
-	public UnitInfoController UnitInfo; 
+	public GameObject BackToMenuGO;
+	public UnitInfoController UnitInfo;
+	public UnitInfoController TargetInfo;
 
-	// vars for development
 	private bool _endTurn;
+	private bool _backToMenu;
 
 	private float _qguTimer;
 	private float _qguInterval;
@@ -144,14 +146,16 @@ public class GameController : MonoBehaviour {
 		SelectedToken = token;
 		if(unit.MyTeam && !unit.TakenAction && GameData.CurrentMatch.UserTurn) {
 			SetValidActions(token);
-		}else{
-			
 		}
 	}
 
-	// Placeholder for what will contain code to show unit's info on UI
+	// Shows unit info on UI
 	public void ShowUnitInfo(Unit unit) {
 		UnitInfo.SetUnitInfo(unit.Info);
+	}
+	// Shows target info on UI
+	public void ShowTargetInfo(Unit unit) {
+		TargetInfo.SetUnitInfo(unit.Info);
 	}
 
 	// Runs when a unit is unselected (i.e. user clicks other unit, or unit takes turn)
@@ -173,7 +177,7 @@ public class GameController : MonoBehaviour {
 			currToken.SetActionProperties("clear");
 		}
 	}
-
+	// Checks whether the unit can target from IntendedMove
 	public bool CanTargetFromToken(Token currToken) {
 		int _x = 0;
 		int _y = 0;
@@ -205,15 +209,21 @@ public class GameController : MonoBehaviour {
 		SelectedToken.CurrentUnit = null;
 		IntendedMove.CurrentUnit.ConfirmMove();
 	}
+	// When your unit is already selected and you choose a target
 	public void SetIntendedTarget(Token token) {
+		if(IntendedMove == null) {
+			// If targeting from current token, IntendedMove will be null so set it now
+			SetIntendedMove(SelectedToken);
+		}
 		UnselectTarget();
 		IntendedTarget = token;
 		IntendedTarget.gameObject.GetComponent<SpriteRenderer>().color = HexToColor("000000FF");
-		//Insert function to show attack info
+		ShowTargetInfo(IntendedTarget.CurrentUnit);
 	}
 	public void UnselectTarget() {
 		if(IntendedTarget != null) {
 			IntendedTarget.gameObject.GetComponent<SpriteRenderer>().color = HexToColor("FFFFFFFF");
+			TargetInfo.RemoveUnitInfo();
 			IntendedTarget = null;
 		}
 	}
@@ -475,6 +485,9 @@ public class GameController : MonoBehaviour {
 	// Initializes the game UI when opening after place units has already been completed
 	private void InitializeUI() {
 		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+		BackToMenuGO.SetActive(false);
+		_endTurn = false;
+		_backToMenu = false;
 		if(!GameData.CurrentMatch.UserTurn) {
 			EndTurnGO.SetActive(false);
 		}
@@ -494,9 +507,19 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
+	public void ConfirmBackToMenu() {
+		if(!_backToMenu) {
+			BackToMenuGO.SetActive(true);
+			_backToMenu = true;
+		}
+	}
 	// Returns user to the main menu
 	public void BackToMenu() {
 		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
+	}
+	public void CancelBackToMenu() {
+		_backToMenu = false;
+		BackToMenuGO.SetActive(false);
 	}
 
 	public static Color HexToColor(string hex) {
@@ -514,52 +537,6 @@ public class GameController : MonoBehaviour {
 	}
 
 #region Development
-	// For testing - gameplay variables and functionality
-	private void TestGamePlay() {
-		// Create Grid and add test units
-		//SC = gameObject.AddComponent<SpawnController>();
-
-		// Testing for place units
-		/*myTeam = 2;
-		myUnits = new List<MatchUnit>();
-		for(int cnt = 0; cnt < 8; cnt++) {
-			MatchUnit unit = new MatchUnit();
-			switch(cnt) {
-				case 0: unit.Name = "Archer"; 	break;
-				case 1: unit.Name = "Archer"; 	break;
-				case 2: unit.Name = "Mage";		break;
-				case 3: unit.Name = "Cleric"; 	break;
-				case 4: unit.Name = "Armor"; 	break;
-				case 5: unit.Name = "Armor"; 	break;
-				case 6: unit.Name = "Armor";	break;
-				case 7: unit.Name = "Armor"; 	break;
-			}
-			unit.X = -1; unit.Y = -1;
-			myUnits.Add(unit);
-		}
-		MatchLeader myLeader = new MatchLeader();
-		myLeader.Name = "Sniper";
-
-		PlacingUnits = !UnitsArePlaced;
-
-		string mapName = "Forest Pattern";
-		_currentMap = GameData.GetMap(mapName);
-		Tokens = SC.CreateMap(mapName);
-
-		PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();*/
-
-		/*
-		Units.Add(Tokens[4][6].CurrentUnit = SC.CreateUnit("Warrior",4,6));
-		Units.Add(Tokens[6][8].CurrentUnit = SC.CreateUnit("Warrior",6,8));
-		Units.Add(Tokens[7][5].CurrentUnit = SC.CreateUnit("Warrior",7,5));
-		Units.Add(Tokens[6][6].CurrentUnit = SC.CreateUnit("Warrior",6,6));
-		Units[0].MyTeam = true;
-		Units[1].MyTeam = true;
-		Units[2].MyTeam = false;
-		Units[3].MyTeam = false;*/
-
-	}
-
 	// Runs every frame
 	void Update() {
 		// Computer move/zoom
