@@ -32,11 +32,12 @@ public class GameController : MonoBehaviour {
 
 	// UI variables
 	public GameObject EndTurnGO;
+	public GameObject BackToMenuGO;
 	public UnitInfoController UnitInfo;
 	public UnitInfoController TargetInfo;
 
-	// vars for development
 	private bool _endTurn;
+	private bool _backToMenu;
 
 	private float _qguTimer;
 	private float _qguInterval;
@@ -484,6 +485,9 @@ public class GameController : MonoBehaviour {
 	// Initializes the game UI when opening after place units has already been completed
 	private void InitializeUI() {
 		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+		BackToMenuGO.SetActive(false);
+		_endTurn = false;
+		_backToMenu = false;
 		if(!GameData.CurrentMatch.UserTurn) {
 			EndTurnGO.SetActive(false);
 		}
@@ -503,9 +507,19 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
+	public void ConfirmBackToMenu() {
+		if(!_backToMenu) {
+			BackToMenuGO.SetActive(true);
+			_backToMenu = true;
+		}
+	}
 	// Returns user to the main menu
 	public void BackToMenu() {
 		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
+	}
+	public void CancelBackToMenu() {
+		_backToMenu = false;
+		BackToMenuGO.SetActive(false);
 	}
 
 	public static Color HexToColor(string hex) {
