@@ -537,52 +537,6 @@ public class GameController : MonoBehaviour {
 	}
 
 #region Development
-	// For testing - gameplay variables and functionality
-	private void TestGamePlay() {
-		// Create Grid and add test units
-		//SC = gameObject.AddComponent<SpawnController>();
-
-		// Testing for place units
-		/*myTeam = 2;
-		myUnits = new List<MatchUnit>();
-		for(int cnt = 0; cnt < 8; cnt++) {
-			MatchUnit unit = new MatchUnit();
-			switch(cnt) {
-				case 0: unit.Name = "Archer"; 	break;
-				case 1: unit.Name = "Archer"; 	break;
-				case 2: unit.Name = "Mage";		break;
-				case 3: unit.Name = "Cleric"; 	break;
-				case 4: unit.Name = "Armor"; 	break;
-				case 5: unit.Name = "Armor"; 	break;
-				case 6: unit.Name = "Armor";	break;
-				case 7: unit.Name = "Armor"; 	break;
-			}
-			unit.X = -1; unit.Y = -1;
-			myUnits.Add(unit);
-		}
-		MatchLeader myLeader = new MatchLeader();
-		myLeader.Name = "Sniper";
-
-		PlacingUnits = !UnitsArePlaced;
-
-		string mapName = "Forest Pattern";
-		_currentMap = GameData.GetMap(mapName);
-		Tokens = SC.CreateMap(mapName);
-
-		PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();*/
-
-		/*
-		Units.Add(Tokens[4][6].CurrentUnit = SC.CreateUnit("Warrior",4,6));
-		Units.Add(Tokens[6][8].CurrentUnit = SC.CreateUnit("Warrior",6,8));
-		Units.Add(Tokens[7][5].CurrentUnit = SC.CreateUnit("Warrior",7,5));
-		Units.Add(Tokens[6][6].CurrentUnit = SC.CreateUnit("Warrior",6,6));
-		Units[0].MyTeam = true;
-		Units[1].MyTeam = true;
-		Units[2].MyTeam = false;
-		Units[3].MyTeam = false;*/
-
-	}
-
 	// Runs every frame
 	void Update() {
 		// Computer move/zoom
