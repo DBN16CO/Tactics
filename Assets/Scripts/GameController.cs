@@ -32,7 +32,8 @@ public class GameController : MonoBehaviour {
 
 	// UI variables
 	public GameObject EndTurnGO;
-	public UnitInfoController UnitInfo; 
+	public UnitInfoController UnitInfo;
+	public UnitInfoController TargetInfo;
 
 	// vars for development
 	private bool _endTurn;
@@ -153,6 +154,9 @@ public class GameController : MonoBehaviour {
 	public void ShowUnitInfo(Unit unit) {
 		UnitInfo.SetUnitInfo(unit.Info);
 	}
+	public void ShowTargetInfo(Unit unit) {
+		
+	}
 
 	// Runs when a unit is unselected (i.e. user clicks other unit, or unit takes turn)
 	public void UnselectUnit() {
@@ -206,14 +210,19 @@ public class GameController : MonoBehaviour {
 		IntendedMove.CurrentUnit.ConfirmMove();
 	}
 	public void SetIntendedTarget(Token token) {
+		if(IntendedMove == null) {
+			SetIntendedMove(SelectedToken);
+		}
 		UnselectTarget();
 		IntendedTarget = token;
 		IntendedTarget.gameObject.GetComponent<SpriteRenderer>().color = HexToColor("000000FF");
+		TargetInfo.SetUnitInfo(IntendedTarget.CurrentUnit.Info);
 		//Insert function to show attack info
 	}
 	public void UnselectTarget() {
 		if(IntendedTarget != null) {
 			IntendedTarget.gameObject.GetComponent<SpriteRenderer>().color = HexToColor("FFFFFFFF");
+			TargetInfo.RemoveUnitInfo();
 			IntendedTarget = null;
 		}
 	}

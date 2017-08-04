@@ -15,7 +15,7 @@ public class UnitInfoController : MonoBehaviour {
 	
 	public void SetUnitInfo(MatchUnit unit) {
 		NameText.text = unit.Name;
-		HPText.text = "HP " + unit.HP + "/" + GameData.GetUnit(unit.Name).GetStat("HP").Value;
+		HPText.text = unit.HP + "/" + GameData.GetUnit(unit.Name).GetStat("HP").Value;
 		HPBar.offsetMax = new Vector2(-(hpWidth - (hpWidth * ((float)unit.HP/(float)GameData.GetUnit(unit.Name).GetStat("HP").Value))),0);
 	}
 
