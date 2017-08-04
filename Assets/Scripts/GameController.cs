@@ -145,17 +145,16 @@ public class GameController : MonoBehaviour {
 		SelectedToken = token;
 		if(unit.MyTeam && !unit.TakenAction && GameData.CurrentMatch.UserTurn) {
 			SetValidActions(token);
-		}else{
-			
 		}
 	}
 
-	// Placeholder for what will contain code to show unit's info on UI
+	// Shows unit info on UI
 	public void ShowUnitInfo(Unit unit) {
 		UnitInfo.SetUnitInfo(unit.Info);
 	}
+	// Shows target info on UI
 	public void ShowTargetInfo(Unit unit) {
-		
+		TargetInfo.SetUnitInfo(unit.Info);
 	}
 
 	// Runs when a unit is unselected (i.e. user clicks other unit, or unit takes turn)
@@ -177,7 +176,7 @@ public class GameController : MonoBehaviour {
 			currToken.SetActionProperties("clear");
 		}
 	}
-
+	// Checks whether the unit can target from IntendedMove
 	public bool CanTargetFromToken(Token currToken) {
 		int _x = 0;
 		int _y = 0;
@@ -209,15 +208,16 @@ public class GameController : MonoBehaviour {
 		SelectedToken.CurrentUnit = null;
 		IntendedMove.CurrentUnit.ConfirmMove();
 	}
+	// When your unit is already selected and you choose a target
 	public void SetIntendedTarget(Token token) {
 		if(IntendedMove == null) {
+			// If targeting from current token, IntendedMove will be null so set it now
 			SetIntendedMove(SelectedToken);
 		}
 		UnselectTarget();
 		IntendedTarget = token;
 		IntendedTarget.gameObject.GetComponent<SpriteRenderer>().color = HexToColor("000000FF");
-		TargetInfo.SetUnitInfo(IntendedTarget.CurrentUnit.Info);
-		//Insert function to show attack info
+		ShowTargetInfo(IntendedTarget.CurrentUnit);
 	}
 	public void UnselectTarget() {
 		if(IntendedTarget != null) {

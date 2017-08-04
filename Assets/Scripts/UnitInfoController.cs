@@ -3,22 +3,24 @@ using UnityEngine.UI;
 
 public class UnitInfoController : MonoBehaviour {
 
-	public Text NameText;
-	public Text HPText;
-	public RectTransform HPBar;
+	public Text NameText;			// Name of the unit
+	public Text HPText;				// HP of the unit
+	public RectTransform HPBar;		// Transform of the hp bar
 
-	private float hpWidth;
+	private float hpWidth;			// Reference to the width of the HP bar (apparent height since it's rotated in the scene)
 
 	void Start () {
-		hpWidth = GameObject.Find("UnitHP").GetComponent<RectTransform>().rect.width;
+		hpWidth = gameObject.transform.Find("UnitHP").GetComponent<RectTransform>().rect.width;
 	}
 	
+	// Sets necessary info
 	public void SetUnitInfo(MatchUnit unit) {
 		NameText.text = unit.Name;
 		HPText.text = unit.HP + "/" + GameData.GetUnit(unit.Name).GetStat("HP").Value;
 		HPBar.offsetMax = new Vector2(-(hpWidth - (hpWidth * ((float)unit.HP/(float)GameData.GetUnit(unit.Name).GetStat("HP").Value))),0);
 	}
 
+	// Clears info
 	public void RemoveUnitInfo() {
 		NameText.text = "";
 		HPText.text = "";

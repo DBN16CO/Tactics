@@ -82,6 +82,7 @@ public class Token : MonoBehaviour {
 				}
 			}else{ // Normal actions if not placing units
 				if(CurrentUnit != null) {
+					// Targeting
 					if(CanAttack || CanHeal) {
 						if(GameController.IntendedTarget != this) {
 							if(GameController.Main.CanTargetFromToken(this)) {
@@ -90,6 +91,7 @@ public class Token : MonoBehaviour {
 						}else{
 							GameController.Main.ConfirmTargetAction(CurrentUnit);
 						}
+					// Selecting
 					}else {
 						if(GameController.SelectedToken != null) {
 							if(this != GameController.SelectedToken) {
@@ -98,12 +100,14 @@ public class Token : MonoBehaviour {
 						}
 						CurrentUnit.Clicked(this);
 					}
+				// Moving
 				}else if(CanMove) {
 					if(GameController.IntendedMove != this) {
 						GameController.Main.SetIntendedMove(this);
 					}else {
 						GameController.Main.ConfirmMove();
 					}
+				// Unselecting
 				}else {
 					if(GameController.SelectedToken != null) {
 						GameController.SelectedToken.CurrentUnit.UnselectUnit();
