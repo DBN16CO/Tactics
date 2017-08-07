@@ -404,7 +404,7 @@ public class CommunicationManager
 			if (strResponse == null)
 			{
 				retryCount++;
-				Thread.Sleep(30);
+				Thread.Sleep(100);
 			}
 		}
 

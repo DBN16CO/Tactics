@@ -9,6 +9,7 @@ public class Token : MonoBehaviour {
 	private int _y;					// Y value of token
 	private bool _canAttack;		// Can the selected unit attack this token
 	private bool _canMove;			// Can the selected unit move to this token
+	private bool _canHeal;			// Can the selected unit heal this token
 
 	private TerrainData _terrain;	// The token's current terrain
 	private Unit 	_unit;			// The unit currently on the token
@@ -39,6 +40,10 @@ public class Token : MonoBehaviour {
 		get{return _canMove;}
 		set{_canMove = value;}
 	}
+	public bool CanHeal {
+		get{return _canHeal;}
+		set{_canHeal = value;}
+	}
 
 	// Booleans for place units
 	public bool IsDisabled {
@@ -52,6 +57,9 @@ public class Token : MonoBehaviour {
 	}
 	public bool HasEnemy {
 		get{return (CurrentUnit != null)? ((!CurrentUnit.MyTeam)? true : false) : false;}
+	}
+	public bool HasAlly {
+		get{return (CurrentUnit != null)? ((CurrentUnit.MyTeam)? true : false) : false;}
 	}
 #endregion
 
@@ -74,14 +82,16 @@ public class Token : MonoBehaviour {
 				}
 			}else{ // Normal actions if not placing units
 				if(CurrentUnit != null) {
-					if(CanAttack) {
-						if(GameController.IntendedAttack != this) {
-							if(GameController.Main.CanAttackFromToken(this)) {
-								GameController.Main.SetIntendedAttack(this);
+					// Targeting
+					if(CanAttack || CanHeal) {
+						if(GameController.IntendedTarget != this) {
+							if(GameController.Main.CanTargetFromToken(this)) {
+								GameController.Main.SetIntendedTarget(this);
 							}
 						}else{
-							GameController.Main.ConfirmAttack(CurrentUnit);
+							GameController.Main.ConfirmTargetAction(CurrentUnit);
 						}
+					// Selecting
 					}else {
 						if(GameController.SelectedToken != null) {
 							if(this != GameController.SelectedToken) {
@@ -90,12 +100,14 @@ public class Token : MonoBehaviour {
 						}
 						CurrentUnit.Clicked(this);
 					}
+				// Moving
 				}else if(CanMove) {
 					if(GameController.IntendedMove != this) {
 						GameController.Main.SetIntendedMove(this);
 					}else {
 						GameController.Main.ConfirmMove();
 					}
+				// Unselecting
 				}else {
 					if(GameController.SelectedToken != null) {
 						GameController.SelectedToken.CurrentUnit.UnselectUnit();
@@ -110,16 +122,22 @@ public class Token : MonoBehaviour {
 		switch(action) {
 			case "move":
 				CanMove = true;
+				CanHeal = false;
+				CanAttack = false;
 				break;
-			case "attack":
-				CanAttack = true;
-				break;
-			case "overwrite":
+			case "heal":
+				CanHeal = true;
 				CanMove = false;
 				CanAttack = false;
 				break;
+			case "attack":
+				CanAttack = true;
+				CanMove = false;
+				CanHeal = false;
+				break;
 			case "clear":
 				CanMove = false;
+				CanHeal = false;
 				CanAttack = false;
 				PaintAction(action);
 				break;
