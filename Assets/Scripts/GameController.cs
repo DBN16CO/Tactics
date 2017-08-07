@@ -37,9 +37,6 @@ public class GameController : MonoBehaviour {
 	// vars for development
 	private bool _endTurn;
 
-	private float _qguTimer;
-	private float _qguInterval;
-
 #region Setters and Getters
 	public static Token[][] Tokens {
 		get{return _tokens;}
@@ -113,8 +110,6 @@ public class GameController : MonoBehaviour {
 		// Block for testing -------------------------------------------
 		// For any gameplay vars and functions
 //		TestGamePlay();
-		_qguTimer = 0f;
-		_qguInterval = 5f;
 		// End testing block -------------------------------------------
 	}
 
@@ -565,14 +560,25 @@ public class GameController : MonoBehaviour {
 		if(Input.GetKey("i")){
 			Camera.main.orthographicSize *= (Camera.main.orthographicSize < 0.5f)? 1f : 0.95f;
 		}
-		if(Input.GetKey("o")){
+		if(Input.GetKey("o"))
+
+		{
 			Camera.main.orthographicSize /= 0.95f;
 		}
-		if(!GameData.CurrentMatch.UserTurn) {
-			_qguTimer += Time.deltaTime;
-			if(_qguTimer >= _qguInterval) {
-				CheckForTurn();
-				_qguTimer = 0f;
+		// if(!GameData.CurrentMatch.UserTurn) {
+		// 	_qguTimer += Time.deltaTime;
+		// 	if(_qguTimer >= _qguInterval) {
+		// 		CheckForTurn();
+		// 		_qguTimer = 0f;
+		// 	}
+		// }
+		Queue<Dictionary<string, object>> asyncMessages = CommunicationManager.GetAsyncKeyQueue("ACTION_TAKEN");
+		while(asyncMessages != null && asyncMessages.Count > 0){
+			Dictionary<string, object> currentMessage = asyncMessages.Dequeue();
+
+			// If the current message pertains to the active game
+			if(currentMessage["Game"] != null && string.Compare((string)currentMessage["Game"], GameData.CurrentMatch.Name) == 0){
+
 			}
 		}
 	}

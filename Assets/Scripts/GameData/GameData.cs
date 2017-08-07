@@ -50,7 +50,7 @@ public static class GameData {
 		// ------------------------------
 		statData = (Dictionary<string, object>)responseDict["Stats"];
 		abilityData = (Dictionary<string, object>)responseDict["Abilities"];
-		actionData = (Dictionary<string, object>)responseDict["Actions"];
+		actionData  = (Dictionary<string, object>)responseDict["Actions"];
 		perkData = (Dictionary<string, object>)responseDict["Perks"];
 		unitData = (Dictionary<string, object>)responseDict["Classes"];
 		leaderData = (Dictionary<string, object>)responseDict["Leaders"];

@@ -267,8 +267,14 @@ def takeAction(data):
 
 	try:
 		notify_message_key = "ACTION_TAKEN"
-		data = {"request": data, "response": response}
-		opp_user = Game_User.objects.filter(name=game).exclude(user=user).first()
+
+		# Prepare data for other player
+		data = response
+		data["Action"]  = request["Action"]
+		data["Game_ID"] = game.id
+		del data["Success"]
+
+		opp_user = Game_User.objects.filter(game=game).exclude(user=user).first()
 		async_message = AsyncMessages(user=opp_user.user, message_key=notify_message_key, data=data)
 		async_message.save()
 	except Exception as e:

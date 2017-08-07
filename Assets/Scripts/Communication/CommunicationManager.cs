@@ -17,7 +17,7 @@ public class CommunicationManager
 	private static object requestQueueLock;
 	private static object responseDictLock;
 
-	private static Queue<Dictionary<string, object>> asyncMessagesQueue;
+	private static Dictionary<string, Queue<Dictionary<string, object>>> asyncMessagesQueue;
 	private static Queue<Dictionary<string, object>> requestQueue;
 	private static Dictionary<string, Dictionary<string, object>> responseDict;
 
@@ -29,7 +29,7 @@ public class CommunicationManager
 	{
 		Debug.Log("Starting Communication Manager");
 		//Create the communication data structures
-		asyncMessagesQueue = new Queue<Dictionary<string, object>>();
+		asyncMessagesQueue = new Dictionary<string, Queue<Dictionary<string, object>>>();
 		requestQueue = new Queue<Dictionary<string, object>>();
 		responseDict = new Dictionary<string, Dictionary<string, object>>();
 
@@ -85,7 +85,7 @@ public class CommunicationManager
 							}
 						}
 						Debug.Log("Exception getting response: " + e.ToString());
-						throw e;
+						throw;
 					}
 					
 					if (resp == null){
@@ -96,11 +96,21 @@ public class CommunicationManager
 						response = resp;
 					}
 					else{
-						lock(asyncMessagesLock){
-							Debug.Log("Found an async message");
-							LogDictionary(resp);
-							asyncMessagesQueue.Enqueue(resp);
-							Debug.Log("Async Queue Size: " + asyncMessagesQueue.Count.ToString());
+						Debug.Log("Found an async message");
+						LogDictionary(resp);
+						if(!resp.ContainsKey("Key")){
+							response = null;
+							Debug.Log("Error: Key missing from response:.");
+						}
+						else{
+							string _asyncKey = resp["Key"].ToString();
+
+							lock(asyncMessagesLock){
+								if(!asyncMessagesQueue.ContainsKey(_asyncKey)){
+									asyncMessagesQueue[_asyncKey] = new Queue<Dictionary<string, object>>();
+								}
+								asyncMessagesQueue[_asyncKey].Enqueue(resp);
+							}
 						}
 					}
 				}
@@ -122,7 +132,7 @@ public class CommunicationManager
 				}
 			}
 		} catch (Exception e){
-			Debug.Log("Manager Thread crashed: " + e.ToString());
+			Debug.Log("Manager Thread crashed: " + e);
 		}
 
 		
@@ -222,17 +232,62 @@ public class CommunicationManager
 		return response;
 	}
 
-	public static Dictionary<string, object> GetNextAsyncMessage(){
-		Dictionary<string, object> message = null;
+	/*
+	 * Gets the queue of asynchronous messages for a specific key.
+	 * Returns null if no messages of the specified key have been received.
+	 * Sends the entire queue of messages for the specific key so that the
+	 * asyncMessagesQueue does not need to remain locked while external
+	 * classes are processing the queue of messages.
+	 * If any of the sent messages are not processed, they should be returned
+	 * to the queue with the "ReturnAsyncKeyQueue" method.
+	 */
+	public static Queue<Dictionary<string, object>> GetAsyncKeyQueue(string key){
+		if(!asyncMessagesQueue.ContainsKey(key)){
+			return null;
+		}
+
+		// Store reference to existing queue
+		Queue<Dictionary<string, object>> returnedQueue;
+
 		lock(asyncMessagesLock){
-			if (asyncMessagesQueue.Count > 0){
-				message = asyncMessagesQueue.Dequeue();
+			returnedQueue = asyncMessagesQueue[key];
+			asyncMessagesQueue[key] = new Queue<Dictionary<string, object>>();
+		}
+
+		return returnedQueue;
+	}
+
+	/*
+	 * If the "GetAsynchKeyQueue" method did not fully process the queue it
+	 * received, this method will add any remaining queued elements back to the
+	 * main queue for future processing
+	 */
+	public static void ReturnAsyncKeyQueue(string key, Queue<Dictionary<string, object>> retQueue){
+		if(!asyncMessagesQueue.ContainsKey(key)){
+			lock(asyncMessagesLock){
+				asyncMessagesQueue[key] = new Queue<Dictionary<string, object>>();
 			}
 		}
 
-		return message;
+		lock(asyncMessagesLock){
+			while(retQueue.Count > 0){
+				asyncMessagesQueue[key].Enqueue(retQueue.Dequeue());
+			}
+		}
+
+		return;
 	}
 
+	// public static Dictionary<string, object> GetNextAsyncMessage(){
+	// 	Dictionary<string, object> message = null;
+	// 	lock(asyncMessagesLock){
+	// 		if (asyncMessagesCount > 0){
+	// 			message = asyncMessagesQueue.Dequeue();
+	// 		}
+	// 	}
+
+	// 	return message;
+	// }
 
 	/********************************************
 	 * Private communication helper logic
@@ -361,16 +416,25 @@ public class CommunicationManager
 		return response;
 	}
 
-	private static void LogDictionary(Dictionary<string, object> dict){
-		Debug.Log("{");
+	public static void LogDictionary(Dictionary<string, object> dict){
+		Debug.Log(GetDictString(dict));
+	}
+
+	private static string GetDictString(Dictionary<string, object> dict){
+		StringBuilder loggedDict = new StringBuilder("{\n");
 		foreach (KeyValuePair<string, object> kvp in dict)
 		{
-			Debug.Log(string.Format("Key = {0}, Value = {1}", kvp.Key.ToString(), kvp.Value.ToString()));
+			string value = kvp.Value.ToString();
+			if(kvp.Value.GetType() == dict.GetType()){
+				value = GetDictString((Dictionary<string, object>)kvp.Value);
+			}
+			loggedDict.Append(string.Format("\"{0}\": \"{1}\",\n", kvp.Key, value));
 			if (kvp.Value.GetType() == typeof(Dictionary<string, object>)){
 				LogDictionary((Dictionary<string, object>)kvp.Value);
 			}
 		}
-		Debug.Log("}");
+		loggedDict.Append("}");
+		return loggedDict.ToString();
 	}
 
 	// Generates the key to use for AES encryption
