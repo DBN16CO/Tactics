@@ -16,10 +16,12 @@ public class TargetDetailsController : MonoBehaviour {
 	// Object references
 	public Text myDmgText;
 	public Text myCritText;
-	public Text myMissText;
+	public Text myHitText;
 	public Text targDmgText;
 	public Text targCritText;
-	public Text targMissText;
+	public Text targHitText;
+
+	public Text DmgOrHeal;
 
 	void Start () {
 		Main = this;
@@ -37,30 +39,46 @@ public class TargetDetailsController : MonoBehaviour {
 
 	// Updates details when target is selected
 	public void SetDetails() {
+		// Update dmg or heal text
+		DmgOrHeal.text = (IsAttack)? "DMG" : "HEAL";
 		// Set unit stats
-		UnitData myUnit = GameData.GetUnit(GameController.SelectedToken.CurrentUnit.name);
-		int myPower = myUnit.GetStat("Strength").Value;
-		int myDef	= myUnit.GetStat("Defense").Value;
+		UnitData myUnit 	= GameData.GetUnit(GameController.SelectedToken.CurrentUnit.Info.Name);
+		UnitData targUnit 	= GameData.GetUnit(GameController.IntendedTarget.CurrentUnit.Info.Name);
+		// DEVELOPMENT UNTIL BETTER WAY TO DETERMINE PHYSICAL VS MAGICAL
+		bool myPhysical 	= myUnit.GetStat("Strength").Value > myUnit.GetStat("Intelligence").Value;
+		bool targPhysical	= targUnit.GetStat("Strength").Value > targUnit.GetStat("Intelligence").Value;
+
+		int myPower = (myPhysical)? myUnit.GetStat("Strength").Value : myUnit.GetStat("Intelligence").Value;
+		int myDef	= (targPhysical)? myUnit.GetStat("Defense").Value : myUnit.GetStat("Resistance").Value;
 		int myAgil	= myUnit.GetStat("Agility").Value;
 		int myLuck	= myUnit.GetStat("Luck").Value;
-		UnitData targUnit = GameData.GetUnit(GameController.IntendedTarget.CurrentUnit.name);
-		int targPower 	= targUnit.GetStat("Strength").Value;
-		int targDef		= targUnit.GetStat("Defense").Value;
+		int targPower 	= (targPhysical)? targUnit.GetStat("Strength").Value : targUnit.GetStat("Intelligence").Value;
+		int targDef		= (myPhysical)? targUnit.GetStat("Defense").Value : targUnit.GetStat("Resistance").Value;
 		int targAgil	= targUnit.GetStat("Agility").Value;
-		int targLuck	= targUnit.GetStat("Luck").Value; 
+		int targLuck	= targUnit.GetStat("Luck").Value;
+
 		// Calculate vars
 		int myDmg 	= Mathf.Max(0, myPower - targDef);
-		int myMiss 	= Mathf.Max(0, ((targAgil - myAgil) * 5) + 5);
-		int myCrit 	= Mathf.Max(0, ((myLuck - targLuck) * 5) + 5);
-		int targDmg 	= Mathf.Max(0, targPower - myDef);
-		int targMiss 	= Mathf.Max(0, ((myAgil - targAgil) * 5) + 5);
-		int targCrit 	= Mathf.Max(0, ((targLuck - myLuck) * 5) + 5);
+		int myHit 	= (IsAttack)? 100 - Mathf.Max(0, ((targAgil - myAgil) * 5) + 5) : 100;
+		int myCrit 	= (IsAttack)? Mathf.Max(0, ((myLuck - targLuck) * 5) + 5) : 0;
+
+		int targDmg; int targHit; int targCrit;
+		if(GameController.Main.CanTargetCounter() && IsAttack) {
+			targDmg 	= Mathf.Max(0, targPower - myDef);
+			targHit 	= 100 - Mathf.Max(0, ((myAgil - targAgil) * 5) + 5);
+			targCrit 	= Mathf.Max(0, ((targLuck - myLuck) * 5) + 5);
+		}else {
+			targDmg 	= 0;
+			targHit 	= 0;
+			targCrit 	= 0;
+		}
+
 		// Update text
 		myDmgText.text 	= myDmg.ToString();
-		myMissText.text = myMiss.ToString();
+		myHitText.text = myHit.ToString();
 		myCritText.text = myCrit.ToString();
 		targDmgText.text	= targDmg.ToString();
-		targMissText.text	= targMiss.ToString();
+		targHitText.text	= targHit.ToString();
 		targCritText.text	= targCrit.ToString();
 	}
 
@@ -71,5 +89,9 @@ public class TargetDetailsController : MonoBehaviour {
 	// Returns target Y position based on existence of IntendedTarget
 	private float TargetY {
 		get{return TARGET_Y * ((GameController.IntendedTarget == null)? -1f : 1f);}
+	}
+	// Determine whether healing or attacking
+	private bool IsAttack {
+		get{return !GameController.IntendedTarget.CurrentUnit.MyTeam;}
 	}
 }
