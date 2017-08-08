@@ -156,6 +156,7 @@ public class GameController : MonoBehaviour {
 	// Shows target info on UI
 	public void ShowTargetInfo(Unit unit) {
 		TargetInfo.SetUnitInfo(unit.Info);
+		TargetDetailsController.Main.SetDetails();
 	}
 
 	// Runs when a unit is unselected (i.e. user clicks other unit, or unit takes turn)
