@@ -85,7 +85,12 @@ class TestHelper(ChannelTestCase):
 			chn = self.channel2
 
 		result = self.get_next_message(chn.name + str(channel_num), require=True)
-		return result.content['text']
+		if 'text' in result.content:
+			return result.content['text']
+		elif 'bytes' in result.content:
+			return result.content['bytes']
+		else:
+			raise Exception("Couldn't obtain content from response: " + str(result))
 
 	def generateValidPassword(self):
 		"""
