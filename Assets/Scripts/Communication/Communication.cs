@@ -66,7 +66,6 @@ public static class Communication{
 			if (retry < 5) {
 				Debug.Log("Retrying connection: " + retry);
 				retry++;
-				Thread.Sleep (1000);
 				Close();
 				Connect(url);
 			}
