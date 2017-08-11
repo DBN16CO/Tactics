@@ -51,7 +51,7 @@ def process_message_queue():
 					# Send message to user
 					logging.debug("Sending {} message: {}".format(message.user.username, msg))
 					channel = Channel(channel_name)
-					channel.send({u'text': json.dumps(msg), u'bytes': json.dumps(msg)})
+					channel.send({u'bytes': json.dumps(msg)})
 
 					message.sent = True
 					message.save()
