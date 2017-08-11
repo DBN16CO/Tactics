@@ -47,6 +47,9 @@ public static class Communication{
 		//Logic to be done when we receive a message through the websocket
 		m_Socket.OnMessage += (sender, e) => {
 			m_Messages.Enqueue (e.RawData);
+			lock(CommunicationManager.responseDictLock){
+				Monitor.Pulse(CommunicationManager.responseDictLock);
+			}
 		};
 
 		//Logic to be done when we successfully connect to the server through the websocket
@@ -63,7 +66,6 @@ public static class Communication{
 			if (retry < 5) {
 				Debug.Log("Retrying connection: " + retry);
 				retry++;
-				Thread.Sleep (2000);
 				Close();
 				Connect(url);
 			}
@@ -84,7 +86,7 @@ public static class Communication{
 		const int maxRetries = 10;
 		while (!m_IsConnected && m_Error == null && retryCount < maxRetries) {
 			//Debug.Log ("Waiting for connection...");
-			Thread.Sleep (500);
+			Thread.Sleep (200);
 			retryCount++;
 		}
 
@@ -102,7 +104,7 @@ public static class Communication{
 
 	public static byte[] Recv()
 	{
-		if (m_Messages.Count == 0) {
+		if (m_Messages.Count <= 0) {
 			return null;
 		}
 		return m_Messages.Dequeue();

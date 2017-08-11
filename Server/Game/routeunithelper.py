@@ -7,6 +7,7 @@ which will detail the success or failure of the command
 as well as any other necessary information regarding the command.
 
 """
+import copy
 import logging
 import Game.unithelper
 import Static.statichelper
@@ -269,6 +270,7 @@ def takeAction(data):
 		notify_message_key = "ACTION_TAKEN"
 
 		# Prepare data for other player
+<<<<<<< HEAD
 		data = response
 		data["Action"]  = request["Action"]
 		data["Game_ID"] = game.id
@@ -276,6 +278,15 @@ def takeAction(data):
 
 		opp_user = Game_User.objects.filter(game=game).exclude(user=user).first()
 		async_message = AsyncMessages(user=opp_user.user, message_key=notify_message_key, data=data)
+=======
+		async_data = copy.deepcopy(response)
+		async_data["Action"]  = data["Action"]
+		async_data["Game_ID"] = game.id
+		del async_data["Success"]
+
+		opp_user = Game_User.objects.filter(game=game).exclude(user=user).first()
+		async_message = AsyncMessages(user=opp_user.user, message_key=notify_message_key, data=async_data)
+>>>>>>> 72800cf26374d875bbee3a8bb4715284838ce134
 		async_message.save()
 	except Exception as e:
 		logging.error("Failed to save async message to notify opponent user of action taken")
