@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class SpawnController : MonoBehaviour {
+public class SpawnController : ParentController {
 
 	private float _scaleFactor;		// What to scale each 1x1 unit by to fit on the screen
 
@@ -12,11 +12,6 @@ public class SpawnController : MonoBehaviour {
 		set{_scaleFactor = value;}
 	}
 #endregion
-
-	// Runs when the app is closed - attempt to close the websocket cleanly
-	void OnApplicationQuit() {
-		CommunicationManager.OnDisable();
-	}
 
 	// Call this to instantiate a new game grid
 	public void CreateMap(string mapKey) {

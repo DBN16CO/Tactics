@@ -2,15 +2,10 @@
 using UnityEngine.UI;
 
 // This class controls each selectable Perk GameObject
-public class SelectPerkController : MonoBehaviour {
+public class SelectPerkController : ParentController {
 
 	public PerkData data;
 	private SetTeamController stc;
-
-	// Runs when the app is closed - attempt to close the websocket cleanly
-	void OnApplicationQuit() {
-		CommunicationManager.OnDisable();
-	}
 
 	// Controls the image of the selectable GameObject
 	public Sprite PerkIcon {
