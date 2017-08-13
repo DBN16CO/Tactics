@@ -1,10 +1,12 @@
 import json
 import datetime
 import subprocess
+from django.utils import timezone
 from models import ServerStats, AdminUsers
 from channels import Group, channel_layers
 from django.db import connection
 from User.userhelper import verifyPassword
+from User.models import Users
 from Server.config import START_DATETIME
 
 
@@ -26,6 +28,21 @@ def send_keepalive_ping():
 	Cleanup doesn't seem to be working well, this will likely go away.
 	"""
 	Group("activeUsers").send({"text": json.dumps({"PING": "PING"})})
+
+def get_all_users():
+	return Users.objects.filter()
+
+def get_num_new_users(users):
+	num_new_users = 0
+	now = timezone.now()
+
+	for user in users:
+		diff = now - user.created
+
+		if int(diff.days) < 1:
+			num_new_users += 1
+
+	return num_new_users
 
 def get_num_active_users():
 	"""

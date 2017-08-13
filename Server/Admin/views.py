@@ -22,6 +22,7 @@ class AdminView(TemplateView):
 			send_keepalive_ping()
 			used_disk_amount, total_disk_size = get_local_disk_usage()
 			commands, average, fastest, slowest = get_all_command_perf_data()
+			users = get_all_users()
 
 			context['num_users_connected'] = get_num_active_users()
 			context['uptime'] = str(get_server_uptime())
@@ -35,6 +36,9 @@ class AdminView(TemplateView):
 			context['fast_cmd'] = fastest["name"]
 			context['fast_time'] = str(fastest["value"]) + " ms"
 			context['commands'] = commands
+			context['users'] = users
+			context['total_registered_users'] = len(users)
+			context['num_new_users'] = get_num_new_users(users)
 
 		return self.render_to_response(context)
 

@@ -1,5 +1,55 @@
 {% block users-block %}
 <div class="container" id="users-container" style="padding-top: 70px">
 	<h1>Users</h1>
+
+	<br />
+
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="well" style="padding: 3px;">
+				<h5 align="center">Total Registered Users</h4>
+				<h3 align="center">{{ total_registered_users }}</h2>
+			</div>
+		</div>
+
+		<div class="col-xs-6">
+			<div class="well" style="padding: 3px;">
+				<h5 align="center">New Registered Users (past 24 hrs)</h4>
+				<h3 align="center">{{ num_new_users }}</h2>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<table id="user-table" class="stripe">
+			<thead>
+				<th>ID</th>
+				<th>Username</th>
+				<th>Registered Date</th>
+				<th>Email</th>
+				<th>Verified</th>
+				<th>Last Login</th>
+				<th>Level</th>
+				<th>Experience</th>
+				<th>Actions</th>
+			</thead>
+			<tbody>
+				{% for user in users %}
+					<tr>
+						<th>{{ user.id }}</th>
+						<th>{{ user.username }}</th>
+						<th>{{ user.created }}</th>
+						<th>{{ user.email }}</th>
+						<th>{{ user.verified }}</th>
+						<th>{{ user.last_login }}</th>
+						<th>{{ user.level }}</th>
+						<th>{{ user.experience }}</th>
+						<th><button class="btn btn-primary details-control-btn">+</button></th>
+						<div hidden="hidden">Test</div>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
 </div>
 {% endblock %}
