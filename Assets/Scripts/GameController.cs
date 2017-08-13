@@ -17,8 +17,8 @@ public class GameController : MonoBehaviour {
 
 	// Game vars
 	private MapData _currentMap;
-	public List<MatchUnit> myUnits;
-	public List<MatchUnit> enemyUnits;
+	public Dictionary<int, MatchUnit> myUnits;
+	public Dictionary<int, MatchUnit> enemyUnits;
 	public int myTeam;
 
 	// Static Game vars
@@ -72,7 +72,7 @@ public class GameController : MonoBehaviour {
 	// When Conditions
 	private bool UnitsArePlaced {
 		get{
-			foreach(MatchUnit unit in myUnits) {
+			foreach(MatchUnit unit in myUnits.Values) {
 				if(unit.X == -1) {
 					return false;
 				}
@@ -496,12 +496,12 @@ public class GameController : MonoBehaviour {
 
 	// Initializes the game map when opening after place units has already been completed
 	private void InitializeMap() {
-		foreach(MatchUnit unit in myUnits) {
+		foreach(MatchUnit unit in myUnits.Values) {
 			if(unit.X != -1 && unit.HP > 0) {
 				SC.CreateUnit(unit, unit.X, unit.Y, true);
 			}
 		}
-		foreach(MatchUnit unit in enemyUnits) {
+		foreach(MatchUnit unit in enemyUnits.Values) {
 			if(unit.X != -1 && unit.HP > 0) {
 				SC.CreateUnit(unit, unit.X, unit.Y, false);
 			}
@@ -569,12 +569,45 @@ public class GameController : MonoBehaviour {
 		// 	}
 		// }
 		Queue<Dictionary<string, object>> asyncMessages = CommunicationManager.GetAsyncKeyQueue("ACTION_TAKEN");
+		Dictionary<string, object> unit, target;
+
 		while(asyncMessages != null && asyncMessages.Count > 0){
 			Dictionary<string, object> currentMessage = asyncMessages.Dequeue();
+			//currentMessage = Json.ToDict(currentMessage["Data"].ToString());
+			Dictionary<string, object> data = (Dictionary<string, object>)currentMessage["Data"];
 
-			// If the current message pertains to the active game
-			if(currentMessage["Game"] != null && string.Compare((string)currentMessage["Game"], GameData.CurrentMatch.Name) == 0){
+			// A game ID and unit must be provided
+			if(!data.ContainsKey("Game_ID") || !data.ContainsKey("Unit")){
+				continue;
+			}
 
+			int key = int.Parse(data["Game_ID"].ToString());
+			unit = (Dictionary<string, object>)data["Unit"];
+			if(data.ContainsKey("Target")){
+				target = (Dictionary<string, object>)data["Target"];
+			}
+			else{
+				target = null;
+			}
+
+			foreach(MatchUnit a in GameData.CurrentMatch.EnemyUnits.Values){
+				Debug.Log(a.X + "," + a.Y);
+			}
+			Debug.Log("ASDFASDA");
+
+			Debug.Log(int.Parse(unit["NewX"].ToString()));
+			Debug.Log(int.Parse(unit["NewY"].ToString()));
+
+			Debug.Log("ADFADS");
+
+			GameData.UpdateGameData(key, unit, target);
+
+			if(key == GameData.CurrentMatch.ID){
+				foreach(MatchUnit a in GameData.CurrentMatch.EnemyUnits.Values){
+					Debug.Log(a.X + "," + a.Y);
+				}
+				GameData.CurrentMatch = GameData.GetMatches[key];
+				SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 			}
 		}
 	}
@@ -585,7 +618,7 @@ public class GameController : MonoBehaviour {
 			UnityEngine.Debug.Log("Query Games failed");
 			return;
 		}
-		int _matchID = GameData.CurrentMatch.MatchID;
+		int _matchID = GameData.CurrentMatch.ID;
 		if(GameData.GetMatches[_matchID].UserTurn) {
 			UnityEngine.Debug.Log("It's now your turn");
 			GameData.CurrentMatch = GameData.GetMatches[_matchID];
