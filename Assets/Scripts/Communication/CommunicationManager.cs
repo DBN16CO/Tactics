@@ -71,33 +71,6 @@ public class CommunicationManager
 						response = GetNextResponse();
 					} catch (Exception e){
 						Debug.Log("Exception getting response: " + e.ToString());
-<<<<<<< HEAD
-						throw;
-					}
-					
-					if (resp == null){
-						break;
-					}
-
-					if (resp.ContainsKey("Request_ID") && (string) resp["Request_ID"] == requestID){
-						response = resp;
-					}
-					else{
-						Debug.Log("Found an async message");
-						LogDictionary(resp);
-						if(!resp.ContainsKey("Key")){
-							response = null;
-							Debug.Log("Error: Key missing from response:.");
-						}
-						else{
-							string _asyncKey = resp["Key"].ToString();
-
-							lock(asyncMessagesLock){
-								if(!asyncMessagesQueue.ContainsKey(_asyncKey)){
-									asyncMessagesQueue[_asyncKey] = new Queue<Dictionary<string, object>>();
-								}
-								asyncMessagesQueue[_asyncKey].Enqueue(resp);
-=======
 					}
 
 					if (response != null){
@@ -109,9 +82,14 @@ public class CommunicationManager
 						}
 						else{
 							Debug.Log("Obtained async message from server");
+
+							string _asyncKey = response["Key"].ToString();
+
 							lock(asyncMessagesLock){
-								asyncMessagesQueue.Enqueue(response);
->>>>>>> 72800cf26374d875bbee3a8bb4715284838ce134
+								if(!asyncMessagesQueue.ContainsKey(_asyncKey)){
+									asyncMessagesQueue[_asyncKey] = new Queue<Dictionary<string, object>>();
+								}
+								asyncMessagesQueue[_asyncKey].Enqueue(response);
 							}
 						}
 					}
@@ -119,7 +97,7 @@ public class CommunicationManager
 				
 			}
 		} catch (Exception e){
-			Debug.Log("Response Manager Thread crashed: " + e.ToString());
+			Debug.Log("Response Manager Thread crashed: " + e);
 		}
 		
 	}
@@ -154,11 +132,7 @@ public class CommunicationManager
 				}
 			}
 		} catch (Exception e){
-<<<<<<< HEAD
-			Debug.Log("Manager Thread crashed: " + e);
-=======
 			Debug.Log("Request Manager Thread crashed: " + e.ToString());
->>>>>>> 72800cf26374d875bbee3a8bb4715284838ce134
 		}
 	}
 

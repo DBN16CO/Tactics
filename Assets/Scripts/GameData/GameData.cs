@@ -1,4 +1,4 @@
-﻿//using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 public static class GameData {
@@ -8,7 +8,7 @@ public static class GameData {
 	public static VersionData Version;
 
 	private static List<object> matchData;
-	private static List<MatchData> matches;
+	private static Dictionary<int, MatchData> matches;
 	public  static MatchData CurrentMatch;
 
 	private static List<StatData> stats;
@@ -75,16 +75,20 @@ public static class GameData {
 
 	// Populates match data and creates callable list
 	public static void SetMatchData(Dictionary<string, object> matchDict) {
-		matches = new List<MatchData>();
+		matches = new Dictionary<int, MatchData>();
 		matches.Clear();
 
 		if(matchDict["Games"].ToString() == "[]") {
 			return;
 		}
 		matchData = Json.ToList(matchDict["Games"].ToString());
+
+		int key;
+		Dictionary<string, object> _matchDataAsDict;
 		foreach(object match in matchData) {
-			matches.Add(new MatchData(Json.ToDict(match.ToString())));
-			matches[matches.Count-1].MatchID = matches.Count-1;
+			_matchDataAsDict = Json.ToDict(match.ToString());
+			key = int.Parse(_matchDataAsDict["ID"].ToString());
+			matches[key] = new MatchData(_matchDataAsDict);
 		}
 	}
 
@@ -144,12 +148,36 @@ public static class GameData {
 			maps.Add(new MapData(map));
 		}
 	}
+
+	// Update a specific game's data based on a received
+	public static void UpdateGameData(int key, Dictionary<string, object> unit, Dictionary<string, object> target){
+
+		// The 'Unit' from user 2's perspective is the enemy
+		int enemy_id = int.Parse(unit["ID"].ToString());
+		MatchUnit enemy = matches[key].EnemyUnits[enemy_id];
+		enemy.X  = int.Parse(unit["NewX"].ToString());
+		enemy.Y  = int.Parse(unit["NewY"].ToString());
+
+		// The 'Target' from user 2's perspective is his/her unit
+		if(target != null){
+			int allied_id = int.Parse(target["ID"].ToString());
+			MatchUnit ally = matches[key].AlliedUnits[allied_id];
+			ally.HP = int.Parse(target["NewHP"].ToString());
+
+			// HP can only change for actions that involved a target
+			enemy.HP = int.Parse(unit["NewHP"].ToString());
+
+			matches[key].AlliedUnits[allied_id] = ally;
+		}
+
+		matches[key].EnemyUnits[enemy_id] = enemy;
+	}
 #endregion
 
 #region // Retrieve Static Data
 
 	// Called to retrieve dynamic match data
-	public static List<MatchData> GetMatches {
+	public static Dictionary<int, MatchData> GetMatches {
 		get{return matches;}
 	}
 

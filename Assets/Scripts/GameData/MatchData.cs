@@ -2,30 +2,30 @@
 
 public class MatchData {
 
-	public int MatchID;
-
 	// QGU properties
-	public string            Name;
-	public string            Opponent;
-	public int               Round;
-	public bool              UserTurn;
-	public string            MapName;
-	public bool              InGameQueue;
-	public bool              Finished;
-	public int               UserTeam;
-	public int               EnemyTeam;
-	public List<MatchUnit>   AlliedUnits;
-	public MatchLeader       AlliedLeader;
-	public List<MatchPerk>   AlliedPerks;
-	public List<MatchUnit>   EnemyUnits;
-	public MatchLeader       EnemyLeader;
-	public List<MatchPerk>   EnemyPerks;
-	public List<MatchAction> GameActions;
+	public int               			ID;
+	public string            			Name;
+	public string            			Opponent;
+	public int               			Round;
+	public bool              			UserTurn;
+	public string            			MapName;
+	public bool             		 	InGameQueue;
+	public bool              			Finished;
+	public int               			UserTeam;
+	public int               			EnemyTeam;
+	public Dictionary<int, MatchUnit> 	AlliedUnits;
+	public MatchLeader       			AlliedLeader;
+	public List<MatchPerk>   			AlliedPerks;
+	public Dictionary<int, MatchUnit>   EnemyUnits;
+	public MatchLeader       			EnemyLeader;
+	public List<MatchPerk>   			EnemyPerks;
+	public List<MatchAction> 			GameActions;
 
 	// Default constructor
 	// Parses all fields necessary to describe the game to the front end
 	public MatchData(Dictionary<string, object> matchData) {
 		// General match information
+		ID          = int.Parse(matchData["ID"].ToString());
 		Name        = matchData["Name"].ToString();
 		Opponent    = matchData["Opponent"].ToString();
     	Round       = int.Parse(matchData["Round"].ToString());
@@ -37,7 +37,7 @@ public class MatchData {
 		EnemyTeam   = int.Parse(matchData["Enemy_Team"].ToString());
 
 		// Get all the allied units
-		AlliedUnits = new List<MatchUnit>();
+		AlliedUnits = new Dictionary<int, MatchUnit>();
 		foreach(object unitData in Json.ToList(matchData["Your_Units"].ToString())){
 			Dictionary<string, object> unit = Json.ToDict(unitData.ToString());
 
@@ -51,7 +51,7 @@ public class MatchData {
 			alliedUnit.Y      = int.Parse(unit["Y"].ToString());
 			alliedUnit.Acted  = (bool)unit["Acted"];
 
-			AlliedUnits.Add(alliedUnit);
+			AlliedUnits[alliedUnit.ID] = alliedUnit;
 		}
 
 		// Get all the allied perks
@@ -73,7 +73,7 @@ public class MatchData {
 		AlliedLeader.Ability = leaderData["Ability"].ToString();
 
 		// Get all the enemy units
-		EnemyUnits = new List<MatchUnit>();
+		EnemyUnits = new Dictionary<int, MatchUnit>();
 		foreach(object unitData in Json.ToList(matchData["Enemy_Units"].ToString())){
 			Dictionary<string, object> unit = Json.ToDict(unitData.ToString());
 
@@ -87,7 +87,7 @@ public class MatchData {
 			enemyUnit.Y      = int.Parse(unit["Y"].ToString());
 			enemyUnit.Acted  = (bool)unit["Acted"];
 
-			EnemyUnits.Add(enemyUnit);
+			EnemyUnits[enemyUnit.ID] = enemyUnit;
 		}
 
 		// Enemy leader data

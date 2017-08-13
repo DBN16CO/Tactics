@@ -556,19 +556,13 @@ public class GameController : ParentController {
 		{
 			Camera.main.orthographicSize /= 0.95f;
 		}
-		// if(!GameData.CurrentMatch.UserTurn) {
-		// 	_qguTimer += Time.deltaTime;
-		// 	if(_qguTimer >= _qguInterval) {
-		// 		CheckForTurn();
-		// 		_qguTimer = 0f;
-		// 	}
-		// }
+
+		// Check if there were any actions taken by the other player
 		Queue<Dictionary<string, object>> asyncMessages = CommunicationManager.GetAsyncKeyQueue("ACTION_TAKEN");
 		Dictionary<string, object> unit, target;
 
 		while(asyncMessages != null && asyncMessages.Count > 0){
 			Dictionary<string, object> currentMessage = asyncMessages.Dequeue();
-			//currentMessage = Json.ToDict(currentMessage["Data"].ToString());
 			Dictionary<string, object> data = (Dictionary<string, object>)currentMessage["Data"];
 
 			// A game ID and unit must be provided
@@ -585,22 +579,9 @@ public class GameController : ParentController {
 				target = null;
 			}
 
-			foreach(MatchUnit a in GameData.CurrentMatch.EnemyUnits.Values){
-				Debug.Log(a.X + "," + a.Y);
-			}
-			Debug.Log("ASDFASDA");
-
-			Debug.Log(int.Parse(unit["NewX"].ToString()));
-			Debug.Log(int.Parse(unit["NewY"].ToString()));
-
-			Debug.Log("ADFADS");
-
 			GameData.UpdateGameData(key, unit, target);
 
 			if(key == GameData.CurrentMatch.ID){
-				foreach(MatchUnit a in GameData.CurrentMatch.EnemyUnits.Values){
-					Debug.Log(a.X + "," + a.Y);
-				}
 				GameData.CurrentMatch = GameData.GetMatches[key];
 				SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 			}
