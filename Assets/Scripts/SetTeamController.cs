@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 
 // This class controls the SetTeamController GameObject in the SetTeam scene
-public class SetTeamController : MonoBehaviour {
+public class SetTeamController : ParentController {
 
 	// The team selected
 	public GameObject leader;
@@ -46,11 +46,6 @@ public class SetTeamController : MonoBehaviour {
 		perks = new List<GameObject>(3) {null,null,null};
 		_maxFunds = GameData.Version.maxFunds;
 		FundsRemaining = _maxFunds;
-	}
-
-	// Runs when the app is closed - attempt to close the websocket cleanly
-	void OnApplicationQuit() {
-		CommunicationManager.OnDisable();
 	}
 
 	// Adds a leader to the screen

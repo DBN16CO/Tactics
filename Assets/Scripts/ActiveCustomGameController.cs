@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class ActiveCustomGameController : MonoBehaviour {
+public class ActiveCustomGameController : ParentController {
 
 	public Button btn;
 	private GameObject _detailedView;

@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class StartupController : MonoBehaviour {
+public class StartupController : ParentController {
 
 	private string selectedButton;		// Is login or register selected
 	private bool _expanding;			// When register is clicked
@@ -34,11 +34,6 @@ public class StartupController : MonoBehaviour {
 			Debug.Log("Initializing Login UI");
 			InitLoginUI();
 		}
-	}
-
-	// Runs when the app is closed - attempt to close the websocket cleanly
-	void OnApplicationQuit() {
-		CommunicationManager.OnDisable();
 	}
 
 	// Runs every frame, lerps objects if _expanding or _collapsing

@@ -2,17 +2,12 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class MainMenuController : MonoBehaviour {
+public class MainMenuController : ParentController {
 
 	// Initiate variables and load active games
 	void Start () {
 		Server.inQueue = false;
 		LoadCustomGames();
-	}
-
-	// Runs when the app is closed - attempt to close the websocket cleanly
-	void OnApplicationQuit() {
-		CommunicationManager.OnDisable();
 	}
 
 	public void LoadSetTeam() {

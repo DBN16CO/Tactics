@@ -3,15 +3,10 @@ using System;
 using UnityEngine.UI;
 
 // This class controls each selectable Unit GameObject
-public class SelectUnitController : MonoBehaviour {
+public class SelectUnitController : ParentController {
 
 	public UnitData data;
 	private SetTeamController stc;
-
-	// Runs when the app is closed - attempt to close the websocket cleanly
-	void OnApplicationQuit() {
-		CommunicationManager.OnDisable();
-	}
 
 	// Controls the image of the selectable GameObject
 	public Sprite UnitImage {

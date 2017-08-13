@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 using System.Collections.Generic;
 
-public class GameController : MonoBehaviour {
+public class GameController : ParentController {
 
 	private static Token[][] _tokens;
 	private static int _gridHeight;
@@ -113,11 +113,6 @@ public class GameController : MonoBehaviour {
 		// For any gameplay vars and functions
 //		TestGamePlay();
 		// End testing block -------------------------------------------
-	}
-
-	// Runs when the app is closed - attempt to close the websocket cleanly
-	void OnApplicationQuit() {
-		CommunicationManager.OnDisable();
 	}
 
 	// Run when turn starts to reset units, etc
