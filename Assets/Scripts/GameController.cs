@@ -551,9 +551,7 @@ public class GameController : ParentController {
 		if(Input.GetKey("i")){
 			Camera.main.orthographicSize *= (Camera.main.orthographicSize < 0.5f)? 1f : 0.95f;
 		}
-		if(Input.GetKey("o"))
-
-		{
+		if(Input.GetKey("o"))		{
 			Camera.main.orthographicSize /= 0.95f;
 		}
 

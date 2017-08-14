@@ -9,14 +9,14 @@ public class MatchData {
 	public int               			Round;
 	public bool              			UserTurn;
 	public string            			MapName;
-	public bool             		 	InGameQueue;
+	public bool             			InGameQueue;
 	public bool              			Finished;
 	public int               			UserTeam;
 	public int               			EnemyTeam;
-	public Dictionary<int, MatchUnit> 	AlliedUnits;
+	public Dictionary<int, MatchUnit>	AlliedUnits;
 	public MatchLeader       			AlliedLeader;
 	public List<MatchPerk>   			AlliedPerks;
-	public Dictionary<int, MatchUnit>   EnemyUnits;
+	public Dictionary<int, MatchUnit>	EnemyUnits;
 	public MatchLeader       			EnemyLeader;
 	public List<MatchPerk>   			EnemyPerks;
 	public List<MatchAction> 			GameActions;

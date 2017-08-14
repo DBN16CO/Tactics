@@ -294,17 +294,6 @@ public class CommunicationManager
 		return;
 	}
 
-	// public static Dictionary<string, object> GetNextAsyncMessage(){
-	// 	Dictionary<string, object> message = null;
-	// 	lock(asyncMessagesLock){
-	// 		if (asyncMessagesCount > 0){
-	// 			message = asyncMessagesQueue.Dequeue();
-	// 		}
-	// 	}
-
-	// 	return message;
-	// }
-
 	/********************************************
 	 * Private communication helper logic
 	 ********************************************/
