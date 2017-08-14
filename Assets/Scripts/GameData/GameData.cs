@@ -149,8 +149,18 @@ public static class GameData {
 		}
 	}
 
-	// Update a specific game's data based on a received
-	public static void UpdateGameData(int key, Dictionary<string, object> unit, Dictionary<string, object> target){
+	// Update a specific game's data based on a received end turn message
+	public static void UpdateETGameData(int gameID){
+		if(!matches.ContainsKey(gameID)){
+			return;
+		}
+
+		matches[gameID].UserTurn = true;
+		matches[gameID].ResetActed();
+	}
+
+	// Update a specific game's data based on a received take action message
+	public static void UpdateTAGameData(int key, Dictionary<string, object> unit, Dictionary<string, object> target){
 
 		// The 'Unit' from user 2's perspective is the enemy
 		int enemy_id = int.Parse(unit["ID"].ToString());

@@ -9,6 +9,7 @@ as well as any other necessary information regarding the command.
 """
 import logging
 from Communication.routehelper import formJsonResult
+from Communication.models import AsyncMessages
 from Static.models import Version
 from Game.models import Action_History, Game_Queue, Game_User, Unit
 import Game.unithelper
@@ -430,7 +431,8 @@ def endTurn(data):
 	Unit.objects.filter(owner=other_user, game=game).exclude(hp__lte=0).update(acted=False)
 
 	# Send message to other user that it is their turn
-	notify_message_key = "ACTION_TAKEN"
+	notify_message_key = "ENDED_TURN"
+	async_data = {}
 	async_data["Game_ID"] = game.id
 
 	async_message = AsyncMessages(user=other_user, message_key=notify_message_key, data=async_data)

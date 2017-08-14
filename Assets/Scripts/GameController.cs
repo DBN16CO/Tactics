@@ -579,16 +579,36 @@ public class GameController : ParentController {
 				target = null;
 			}
 
-			GameData.UpdateGameData(key, unit, target);
+			GameData.UpdateTAGameData(key, unit, target);
 
 			if(key == GameData.CurrentMatch.ID){
 				GameData.CurrentMatch = GameData.GetMatches[key];
 				SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 			}
 		}
+
+		// Check if the other user ended their turn
+		asyncMessages = CommunicationManager.GetAsyncKeyQueue("ENDED_TURN");
+		while(asyncMessages != null && asyncMessages.Count > 0){
+			Dictionary<string, object> currentMessage = asyncMessages.Dequeue();
+			Dictionary<string, object> data = (Dictionary<string, object>)currentMessage["Data"];
+
+			// A game ID must be provided
+			if(!data.ContainsKey("Game_ID")){
+				continue;
+			}
+
+			int gameID = int.Parse(data["Game_ID"].ToString());
+			GameData.UpdateETGameData(gameID);
+
+			if(gameID == GameData.CurrentMatch.ID){
+				GameData.CurrentMatch = GameData.GetMatches[gameID];
+				SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
+			}
+		}
 	}
 
-	// Loads active games
+	// Losds active games
 	private void CheckForTurn() {
 		if(!(bool)Server.QueryGames()["Success"]) {
 			UnityEngine.Debug.Log("Query Games failed");

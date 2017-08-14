@@ -149,6 +149,19 @@ public class MatchData {
 		return null;
 	}
 
+	public void ResetActed(){
+		/* TODO - Why doesn't this work?
+		Dictionary<int, MatchUnit> tempUnits = AlliedUnits;
+		MatchUnit tempUnit;
+		foreach(KeyValuePair<int, MatchUnit> unit in AlliedUnits){
+			tempUnit = unit.Value;
+			tempUnit.Acted = false;
+			tempUnits[unit.Key] = tempUnit;
+		}
+		AlliedUnits = tempUnits;
+		*/
+	}
+
 }
 
 public struct MatchAction {
