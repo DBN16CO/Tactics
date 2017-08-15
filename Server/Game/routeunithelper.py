@@ -277,6 +277,7 @@ def takeAction(data):
 
 		opp_user = Game_User.objects.filter(game=game).exclude(user=user).first()
 		async_message = AsyncMessages(user=opp_user.user, message_key=notify_message_key, data=async_data)
+
 		async_message.save()
 	except Exception as e:
 		logging.error("Failed to save async message to notify opponent user of action taken")
