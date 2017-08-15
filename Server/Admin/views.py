@@ -6,76 +6,76 @@ from User.models import Users
 
 
 class AdminView(TemplateView):
-	template_name = 'admin.html'
+    template_name = 'admin.html'
 
-	def get(self, request, *args, **kwargs):
-		session = request.session
-		context = self.get_context_data(**kwargs)
-		context.update(csrf(request))
+    def get(self, request, *args, **kwargs):
+        session = request.session
+        context = self.get_context_data(**kwargs)
+        context.update(csrf(request))
 
-		if 'logout' in request.GET:
-			del session['admin']
-			return redirect('/admin')
+        if 'logout' in request.GET:
+            del session['admin']
+            return redirect('/admin')
 
-		if 'admin' in session:
-			context['admin'] = session['admin']
+        if 'admin' in session:
+            context['admin'] = session['admin']
 
-			send_keepalive_ping()
-			used_disk_amount, total_disk_size = get_local_disk_usage()
-			commands, average, fastest, slowest = get_all_command_perf_data()
-			users = get_all_users()
+            send_keepalive_ping()
+            used_disk_amount, total_disk_size = get_local_disk_usage()
+            commands, average, fastest, slowest = get_all_command_perf_data()
+            users = get_all_users()
 
-			context['num_users_connected'] = get_num_active_users()
-			context['uptime'] = str(get_server_uptime())
-			context['used_disk_amount'] = str(used_disk_amount)
-			context['total_disk_size'] = str(total_disk_size)
-			context['db_row_count'] = str(get_total_db_rows())
-			context['average_request_time'] = str(average["value"]) + " ms"
-			context['total_num_requests'] = average["total"]
-			context['slow_cmd'] = slowest["name"]
-			context['slow_time'] = str(slowest["value"]) + " ms"
-			context['fast_cmd'] = fastest["name"]
-			context['fast_time'] = str(fastest["value"]) + " ms"
-			context['commands'] = commands
-			context['users'] = users
-			context['total_registered_users'] = len(users)
-			context['num_new_users'] = get_num_new_users(users)
+            context['num_users_connected'] = get_num_active_users()
+            context['uptime'] = str(get_server_uptime())
+            context['used_disk_amount'] = str(used_disk_amount)
+            context['total_disk_size'] = str(total_disk_size)
+            context['db_row_count'] = str(get_total_db_rows())
+            context['average_request_time'] = str(average["value"]) + " ms"
+            context['total_num_requests'] = average["total"]
+            context['slow_cmd'] = slowest["name"]
+            context['slow_time'] = str(slowest["value"]) + " ms"
+            context['fast_cmd'] = fastest["name"]
+            context['fast_time'] = str(fastest["value"]) + " ms"
+            context['commands'] = commands
+            context['users'] = users
+            context['total_registered_users'] = len(users)
+            context['num_new_users'] = get_num_new_users(users)
 
-		return self.render_to_response(context)
+        return self.render_to_response(context)
 
-	def post(self, request, *args, **kwargs):
-		session = request.session
-		context = self.get_context_data(**kwargs)
+    def post(self, request, *args, **kwargs):
+        session = request.session
+        context = self.get_context_data(**kwargs)
 
-		form_type = request.POST['form-type']
+        form_type = request.POST['form-type']
 
-		if form_type == 'login':
-			username = request.POST['username']
-			password = request.POST['password']
+        if form_type == 'login':
+            username = request.POST['username']
+            password = request.POST['password']
 
-			success = login(username, password)
-			if success:
-				session['admin'] = username
-			else:
-				pass
-		elif form_type == 'edit-user':
-			user_id = request.POST['user_id']
-			username = request.POST['username']
-			email = request.POST['email']
-			level = request.POST['level']
-			experience = request.POST['experience']
+            success = login(username, password)
+            if success:
+                session['admin'] = username
+            else:
+                pass
+        elif form_type == 'edit-user':
+            user_id = request.POST['user_id']
+            username = request.POST['username']
+            email = request.POST['email']
+            level = request.POST['level']
+            experience = request.POST['experience']
 
-			user = Users.objects.filter(id=user_id).first()
-			if user:
-				user.username = username
-				user.email = email
-				user.level = level
-				user.experience = experience
-				user.save()
+            user = Users.objects.filter(id=user_id).first()
+            if user:
+                user.username = username
+                user.email = email
+                user.level = level
+                user.experience = experience
+                user.save()
 
 
-		if 'admin' in session:
-			context['admin'] = session['admin']
+        if 'admin' in session:
+            context['admin'] = session['admin']
 
-		context.update(csrf(request))
-		return redirect('/admin')
+        context.update(csrf(request))
+        return redirect('/admin')

@@ -58,10 +58,7 @@ $(document).ready(function(){
 	});
 
 	$("body").on("click", ".user-edit", function(){
-		console.log($(this).siblings().attr("data"));
-		var data = $(this).siblings().attr("data")
-		console.log(data);
-
+		var data = $(this).siblings().attr("data");
 
 		var user = JSON.parse(data);
 
