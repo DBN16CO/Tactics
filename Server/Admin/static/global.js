@@ -41,8 +41,8 @@ $(document).ready(function(){
 				"<button class='btn btn-danger'>Delete</button>";
 	}
 
-	$(".details-control-btn").on('click', function(){
-		var tr = $(this).closest('tr');
+	$(".details-control-btn").on("click", function(){
+		var tr = $(this).closest("tr");
 		var row = userTable.row(tr);
 
 		if (row.child.isShown()){
@@ -53,23 +53,23 @@ $(document).ready(function(){
 		else{
 			$(this).html("-");
 			row.child(generateChildRow(row.data())).show();
-			tr.addClass('shown');
+			tr.addClass("shown");
 		}
 	});
 
-	$('body').on('click', '.user-edit', function(){
-		console.log($(this).siblings().attr('data'));
-		var data = $(this).siblings().attr('data')
+	$("body").on("click", ".user-edit", function(){
+		console.log($(this).siblings().attr("data"));
+		var data = $(this).siblings().attr("data")
 		console.log(data);
 
 
 		var user = JSON.parse(data);
 
-		$('.edit-user-title').html('Edit User: ' + user['Username']);
-		$('#edit-username').attr('value', user['Username']);
-		$('#edit-email').attr('value', user['Email']);
-		$('#edit-level').attr('value', user['Level']);
-		$('#edit-exp').attr('value', user['Experience']);
-		$('#user-id').attr('value', user['ID']);
+		$(".edit-user-title").html("Edit User: " + user["Username"]);
+		$("#edit-username").attr("value", user["Username"]);
+		$("#edit-email").attr("value", user["Email"]);
+		$("#edit-level").attr("value", user["Level"]);
+		$("#edit-exp").attr("value", user["Experience"]);
+		$("#user-id").attr("value", user["ID"]);
 	});
 });
