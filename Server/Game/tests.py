@@ -597,6 +597,7 @@ class TestQueryGames(TestGame):
 	def helper_verify_result(self, result):
 		# Verify Game related information
 		self.assertTrue(len(result["Games"]) == 1)
+		self.assertEquals(result["Games"][0]["ID"],        Game.objects.filter().first().id)
 		self.assertEquals(result["Games"][0]["Name"],      Game_User.objects.filter(user=self.user).first().name)
 		self.assertEquals(result["Games"][0]["Round"],     Game.objects.filter().first().game_round)
 		self.assertEquals(result["Games"][0]["Your_Turn"], True)
@@ -806,6 +807,7 @@ class TestTakeAction(TestGame):
 	- Both a magical and physical attacker can successfully deal damage (Test 21)\n
 	- A miss or a crit is properly noted in the Take Action response\n
 	- The proper Action History update has been made for the action\n
+	- A unit can move onto a dead ally or enemy unit (Tests 25 and 26)\n
 	"""
 	def setUp(self):
 		super(TestTakeAction, self).setUp()
@@ -1824,6 +1826,32 @@ class TestTakeAction(TestGame):
 
 		self.helper_execute_move_success(self.no_tgt_cmd)
 
+	def test_ta_25_move_on_dead_ally(self):
+		# Kill the nearby unit first
+		self.nearest_heal_ally.hp = 0
+		self.nearest_heal_ally.save()
+
+		# Move onto the ally
+		self.no_tgt_cmd["X"] = self.nearest_heal_ally.x
+		self.no_tgt_cmd["Y"] = self.nearest_heal_ally.y
+
+		self.helper_execute_move_success(self.no_tgt_cmd)
+
+	def test_ta_26_move_on_dead_ally(self):
+		# Kill the enemy unit first
+		self.enemy_tgt.hp = 0
+		self.enemy_tgt.save()
+
+		# Move near the enemy
+		self.attacker.x = self.enemy_tgt.x
+		self.attacker.y = self.enemy_tgt.y - 2
+		self.attacker.save()
+
+		# Move onto the enemy
+		self.no_tgt_cmd["X"] = self.enemy_tgt.x
+		self.no_tgt_cmd["Y"] = self.enemy_tgt.y
+
+		self.helper_execute_move_success(self.no_tgt_cmd)
 
 class TestEndTurn(TestGame):
 	"""
