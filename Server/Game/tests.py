@@ -1837,7 +1837,7 @@ class TestTakeAction(TestGame):
 
 		self.helper_execute_move_success(self.no_tgt_cmd)
 
-	def test_ta_26_move_on_dead_ally(self):
+	def test_ta_26_move_on_dead_enemy(self):
 		# Kill the enemy unit first
 		self.enemy_tgt.hp = 0
 		self.enemy_tgt.save()
