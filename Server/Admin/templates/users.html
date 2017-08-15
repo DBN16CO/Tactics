@@ -1,5 +1,93 @@
 {% block users-block %}
 <div class="container" id="users-container" style="padding-top: 70px">
 	<h1>Users</h1>
+
+	<br />
+
+	<div class="row">
+		<div class="col-xs-6">
+			<div class="well" style="padding: 3px;">
+				<h5 align="center">Total Registered Users</h5>
+				<h3 align="center">{{ total_registered_users }}</h3>
+			</div>
+		</div>
+
+		<div class="col-xs-6">
+			<div class="well" style="padding: 3px;">
+				<h5 align="center">New Registered Users (past 24 hrs)</h5>
+				<h3 align="center">{{ num_new_users }}</h3>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<table id="user-table" class="stripe">
+			<thead>
+				<th>ID</th>
+				<th>Username</th>
+				<th>Registered Date</th>
+				<th>Email</th>
+				<th>Verified</th>
+				<th>Last Login</th>
+				<th>Level</th>
+				<th>Experience</th>
+				<th>Actions</th>
+			</thead>
+			<tbody>
+				{% for user in users %}
+					<tr>
+						<th>{{ user.id }}</th>
+						<th>{{ user.username }}</th>
+						<th>{{ user.created }}</th>
+						<th>{{ user.email }}</th>
+						<th>{{ user.verified }}</th>
+						<th>{{ user.last_login }}</th>
+						<th>{{ user.level }}</th>
+						<th>{{ user.experience }}</th>
+						<th><button class="btn btn-primary details-control-btn">+</button></th>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<div id="editUserModal" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title edit-user-title">Edit User: </h4>
+			</div>
+			<div class="modal-body">
+				<form method='POST', name='edit-user'>
+					{% csrf_token %}
+					<div class="form-group">
+						<input id="edit-username" class='form-control' type='text' name='username' value="" />
+					</div>
+
+					<div class="form-group">
+						<input id="edit-email" class='form-control' type='email' name='email' value="" />
+					</div>
+
+					<div class="form-group">
+						<input id="edit-level" class='form-control' type='number' name='level' value="" />
+					</div>
+
+					<div class="form-group">
+						<input id="edit-exp" class='form-control' type='number' name='experience' value="" />
+					</div>
+
+					<input id="user-id" type="hidden" name="user_id" value="" />
+					<input type="hidden" name="form-type" value="edit-user" />
+					<input type="submit" class='btn btn-primary' name="submit" value="Save" />
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+
+	</div>
 </div>
 {% endblock %}

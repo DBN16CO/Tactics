@@ -59,7 +59,7 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 # Tell nose to measure coverage
 NOSE_ARGS = [
     '--with-coverage',
-    '--cover-package=Communication,Game,Static,User',
+    '--cover-package=Communication,Game,Static,User,Admin',
     '--cover-inclusive',
     '--cover-erase',
     '--cover-html',
