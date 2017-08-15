@@ -34,11 +34,11 @@ $(document).ready(function(){
 
 	function generateChildRow(data){
 		return "<button class='btn btn-warning user-edit' data-toggle='modal' data-target='#editUserModal'>Edit</button>" +
-		       "<div class='edit-user-data' data='" + JSON.stringify(data) + "' hidden='hidden'></div>" + 
-		       "<button class='btn btn-primary'>Reset Password</button>" + 
-		       "<button class='btn btn-primary'>Send Verification Email</button>" + 
-		       "<button class='btn btn-warning'>Ban</button>" + 
-		       "<button class='btn btn-danger'>Delete</button>";
+				"<div class='edit-user-data' data='" + JSON.stringify(data) + "' hidden='hidden'></div>" + 
+				"<button class='btn btn-primary'>Reset Password</button>" + 
+				"<button class='btn btn-primary'>Send Verification Email</button>" + 
+				"<button class='btn btn-warning'>Ban</button>" + 
+				"<button class='btn btn-danger'>Delete</button>";
 	}
 
 	$(".details-control-btn").on('click', function(){
