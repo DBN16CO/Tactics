@@ -156,7 +156,6 @@ public static class GameData {
 		}
 
 		matches[gameID].UserTurn = true;
-		matches[gameID].ResetActed();
 	}
 
 	// Update a specific game's data based on a received take action message
@@ -167,6 +166,7 @@ public static class GameData {
 		MatchUnit enemy = matches[key].EnemyUnits[enemy_id];
 		enemy.X  = int.Parse(unit["NewX"].ToString());
 		enemy.Y  = int.Parse(unit["NewY"].ToString());
+		enemy.Acted = true;
 
 		// The 'Target' from user 2's perspective is his/her unit
 		if(target != null){

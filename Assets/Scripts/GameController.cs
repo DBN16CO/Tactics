@@ -17,8 +17,8 @@ public class GameController : ParentController {
 
 	// Game vars
 	private MapData _currentMap;
-	public Dictionary<int, MatchUnit> myUnits;
-	public Dictionary<int, MatchUnit> enemyUnits;
+	public Dictionary<int, Unit> myUnits;
+	public Dictionary<int, Unit> enemyUnits;
 	public int myTeam;
 
 	// Static Game vars
@@ -72,7 +72,7 @@ public class GameController : ParentController {
 	// When Conditions
 	private bool UnitsArePlaced {
 		get{
-			foreach(MatchUnit unit in myUnits.Values) {
+			foreach(MatchUnit unit in GameData.CurrentMatch.AlliedUnits.Values) {
 				if(unit.X == -1) {
 					return false;
 				}
@@ -94,8 +94,8 @@ public class GameController : ParentController {
 		Main = this;
 		// Map game vars from QGU match data and determine if place units is necessary
 		myTeam = GameData.CurrentMatch.UserTeam;
-		myUnits = GameData.CurrentMatch.AlliedUnits;
-		enemyUnits = GameData.CurrentMatch.EnemyUnits;
+		myUnits = new Dictionary<int, Unit>();
+		enemyUnits = new Dictionary<int, Unit>();
 		PlacingUnits = !UnitsArePlaced;
 		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
 		SC.CreateMap(GameData.CurrentMatch.MapName);
@@ -104,7 +104,6 @@ public class GameController : ParentController {
 		}else{
 			InitializeUI();
 			InitializeMap();
-			StartTurn();
 		}
 
 
@@ -115,12 +114,10 @@ public class GameController : ParentController {
 		// End testing block -------------------------------------------
 	}
 
-	// Run when turn starts to reset units, etc
-	public void StartTurn() {
+	// Run when turn someone ends their turn
+	public void ChangeTurn() {
 		foreach(Unit unit in Units) {
-			if(unit.MyTeam) {
-				unit.Reset();
-			}
+			unit.Reset();
 		}
 	}
 
@@ -230,7 +227,8 @@ public class GameController : ParentController {
 		// Below confirms whether the target token is red or green (attack or heal)
 		string action = (IntendedTarget.CanAttack)? "Attack" : "Heal";
 		if(Server.TakeTargetAction(SelectedToken.CurrentUnit, action, targetUnit.Info.ID, out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y)) {
-			// Update unit infos
+
+			// Update unit info
 			SelectedToken.CurrentUnit.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
 			targetUnit.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
 			if(SelectedToken.CurrentUnit.Info.HP <= 0) {
@@ -254,7 +252,7 @@ public class GameController : ParentController {
 		// Info about the unit being checked
 		Unit movingUnit = token.CurrentUnit;
 		string unitName = movingUnit.name;
-		int movementRemaining = token.CurrentUnit.RemainingMoveRange;
+		int movementRemaining = GameData.GetUnit(unitName).GetStat("Move").Value;
 
 		// Attack range if the unit can attack or heal
 		// As of now, for a unit that can do both, attack is determined first,
@@ -471,6 +469,7 @@ public class GameController : ParentController {
 			GameData.CurrentMatch.UserTurn = false;
 			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
 			EndTurnGO.SetActive(false);
+			ChangeTurn();
 		}
 	}
 	public void CancelEndTurn() {
@@ -491,12 +490,12 @@ public class GameController : ParentController {
 
 	// Initializes the game map when opening after place units has already been completed
 	private void InitializeMap() {
-		foreach(MatchUnit unit in myUnits.Values) {
+		foreach(MatchUnit unit in GameData.CurrentMatch.AlliedUnits.Values) {
 			if(unit.X != -1 && unit.HP > 0) {
 				SC.CreateUnit(unit, unit.X, unit.Y, true);
 			}
 		}
-		foreach(MatchUnit unit in enemyUnits.Values) {
+		foreach(MatchUnit unit in GameData.CurrentMatch.EnemyUnits.Values) {
 			if(unit.X != -1 && unit.HP > 0) {
 				SC.CreateUnit(unit, unit.X, unit.Y, false);
 			}
@@ -532,9 +531,10 @@ public class GameController : ParentController {
 		return new Color32(r,g,b,a);
 	}
 
-#region Development
 	// Runs every frame
 	void Update() {
+
+#region development
 		// Computer move/zoom
 		if(Input.GetKey("up")){
 			Camera.main.transform.position += Vector3.up * 0.1f;
@@ -554,11 +554,13 @@ public class GameController : ParentController {
 		if(Input.GetKey("o"))		{
 			Camera.main.orthographicSize /= 0.95f;
 		}
+#endregion
 
 		// Check if there were any actions taken by the other player
 		Queue<Dictionary<string, object>> asyncMessages = CommunicationManager.GetAsyncKeyQueue("ACTION_TAKEN");
 		Dictionary<string, object> unit, target;
 
+		// If the other user has taken an action
 		while(asyncMessages != null && asyncMessages.Count > 0){
 			Dictionary<string, object> currentMessage = asyncMessages.Dequeue();
 			Dictionary<string, object> data = (Dictionary<string, object>)currentMessage["Data"];
@@ -570,12 +572,7 @@ public class GameController : ParentController {
 
 			int key = int.Parse(data["Game_ID"].ToString());
 			unit = (Dictionary<string, object>)data["Unit"];
-			if(data.ContainsKey("Target")){
-				target = (Dictionary<string, object>)data["Target"];
-			}
-			else{
-				target = null;
-			}
+			target = (data.ContainsKey("Target"))? (Dictionary<string, object>)data["Target"]: null;
 
 			GameData.UpdateTAGameData(key, unit, target);
 
@@ -601,25 +598,11 @@ public class GameController : ParentController {
 
 			if(gameID == GameData.CurrentMatch.ID){
 				GameData.CurrentMatch = GameData.GetMatches[gameID];
-				SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
+				ChangeTurn();
+				EndTurnGO.SetActive(true);
 			}
 		}
 	}
-
-	// Losds active games
-	private void CheckForTurn() {
-		if(!(bool)Server.QueryGames()["Success"]) {
-			UnityEngine.Debug.Log("Query Games failed");
-			return;
-		}
-		int _matchID = GameData.CurrentMatch.ID;
-		if(GameData.GetMatches[_matchID].UserTurn) {
-			UnityEngine.Debug.Log("It's now your turn");
-			GameData.CurrentMatch = GameData.GetMatches[_matchID];
-			SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
-		}
-	}
-#endregion
 
 }
 
