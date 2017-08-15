@@ -597,6 +597,7 @@ class TestQueryGames(TestGame):
 	def helper_verify_result(self, result):
 		# Verify Game related information
 		self.assertTrue(len(result["Games"]) == 1)
+		self.assertEquals(result["Games"][0]["ID"],        Game.objects.filter().first().id)
 		self.assertEquals(result["Games"][0]["Name"],      Game_User.objects.filter(user=self.user).first().name)
 		self.assertEquals(result["Games"][0]["Round"],     Game.objects.filter().first().game_round)
 		self.assertEquals(result["Games"][0]["Your_Turn"], True)

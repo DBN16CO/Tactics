@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -41,9 +42,9 @@ public class ActiveCustomGameController : ParentController {
 	}
 
 	// Since can't pass params into Awake constructor, set detailed properties after instantiation
-	public void SetDetailedProperties(MatchData matchData) {
-		_matchID = matchData.MatchID;
- 		btn.transform.Find("Text").GetComponent<Text>().text = matchData.Name;
+	public void SetDetailedProperties(KeyValuePair<int, MatchData> matchData) {
+		_matchID = matchData.Key;
+ 		btn.transform.Find("Text").GetComponent<Text>().text = matchData.Value.Name;
  	}
 
 	// Toggles whether to collapse or expand the detailedview

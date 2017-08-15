@@ -9,6 +9,7 @@ as well as any other necessary information regarding the command.
 """
 import logging
 from Communication.routehelper import formJsonResult
+from Communication.models import AsyncMessages
 from Static.models import Version
 from Game.models import Action_History, Game_Queue, Game_User, Unit
 import Game.unithelper
@@ -119,6 +120,7 @@ def queryGamesUser(data):
 					"Success": "True/False",\n
 					"Games": [\n
 					       {\n
+					       	  "ID": 1,\n
 					          "Name": "vs. (username) #1",\n
 					          "Round": 1,\n
 					          "Your_Turn": "True/False",\n
@@ -220,6 +222,7 @@ def queryGamesUser(data):
 
 				# Start constructing the game object
 				game_response = {}
+				game_response["ID"] = game.id
 				game_response["Name"] = game_user.name
 				game_response["Opponent"] = opp_user.username
 				game_response["Round"] = game.game_round
@@ -426,5 +429,13 @@ def endTurn(data):
 
 	# Update each of the opposing player's living units so that they can now move
 	Unit.objects.filter(owner=other_user, game=game).exclude(hp__lte=0).update(acted=False)
+
+	# Send message to other user that it is their turn
+	notify_message_key = "ENDED_TURN"
+	async_data = {}
+	async_data["Game_ID"] = game.id
+
+	async_message = AsyncMessages(user=other_user, message_key=notify_message_key, data=async_data)
+	async_message.save()
 
 	return formJsonResult(None, data)

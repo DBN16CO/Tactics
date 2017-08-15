@@ -68,14 +68,25 @@ public class SpawnController : ParentController {
 			// Add to GameController Units and Return final unit
 			if(unit.X == -1 || unit.Y == -1) {
 				// Set initial params if new unit
-				unit.X = x; unit.Y = y; unit.HP = GameData.GetUnit(unit.Name).GetStat("HP").Value;
+				unit.X = x;
+				unit.Y = y;
+				unit.HP = GameData.GetUnit(unit.Name).GetStat("HP").Value;
 			}
 			ret.Info = unit;
-			ret.TakenAction = unit.Acted;
+			ret.TakenAction = (GameData.CurrentMatch.UserTurn)? 
+				((ret.MyTeam)? unit.Acted: false): unit.Acted;
 			ret.MyTeam = myTeam;
-			ret.PaintUnit((ret.MyTeam)? ((ret.TakenAction)? "disable" : "move") : "enemy");
+			ret.PaintUnit((ret.TakenAction)? "disable": ((ret.MyTeam)? "ally": "enemy"));
 			GameController.Tokens[x][y].CurrentUnit = ret;
 			GameController.Units.Add(ret);
+
+			if(myTeam){
+				GameController.Main.myUnits[unit.ID] = ret;
+			}
+			else{
+				GameController.Main.enemyUnits[unit.ID] = ret;
+			}
+
 			if(GameController.PlacingUnits) {
 				GameController.UnitBeingPlaced.RemoveUnit();
 			}
