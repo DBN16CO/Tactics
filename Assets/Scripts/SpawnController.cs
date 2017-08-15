@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class SpawnController : MonoBehaviour {
+public class SpawnController : ParentController {
 
 	private float _scaleFactor;		// What to scale each 1x1 unit by to fit on the screen
 
@@ -12,11 +12,6 @@ public class SpawnController : MonoBehaviour {
 		set{_scaleFactor = value;}
 	}
 #endregion
-
-	// Runs when the app is closed - attempt to close the websocket cleanly
-	void OnApplicationQuit() {
-		CommunicationManager.OnDisable();
-	}
 
 	// Call this to instantiate a new game grid
 	public void CreateMap(string mapKey) {
@@ -73,14 +68,25 @@ public class SpawnController : MonoBehaviour {
 			// Add to GameController Units and Return final unit
 			if(unit.X == -1 || unit.Y == -1) {
 				// Set initial params if new unit
-				unit.X = x; unit.Y = y; unit.HP = GameData.GetUnit(unit.Name).GetStat("HP").Value;
+				unit.X = x;
+				unit.Y = y;
+				unit.HP = GameData.GetUnit(unit.Name).GetStat("HP").Value;
 			}
 			ret.Info = unit;
-			ret.TakenAction = unit.Acted;
+			ret.TakenAction = (GameData.CurrentMatch.UserTurn)? 
+				((ret.MyTeam)? unit.Acted: false): unit.Acted;
 			ret.MyTeam = myTeam;
-			ret.PaintUnit((ret.MyTeam)? ((ret.TakenAction)? "disable" : "move") : "enemy");
+			ret.PaintUnit((ret.TakenAction)? "disable": ((ret.MyTeam)? "ally": "enemy"));
 			GameController.Tokens[x][y].CurrentUnit = ret;
 			GameController.Units.Add(ret);
+
+			if(myTeam){
+				GameController.Main.myUnits[unit.ID] = ret;
+			}
+			else{
+				GameController.Main.enemyUnits[unit.ID] = ret;
+			}
+
 			if(GameController.PlacingUnits) {
 				GameController.UnitBeingPlaced.RemoveUnit();
 			}

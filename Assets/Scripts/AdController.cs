@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class AdController : MonoBehaviour {
+public class AdController : ParentController {
 
 	public Button btn;
 
@@ -10,11 +10,6 @@ public class AdController : MonoBehaviour {
 	void Start () {
 		btn = gameObject.GetComponent<Button>();
 		btn.onClick.AddListener(TaskOnClick);
-	}
-
-	// Runs when the app is closed - attempt to close the websocket cleanly
-	void OnApplicationQuit() {
-		CommunicationManager.OnDisable();
 	}
 
 	void TaskOnClick(){

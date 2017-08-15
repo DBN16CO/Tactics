@@ -9,14 +9,17 @@ using System.Text;
 
 public class CommunicationManager
 {
-	private static Thread _manager;
-	private static bool _threadRunning;
+	private static Thread _requestManager;
+	private static bool _requestThreadRunning;
 
-	private static object asyncMessagesLock;
-	private static object requestQueueLock;
-	private static object responseDictLock;
+	private static Thread _responseManager;
+	private static bool _responseThreadRunning;
 
-	private static Queue<Dictionary<string, object>> asyncMessagesQueue;
+	private static readonly object asyncMessagesLock = new object();
+	private static readonly object requestQueueLock = new object();
+	public static readonly object responseDictLock = new object();
+
+	private static Dictionary<string, Queue<Dictionary<string, object>>> asyncMessagesQueue;
 	private static Queue<Dictionary<string, object>> requestQueue;
 	private static Dictionary<string, Dictionary<string, object>> responseDict;
 
@@ -26,120 +29,142 @@ public class CommunicationManager
 
 	public static void Start()
 	{
+		//Check if the communication manager threads are already running
+		if (_requestManager != null || _responseManager != null){
+			Debug.Log("Communication Manager already started");
+			return;
+		}
+
 		Debug.Log("Starting Communication Manager");
 		//Create the communication data structures
-		asyncMessagesQueue = new Queue<Dictionary<string, object>>();
+		asyncMessagesQueue = new Dictionary<string, Queue<Dictionary<string, object>>>();
 		requestQueue = new Queue<Dictionary<string, object>>();
 		responseDict = new Dictionary<string, Dictionary<string, object>>();
-
-		//Create the communication lock objects
-		asyncMessagesLock = new object();
-		requestQueueLock = new object();
-		responseDictLock = new object();
 
 		//Create the server connection
 		Connect();
 
-		//Start the communicator thread
-		_manager = new Thread(ProcessRequests);
-		_manager.Start();
+		//Start the request communicator thread
+		_requestManager = new Thread(ProcessRequests);
+		_requestManager.Start();
+
+		//Start the response communicator thread
+		_responseManager = new Thread(processResponses);
+		_responseManager.Start();
 		Debug.Log("Communication Manager has started successfully");
 	}
 
-	static void ProcessRequests(){
-		_threadRunning = true;
-		Dictionary<string, object> request = null;
+	static void processResponses(){
+		_responseThreadRunning = true;
 		Dictionary<string, object> response = null;
-		bool done = false;
 
 		try{
-			while (_threadRunning){
-				request = null;
+			while (_responseThreadRunning){
 				response = null;
+				
+				lock (responseDictLock){
+					//Suspend the thread until the websocket receives a message
+					Monitor.Wait(responseDictLock);
+
+					try{
+						response = GetNextResponse();
+					} catch (Exception e){
+						Debug.Log("Exception getting response: " + e.ToString());
+					}
+
+					if (response != null){
+						//Add the response to the common dictionaries
+						if (response.ContainsKey("Request_ID")){
+							string requestID = (string) response["Request_ID"];
+							Debug.Log("Obtained response for request " + requestID);
+							responseDict[requestID] = response;
+						}
+						else{
+							Debug.Log("Obtained async message from server");
+
+							string _asyncKey = response["Key"].ToString();
+
+							lock(asyncMessagesLock){
+								if(!asyncMessagesQueue.ContainsKey(_asyncKey)){
+									asyncMessagesQueue[_asyncKey] = new Queue<Dictionary<string, object>>();
+								}
+								asyncMessagesQueue[_asyncKey].Enqueue(response);
+							}
+						}
+					}
+				}
+				
+			}
+		} catch (Exception e){
+			Debug.Log("Response Manager Thread crashed: " + e);
+		}
+		
+	}
+
+	static void ProcessRequests(){
+		_requestThreadRunning = true;
+		Dictionary<string, object> request = null;
+
+		try{
+			while (_requestThreadRunning){
+				request = null;
 
 				//Take a request off the queue
 				lock(requestQueueLock){
+					//Suspend the thread until the websocket receives a message
+					Monitor.Wait(requestQueueLock);
+
 					if (requestQueue.Count > 0){
 						request = requestQueue.Dequeue();
 					}
-				}
 
-				string requestID = "";
-				if (request != null){
-					//Send the request to the server
-					requestID = (string)request["Request_ID"];
-					Debug.Log("Manager Thread Sending Request: " + requestID);
-					SendCommand(request);
-				}
-				
-				done = false;
-				while (!done){
-					Dictionary<string, object> resp = null;
-					try{
-						resp = GetNextResponse();
-					} catch (Exception e){
-						if (e.ToString().Contains("unauthenticated")){
-							if (request != null){
-								SendCommand(request);
-							}
-						}
-						Debug.Log("Exception getting response: " + e.ToString());
-						throw e;
-					}
-					
-					if (resp == null){
-						break;
-					}
+					string requestID = "";
+					string command = "";
+					if (request != null){
+						//Send the request to the server
+						requestID = (string) request["Request_ID"];
+						command = (string) request["Command"];
 
-					if (resp.ContainsKey("Request_ID") && (string) resp["Request_ID"] == requestID){
-						response = resp;
-					}
-					else{
-						lock(asyncMessagesLock){
-							Debug.Log("Found an async message");
-							LogDictionary(resp);
-							asyncMessagesQueue.Enqueue(resp);
-							Debug.Log("Async Queue Size: " + asyncMessagesQueue.Count.ToString());
-						}
-					}
-				}
-				
-				if (response != null){
-					//Add the response to the common dictionary
-					lock(responseDictLock){
-						responseDict[requestID] = response;
-					}
-				}
-				else if (request == null){
-					//No Request or response found, just continue looping
-				}
-				else{
-					//Unable to process request, re-add it to process it later
-					lock(requestQueueLock){
-						requestQueue.Enqueue(request);
+						Debug.Log("Manager Thread Sending Request: " + command + " - " + requestID);
+						SendCommand(request);
 					}
 				}
 			}
 		} catch (Exception e){
-			Debug.Log("Manager Thread crashed: " + e.ToString());
+			Debug.Log("Request Manager Thread crashed: " + e.ToString());
 		}
-
-		
 	}
 
 	public static void OnDisable()
 	{
-		// If the thread is still running, we should shut it down,
-		if (_threadRunning)
+		// If the request thread is still running, we should shut it down
+		if (_requestThreadRunning)
 		{
 			// This forces the while loop of the thread to exit
-			_threadRunning = false;
+			_requestThreadRunning = false;
+			lock(requestQueueLock){
+				Monitor.Pulse(requestQueueLock);
+			}
 
 			// This waits until the thread exits
-			_manager.Join();
+			_requestManager.Join();
+		}
+
+		// If the response thread is still running, we should shut it down
+		if (_responseThreadRunning)
+		{
+			// This forces the while loop of the thread to exit
+			_responseThreadRunning = false;
+			lock(responseDictLock){
+				Monitor.Pulse(responseDictLock);
+			}
+
+			// This waits until the thread exits
+			_responseManager.Join();
 		}
 
 		Disconnect();
+		Debug.Log("Successfully disconnected from the server.");
 	}
 
 	/********************************************
@@ -148,7 +173,8 @@ public class CommunicationManager
 	public static string Request(Dictionary<string, object> data)
 	{
 		//Communication Manager Thread crashed, restart it
-		if (!_threadRunning){
+		if (!_requestThreadRunning || !_responseThreadRunning){
+			CommunicationManager.OnDisable();
 			CommunicationManager.Start();
 		}
 
@@ -160,6 +186,7 @@ public class CommunicationManager
 		lock (requestQueueLock)
 		{
 			requestQueue.Enqueue(data);
+			Monitor.Pulse(requestQueueLock);
 		}
 
 		//Return the request id
@@ -199,7 +226,6 @@ public class CommunicationManager
 		{
 			lock (responseDictLock)
 			{
-				//Debug.Log("Checking if a response exists for request: " + request_id.ToString());
 				if (responseDict.ContainsKey(request_id))
 				{
 					response = responseDict[request_id];
@@ -221,17 +247,51 @@ public class CommunicationManager
 		return response;
 	}
 
-	public static Dictionary<string, object> GetNextAsyncMessage(){
-		Dictionary<string, object> message = null;
+	/*
+	 * Gets the queue of asynchronous messages for a specific key.
+	 * Returns null if no messages of the specified key have been received.
+	 * Sends the entire queue of messages for the specific key so that the
+	 * asyncMessagesQueue does not need to remain locked while external
+	 * classes are processing the queue of messages.
+	 * If any of the sent messages are not processed, they should be returned
+	 * to the queue with the "ReturnAsyncKeyQueue" method.
+	 */
+	public static Queue<Dictionary<string, object>> GetAsyncKeyQueue(string key){
+		if(!asyncMessagesQueue.ContainsKey(key)){
+			return null;
+		}
+
+		// Store reference to existing queue
+		Queue<Dictionary<string, object>> returnedQueue;
+
 		lock(asyncMessagesLock){
-			if (asyncMessagesQueue.Count > 0){
-				message = asyncMessagesQueue.Dequeue();
+			returnedQueue = asyncMessagesQueue[key];
+			asyncMessagesQueue[key] = new Queue<Dictionary<string, object>>();
+		}
+
+		return returnedQueue;
+	}
+
+	/*
+	 * If the "GetAsynchKeyQueue" method did not fully process the queue it
+	 * received, this method will add any remaining queued elements back to the
+	 * main queue for future processing
+	 */
+	public static void ReturnAsyncKeyQueue(string key, Queue<Dictionary<string, object>> retQueue){
+		if(!asyncMessagesQueue.ContainsKey(key)){
+			lock(asyncMessagesLock){
+				asyncMessagesQueue[key] = new Queue<Dictionary<string, object>>();
 			}
 		}
 
-		return message;
-	}
+		lock(asyncMessagesLock){
+			while(retQueue.Count > 0){
+				asyncMessagesQueue[key].Enqueue(retQueue.Dequeue());
+			}
+		}
 
+		return;
+	}
 
 	/********************************************
 	 * Private communication helper logic
@@ -275,14 +335,8 @@ public class CommunicationManager
 		string _loginToken = AES.Decrypt(_encryptedToken, GenerateAESKey());
 		request["Command"] = "LGN";
 		request["token"] = _loginToken;
-		Communication.SendString(Json.ToString(request));
-		// Wait for the response, then parse
-		string strResponse = null;
-		while (strResponse == null)
-		{
-			strResponse = Communication.RecvString();
-		}
-		var response = Json.ToDict(strResponse);
+
+		var response = RequestAndGetResponse(request);
 		Debug.Log("Response to Retry Login: " + response.ToString());
 		// Error Handling
 		bool success = (bool)response["Success"];
@@ -324,52 +378,43 @@ public class CommunicationManager
 		// Wait for the response
 		string strResponse = null;
 		Dictionary<string, object> response = null;
-
-		int retryCount = 0;
-		const int maxRetries = 20;
-		while (strResponse == null && retryCount < maxRetries)
+		
+		strResponse = Communication.RecvString();
+		if (strResponse != null)
 		{
-			strResponse = Communication.RecvString();
-			if (strResponse != null)
+			response = Json.ToDict(strResponse);
+			if (IsUnauthenticated(response))
 			{
-				response = Json.ToDict(strResponse);
-				if (IsUnauthenticated(response))
-				{
-					// Server says we are not logged in, re-authenticate
-					RetryLogin();
-					strResponse = null;
-					response = null;
-					throw new Exception("Response indicates user was unauthenticated please try again");
-				}
-
-
+				// Server says we are not logged in, re-authenticate
+				RetryLogin();
+				strResponse = null;
+				response = null;
+				throw new Exception("Response indicates user was unauthenticated please try again");
 			}
-
-			if (strResponse == null)
-			{
-				retryCount++;
-				Thread.Sleep(100);
-			}
-		}
-
-		if (response == null)
-		{
-			return null;
 		}
 
 		return response;
 	}
 
-	private static void LogDictionary(Dictionary<string, object> dict){
-		Debug.Log("{");
+	public static void LogDictionary(Dictionary<string, object> dict){
+		Debug.Log(GetDictString(dict));
+	}
+
+	private static string GetDictString(Dictionary<string, object> dict){
+		StringBuilder loggedDict = new StringBuilder("{\n");
 		foreach (KeyValuePair<string, object> kvp in dict)
 		{
-			Debug.Log(string.Format("Key = {0}, Value = {1}", kvp.Key.ToString(), kvp.Value.ToString()));
+			string value = kvp.Value.ToString();
+			if(kvp.Value.GetType() == dict.GetType()){
+				value = GetDictString((Dictionary<string, object>)kvp.Value);
+			}
+			loggedDict.Append(string.Format("\"{0}\": \"{1}\",\n", kvp.Key, value));
 			if (kvp.Value.GetType() == typeof(Dictionary<string, object>)){
 				LogDictionary((Dictionary<string, object>)kvp.Value);
 			}
 		}
-		Debug.Log("}");
+		loggedDict.Append("}");
+		return loggedDict.ToString();
 	}
 
 	// Generates the key to use for AES encryption

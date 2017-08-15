@@ -429,7 +429,7 @@ def validateMove(unit, game, user, newX, newY):
 	:return: True if the movement is valid, false otherwise.
 	"""
 	unit_locations = {}
-	other_units = Unit.objects.filter(game=game).exclude(pk=unit.pk)
+	other_units = Unit.objects.filter(game=game).exclude(pk=unit.pk).exclude(hp__lte=0)
 	for unt in other_units:
 		x = unt.x
 		y = unt.y

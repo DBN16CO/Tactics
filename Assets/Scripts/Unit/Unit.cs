@@ -67,12 +67,12 @@ public class Unit : MonoBehaviour {
 	// Updates matchunit info, defaulting each parameter to itself
 	// Pass in optional paramters via declaration: UpdateInfo(X: 5, Y: 7) to keep HP constant
 	public void UpdateInfo(int HP = -1, int X = -1, int Y = -1) {
-		MatchUnit tempUnit = new MatchUnit();
-		tempUnit = Info;
+		MatchUnit tempUnit = Info;
 		tempUnit.HP = (HP == -1)? tempUnit.HP : HP;
 		tempUnit.X = (X == -1)? tempUnit.X : X;
 		tempUnit.Y = (Y == -1)? tempUnit.Y : Y;
 		Info = tempUnit;
+		UpdateInfoStruct();		
 	}
 
 	// Public function to deselect this unit
@@ -88,6 +88,8 @@ public class Unit : MonoBehaviour {
 		_selected = false;
 		UpdateInfo(X: GameController.IntendedMove.X, Y: GameController.IntendedMove.Y);
 		TakenAction = true;
+		_info.Acted = true;
+		UpdateInfoStruct();
 		PaintUnit("disable");
 		GameController.Main.UnselectUnit();
 	}
@@ -101,7 +103,7 @@ public class Unit : MonoBehaviour {
 			case "enemy":
 				gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor("FF9C9CFF");
 				break;
-			case "move":
+			case "ally":
 				gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor("3A64FFFF");
 				break;
 			case "disable":
@@ -112,7 +114,22 @@ public class Unit : MonoBehaviour {
 
 	// Resets unit at start of turn
 	public void Reset() {
-		RemainingMoveRange = GameData.GetUnit(name).GetStat("Move").Value;
+		TakenAction = false;
+		_info.Acted = false;
+		PaintUnit((MyTeam)?"ally":"enemy");
+		UpdateInfoStruct();
+
+	}
+
+	// Updates the 'Info' struct everywhere it has been duplicated, currently:
+	// AlliedUnits or EnemyUnits
+	public void UpdateInfoStruct(){
+		if(MyTeam){
+			GameData.CurrentMatch.AlliedUnits[Info.ID] = Info;
+		}
+		else{
+			GameData.CurrentMatch.EnemyUnits[Info.ID] = Info;
+		}
 	}
 
 }
