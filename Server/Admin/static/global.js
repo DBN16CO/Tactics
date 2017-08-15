@@ -33,25 +33,12 @@ $(document).ready(function(){
 	});
 
 	function generateChildRow(data){
-		return "<div class='row'>" + 
-		          "<div class='col-xs-2'>" + 
-		             "<button class='btn btn-warning'>Edit</button>" +
-		          "</div>" + 
-		          "<div class='col-xs-2'>" + 
-		             "<button class='btn btn-primary'>Reset Password</button>" + 
-		          "</div>" + 
-		          "<div class='col-xs-2'>" + 
-		             "<button class='btn btn-primary'>Send Verification Email</button>" + 
-		          "</div>" + 
-		          "<div class='col-xs-2'>" +
-		             "<button class='btn btn-warning'>Ban</button>" + 
-		          "</div>" + 
-		          "<div class='col-xs-2'>" +
-		             "<button class='btn btn-danger'>Delete</button>" + 
-		          "</div>" + 
-		          "<div class='col-xs-2'>" +
-		          "</div>" + 
-		        "</div>";
+		return "<button class='btn btn-warning user-edit' data-toggle='modal' data-target='#editUserModal'>Edit</button>" +
+		       "<div class='edit-user-data' data='" + JSON.stringify(data) + "' hidden='hidden'></div>" + 
+		       "<button class='btn btn-primary'>Reset Password</button>" + 
+		       "<button class='btn btn-primary'>Send Verification Email</button>" + 
+		       "<button class='btn btn-warning'>Ban</button>" + 
+		       "<button class='btn btn-danger'>Delete</button>";
 	}
 
 	$(".details-control-btn").on('click', function(){
@@ -68,5 +55,21 @@ $(document).ready(function(){
 			row.child(generateChildRow(row.data())).show();
 			tr.addClass('shown');
 		}
+	});
+
+	$('body').on('click', '.user-edit', function(){
+		console.log($(this).siblings().attr('data'));
+		var data = $(this).siblings().attr('data')
+		console.log(data);
+
+
+		var user = JSON.parse(data);
+
+		$('.edit-user-title').html('Edit User: ' + user['Username']);
+		$('#edit-username').attr('value', user['Username']);
+		$('#edit-email').attr('value', user['Email']);
+		$('#edit-level').attr('value', user['Level']);
+		$('#edit-exp').attr('value', user['Experience']);
+		$('#user-id').attr('value', user['ID']);
 	});
 });

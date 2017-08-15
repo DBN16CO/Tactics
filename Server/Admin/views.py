@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django.views.generic.base import TemplateView
 from django.template.context_processors import csrf
 from admin_utils import *
+from User.models import Users
 
 
 class AdminView(TemplateView):
@@ -54,10 +55,24 @@ class AdminView(TemplateView):
 
 			success = login(username, password)
 			if success:
-				print("Login Success")
 				session['admin'] = username
 			else:
-				print("Login Failed")
+				pass
+		elif form_type == 'edit-user':
+			user_id = request.POST['user_id']
+			username = request.POST['username']
+			email = request.POST['email']
+			level = request.POST['level']
+			experience = request.POST['experience']
+
+			user = Users.objects.filter(id=user_id).first()
+			if user:
+				user.username = username
+				user.email = email
+				user.level = level
+				user.experience = experience
+				user.save()
+
 
 		if 'admin' in session:
 			context['admin'] = session['admin']
