@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each action
+// Holds game data for each action
 public class ActionData {
 
 	public string name;

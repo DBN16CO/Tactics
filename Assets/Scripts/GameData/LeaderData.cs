@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each leader
+// Holds game data for each leader
 public class LeaderData {
 
 	public string name;

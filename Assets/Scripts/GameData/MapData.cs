@@ -2,7 +2,7 @@
 using System.Linq;						// For Count
 using System;
 
-// Class holding game data for each map
+// Holds game data for each map
 public class MapData {
 
 	public string name;

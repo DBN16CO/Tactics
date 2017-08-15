@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Common.Cryptography;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
-using System.Linq;
 using System.Text;
 
 public class CommunicationManager
@@ -303,14 +302,14 @@ public class CommunicationManager
 	private static bool SendCommand(Dictionary<string, object> request)
 	{
 		// Verify the websocket is still connected and try to reconnect if it isn't
-		if (!Communication.IsConnected())
+		if (!Communication.IsConnected)
 		{
 			Communication.Close();
 			Communication.Connect(new Uri(url));
 		}
 
 		// Failed to reconnect with the server
-		if (!Communication.IsConnected())
+		if (!Communication.IsConnected)
 		{
 			return false;
 		}

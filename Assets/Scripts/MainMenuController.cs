@@ -5,7 +5,6 @@ public class MainMenuController : MonoBehaviour {
 
 	// Initiate variables and load active games
 	void Start () {
-		Server.inQueue = false;
 		LoadCustomGames();
 	}
 

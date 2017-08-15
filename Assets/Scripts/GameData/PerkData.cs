@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each unit
+// Holds game data for each unit
 public class PerkData {
 
 	public string name;

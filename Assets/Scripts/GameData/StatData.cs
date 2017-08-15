@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each unit stat
+// Holdss game data for each unit stat
 public class StatData {
 
 	public string name;

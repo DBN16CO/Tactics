@@ -1,15 +1,16 @@
-﻿//using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;		// For dictionaries
 
+// Starting reference point for all static game data
 public static class GameData {
 
+	public static PlayerData 	Player;
+	public static MatchData 	CurrentMatch;
+	public static VersionData 	Version;
+
 	private static Dictionary<string, object> playerData;
-	public static PlayerData Player;
-	public static VersionData Version;
 
 	private static List<object> matchData;
 	private static List<MatchData> matches;
-	public  static MatchData CurrentMatch;
 
 	private static List<StatData> stats;
 	private static Dictionary<string, object> statData;

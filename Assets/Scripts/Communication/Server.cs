@@ -1,23 +1,11 @@
-﻿using UnityEngine;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Text;
-using System.Collections.Generic;
-using Common.Cryptography;
-using System.Security.Cryptography;
+﻿using UnityEngine;						// For Unity's PlayerPrefs
+using System.Collections.Generic;		// For dictionaries
+using Common.Cryptography;				// For AES encryption
 
-// This class contains all of the Server call functions
+// Holds all of the Server call functions related to gameplay
 public static class Server {
 
-	public static bool inQueue;
-	private static string url = "ws://tactics-dev.ddns.net:8443";
-	//private static string url = "ws://localhost:8000";
-	//private static string url = ""ws://tactics-production.herokuapp.com/""
-
-	
-
-	// Used to get user preferences
+	// Used to get user info and preferences
 	public static bool GetUserInfo() {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "GUI";
@@ -31,7 +19,7 @@ public static class Server {
 		if(success) {
 			GameData.SetPlayerData(response);
 		}
-
+		
 		return success;
 	}
 
@@ -48,7 +36,6 @@ public static class Server {
 
 		bool success = (bool)response["Success"];
 		if (success){
-			Debug.Log("User logged out");
 			PlayerPrefs.DeleteKey("session");
 			PlayerPrefs.Save();
 		}

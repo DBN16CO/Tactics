@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each unit
+// Holds game data for each unit
 public class UnitData {
 
 	public string name;

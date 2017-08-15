@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
+// Holds player preference data
 public class PreferenceData {
 
-	public string gridOpacity;
+	public string GridOpacity;
 
 	public PreferenceData(Dictionary<string, object> preferences) {
-		gridOpacity = preferences["Grid Opacity"].ToString();
+		GridOpacity = preferences["Grid Opacity"].ToString();
 	}
 
 }

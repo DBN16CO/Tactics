@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each terrain
+// Holds game data for each terrain
 public class TerrainData {
 
 	public string shortName;
@@ -15,7 +15,7 @@ public class TerrainData {
 		if(terrainData.ContainsKey("Description")) {
 			description = terrainData["Description"].ToString();
 		}
-		spritePath = "Sprites/Terrain/" + name + GameData.Player.Preferences.gridOpacity;
+		spritePath = "Sprites/Terrain/" + name + GameData.Player.Preferences.GridOpacity;
 	}
 
 }

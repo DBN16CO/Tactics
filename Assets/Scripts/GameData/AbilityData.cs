@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each ability
+// Holds game data for each ability
 public class AbilityData {
 
 	public string name;
