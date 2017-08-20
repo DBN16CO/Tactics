@@ -1,119 +1,155 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Generic;		// For dictionaries
 
+// Holds all data about a match
 public class MatchData {
 
 	// QGU properties
-	public int               			ID;
-	public string            			Name;
-	public string            			Opponent;
-	public int               			Round;
-	public bool              			UserTurn;
-	public string            			MapName;
-	public bool             			InGameQueue;
-	public bool              			Finished;
-	public int               			UserTeam;
-	public int               			EnemyTeam;
-	public Dictionary<int, MatchUnit>	AlliedUnits;
-	public MatchLeader       			AlliedLeader;
-	public List<MatchPerk>   			AlliedPerks;
-	public Dictionary<int, MatchUnit>	EnemyUnits;
-	public MatchLeader       			EnemyLeader;
-	public List<MatchPerk>   			EnemyPerks;
-	public List<MatchAction> 			GameActions;
+	private int 	_id;
+	private string 	_name;
+	private string 	_opponent;
+	private int 	_round;
+	private bool 	_userTurn;
+	private string 	_mapName;
+	private bool 	_finished;
+	private int 	_userTeam;
+	private int 	_enemyTeam;
+
+	private Dictionary<int, UnitInfo>	_alliedUnits;
+	private MatchLeader       			_alliedLeader;
+	private List<MatchPerk>   			_alliedPerks;
+	private Dictionary<int, UnitInfo>	_enemyUnits;
+	private MatchLeader       			_enemyLeader;
+	private List<MatchPerk>   			_enemyPerks;
+	private List<MatchAction> 			_gameActions;
+
+#region // Public properties
+	public int ID {
+		get{return _id;}
+	}
+	public string Name {
+		get{return _name;}
+	}
+	public string Opponent {
+		get{return _opponent;}
+	}
+	public int Round {
+		get{return _round;}
+	}
+	public bool UserTurn {
+		get{return _userTurn;}
+	}
+	public string MapName {
+		get{return _mapName;}
+	}
+	public bool Finished {
+		get{return _finished;}
+	}
+	public int UserTeam {
+		get{return _userTeam;}
+	}
+	public int EnemyTeam {
+		get{return _enemyTeam;}
+	}
+	public Dictionary<int, UnitInfo> AlliedUnits{
+		get{return _alliedUnits;}
+	}
+	public MatchLeader AlliedLeader {
+		get{return _alliedLeader;}
+	}
+	public List<MatchPerk> AlliedPerks {
+		get{return _alliedPerks;}
+	}
+	public Dictionary<int, UnitInfo> EnemyUnits {
+		get{return _enemyUnits;}
+	}
+	public MatchLeader EnemyLeader {
+		get{return _enemyLeader;}
+	}
+	public List<MatchPerk> EnemyPerks {
+		get{return _enemyPerks;}
+	}
+	public List<MatchAction> GameActions {
+		get{return _gameActions;}
+	}
+#endregion
+
 
 	// Default constructor
 	// Parses all fields necessary to describe the game to the front end
 	public MatchData(Dictionary<string, object> matchData) {
 		// General match information
-		ID          = int.Parse(matchData["ID"].ToString());
-		Name        = matchData["Name"].ToString();
-		Opponent    = matchData["Opponent"].ToString();
-    	Round       = int.Parse(matchData["Round"].ToString());
-        UserTurn    = (bool)matchData["Your_Turn"];
-        MapName     = matchData["Map"].ToString();
-        Finished    = (bool)matchData["Finished"];
-		//InGameQueue = (bool)matchData["In_Game_Queue"];
-		UserTeam    = int.Parse(matchData["Your_Team"].ToString());
-		EnemyTeam   = int.Parse(matchData["Enemy_Team"].ToString());
+		_id          = int.Parse(matchData["ID"].ToString());
+		_name        = matchData["Name"].ToString();
+		_opponent    = matchData["Opponent"].ToString();
+    	_round       = int.Parse(matchData["Round"].ToString());
+        _userTurn    = (bool)matchData["Your_Turn"];
+        _mapName     = matchData["Map"].ToString();
+        _finished    = (bool)matchData["Finished"];
+		_userTeam    = int.Parse(matchData["Your_Team"].ToString());
+		_enemyTeam   = int.Parse(matchData["Enemy_Team"].ToString());
 
 		// Get all the allied units
-		AlliedUnits = new Dictionary<int, MatchUnit>();
+		_alliedUnits = new Dictionary<int, UnitInfo>();
 		foreach(object unitData in Json.ToList(matchData["Your_Units"].ToString())){
-			Dictionary<string, object> unit = Json.ToDict(unitData.ToString());
-
-			MatchUnit alliedUnit;
-
-			alliedUnit.ID     = int.Parse(unit["ID"].ToString());
-			alliedUnit.Name   = unit["Name"].ToString();
-			alliedUnit.HP     = int.Parse(unit["HP"].ToString());
-			alliedUnit.PrevHP = 0;		// TODO - QGU doesn't send it
-			alliedUnit.X      = int.Parse(unit["X"].ToString());
-			alliedUnit.Y      = int.Parse(unit["Y"].ToString());
-			alliedUnit.Acted  = (bool)unit["Acted"];
-
-			AlliedUnits[alliedUnit.ID] = alliedUnit;
+			if(unitData != null) {
+				Dictionary<string, object> unit = Json.ToDict(unitData.ToString());
+				UnitInfo alliedUnit = new UnitInfo(unit);
+				_alliedUnits[alliedUnit.ID] = alliedUnit;
+			}
 		}
 
 		// Get all the allied perks
-		AlliedPerks = new List<MatchPerk>();
+		_alliedPerks = new List<MatchPerk>();
 		foreach(object perkData in Json.ToList(matchData["Your_Perks"].ToString())){
 			Dictionary<string, object> perk = Json.ToDict(perkData.ToString());
 
-			MatchPerk alliedPerk;
+			MatchPerk alliedPerk = new MatchPerk();
 
 			alliedPerk.Tier = int.Parse(perk["Tier"].ToString());
 			alliedPerk.Name = perk["Name"].ToString();
 
-			AlliedPerks.Add(alliedPerk);
+			_alliedPerks.Add(alliedPerk);
 		}
 
 		// Allied leader data
 		Dictionary<string, object> leaderData = (Dictionary<string, object>)matchData["Your_Leader"];
-		AlliedLeader.Name    = leaderData["Name"].ToString();
-		AlliedLeader.Ability = leaderData["Ability"].ToString();
+		_alliedLeader.Name    = leaderData["Name"].ToString();
+		_alliedLeader.Ability = leaderData["Ability"].ToString();
 
 		// Get all the enemy units
-		EnemyUnits = new Dictionary<int, MatchUnit>();
+		_enemyUnits = new Dictionary<int, UnitInfo>();
 		foreach(object unitData in Json.ToList(matchData["Enemy_Units"].ToString())){
-			Dictionary<string, object> unit = Json.ToDict(unitData.ToString());
-
-			MatchUnit enemyUnit;
-
-			enemyUnit.ID     = int.Parse(unit["ID"].ToString());
-			enemyUnit.Name   = unit["Name"].ToString();
-			enemyUnit.HP     = int.Parse(unit["HP"].ToString());
-			enemyUnit.PrevHP = 0;		// TODO - QGU doesn't send it
-			enemyUnit.X      = int.Parse(unit["X"].ToString());
-			enemyUnit.Y      = int.Parse(unit["Y"].ToString());
-			enemyUnit.Acted  = (bool)unit["Acted"];
-
-			EnemyUnits[enemyUnit.ID] = enemyUnit;
+			if(unitData != null) {
+				Dictionary<string, object> unit = Json.ToDict(unitData.ToString());
+				UnitInfo enemyUnit = new UnitInfo(unit);
+				_enemyUnits[enemyUnit.ID] = enemyUnit;
+			}
 		}
 
 		// Enemy leader data
 		leaderData = (Dictionary<string, object>)matchData["Enemy_Leader"];
-		EnemyLeader.Name    = leaderData["Name"].ToString();
-		EnemyLeader.Ability = leaderData["Ability"].ToString();
+		_enemyLeader.Name    = leaderData["Name"].ToString();
+		_enemyLeader.Ability = leaderData["Ability"].ToString();
 
 		// Get all the enemy perks
-		EnemyPerks = new List<MatchPerk>();
+		_enemyPerks = new List<MatchPerk>();
 		foreach(object perkData in Json.ToList(matchData["Enemy_Perks"].ToString())){
 			Dictionary<string, object> perk = Json.ToDict(perkData.ToString());
 
-			MatchPerk enemyPerk;
+			MatchPerk enemyPerk = new MatchPerk();
 
 			enemyPerk.Tier = int.Parse(perk["Tier"].ToString());
 			enemyPerk.Name = perk["Name"].ToString();
 
-			EnemyPerks.Add(enemyPerk);
+			_enemyPerks.Add(enemyPerk);
 		}
 
 		// Get all of the Action History Data
-		GameActions = new List<MatchAction>();
+		_gameActions = new List<MatchAction>();
 		foreach(object actionData in Json.ToList(matchData["Action_History"].ToString())){
 			Dictionary<string, object> actn = Json.ToDict(actionData.ToString());
 
-			MatchAction currAction;
+			MatchAction currAction = new MatchAction();
 
 			currAction.Order         = int.Parse(actn["Order"].ToString());
 			currAction.Turn          = int.Parse(actn["Turn"].ToString());
@@ -128,17 +164,27 @@ public class MatchData {
 			currAction.UnitNewHP     = int.Parse(actn["New_HP"].ToString());
 			currAction.UnitCrit      = (bool)actn["Crit"];
 			currAction.UnitMiss      = (bool)actn["Miss"];
-			// This is likely an inconsistency on the backend - but for now this fixes QGU errors
-			currAction.TargetID      = (actn["Target"] == null)? -1 : int.Parse(actn["Target"].ToString());
-			currAction.TargetOldHP   = int.Parse(actn["Tgt_Old_HP"].ToString());
-			currAction.TargetNewHP   = int.Parse(actn["Tgt_New_HP"].ToString());
-			currAction.TargetCounter = (bool)actn["Tgt_Counter"];
-			currAction.TargetCrit    = (bool)actn["Tgt_Crit"];
-			currAction.TargetMiss    = (bool)actn["Tgt_Miss"];
+			if(actn["Target"] != null) {
+				currAction.TargetID      = int.Parse(actn["Target"].ToString());
+				currAction.TargetOldHP   = int.Parse(actn["Tgt_Old_HP"].ToString());
+				currAction.TargetNewHP   = int.Parse(actn["Tgt_New_HP"].ToString());
+				currAction.TargetCounter = (bool)actn["Tgt_Counter"];
+				currAction.TargetCrit    = (bool)actn["Tgt_Crit"];
+				currAction.TargetMiss    = (bool)actn["Tgt_Miss"];
+			}
 
-			GameActions.Add(currAction);
+			_gameActions.Add(currAction);
 		}
 	}
+
+#region // Public methods
+	public void EndTurn() {
+		_userTurn = false;
+	}
+	public void StartTurn() {
+		_userTurn = true;
+	}
+#endregion
 
 }
 
@@ -162,16 +208,6 @@ public struct MatchAction {
 	public bool   TargetCounter;
 	public bool   TargetCrit;
 	public bool   TargetMiss;
-}
-
-public struct MatchUnit {
-	public int    ID;
-	public string Name;
-	public int    HP;
-	public int    PrevHP;
-	public int    X;
-	public int    Y;
-	public bool   Acted;
 }
 
 public struct MatchLeader {

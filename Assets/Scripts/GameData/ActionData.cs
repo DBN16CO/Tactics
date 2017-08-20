@@ -3,13 +3,23 @@
 // Holds game data for each action
 public class ActionData {
 
-	public string name;
-	public string description;
+	private string _name;
+	private string _description;
 
+#region // Public properties
+	public string Name {
+		get{return _name;}
+	}
+	public string Description {
+		get{return _description;}
+	}
+#endregion
+
+
+	// Constructor when starting from IL Server call
 	public ActionData(KeyValuePair<string, object> action) {
-		Dictionary<string, object> actionData = (Dictionary<string, object>)action.Value;
-		name = action.Key;
-		description = actionData["Description"].ToString();
+		_name = action.Key;
+		_description = action.Value.ToString();
 	}
 
 }

@@ -41,7 +41,7 @@ public class PlaceUnitsController : MonoBehaviour {
 	}
 
 	// Adds unit to place units tab and adjusts scroll rect
-	public void AddUnit(MatchUnit unit) {
+	public void AddUnit(UnitInfo unit) {
 		if(_submit.gameObject.activeSelf) {
 			_submit.gameObject.SetActive(false);
 		}

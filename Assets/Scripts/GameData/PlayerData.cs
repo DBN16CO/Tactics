@@ -3,23 +3,45 @@
 // Holds player data
 public class PlayerData {
 
-	public string 	Username;
-	public string 	Email;
-	public bool 	Verified;
-	public int 		Level;
-	public int 		Experience;
+	private string 	_username;
+	private string 	_email;
+	private bool 	_verified;
+	private int 	_level;
+	private int 	_experience;
 
-	public PreferenceData Preferences;
+	private PreferenceData _preferences;
 
-	// Constructor
+#region // Public properties
+	public string Username {
+		get{return _username;}
+	}
+	public string Email {
+		get{return _email;}
+	}
+	public bool Verified {
+		get{return _verified;}
+	}
+	public int Level {
+		get{return _level;}
+	}
+	public int Experience {
+		get{return _experience;}
+	}
+	public PreferenceData Preferences {
+		get{return _preferences;}
+	}
+#endregion
+
+
+	// Constructor when starting from IL Server call
 	public PlayerData(Dictionary<string, object> player) {
-		Username = player["Username"].ToString();
-		Email = player["Email"].ToString();
-		Verified = (bool)player["Verified"];
-		Level = int.Parse(player["Level"].ToString());
-		Experience = int.Parse(player["Experience"].ToString());
+		_username = player["Username"].ToString();
+		_email = player["Email"].ToString();
+		_verified = (bool)player["Verified"];
+		_level = int.Parse(player["Level"].ToString());
+		_experience = int.Parse(player["Experience"].ToString());
 
-		Preferences = new PreferenceData((Dictionary<string, object>)player["Preferences"]);
+		_preferences = new PreferenceData((Dictionary<string, object>)player["Preferences"]);
 	}
 
 }

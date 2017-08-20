@@ -6,12 +6,12 @@ using UnityEngine.EventSystems;
 public class PUUnit : UIAnimations, IPointerClickHandler {
 
 	private PlaceUnitsController _pu;
-	public MatchUnit matchUnit;
+	public UnitInfo matchUnit;
 
 	// Sets unit info on generic unit within place units tab
-	public void SetInfo(MatchUnit unit) {
+	public void SetInfo(UnitInfo unit) {
 		_pu = GameObject.Find("PlaceUnits").GetComponent<PlaceUnitsController>();
-		gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>(GameData.GetUnit(unit.Name).spritePath);
+		gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>(GameData.GetUnits[unit.Name].SpritePath);
 		matchUnit = unit;
 	}
 

@@ -33,10 +33,10 @@ public class SelectUnitController : ParentController {
 	public void AssignUnit(UnitData unitData) {
 		stc = GameObject.Find("SetTeamController").GetComponent<SetTeamController>();
 		data = unitData;
-		gameObject.name = data.name;
+		gameObject.name = data.Name;
 		DisplayName = gameObject.name;
-		UnitImage = Resources.Load<Sprite>(data.spritePath);
-		Price = data.price;
+		UnitImage = Resources.Load<Sprite>(data.SpritePath);
+		Price = data.Price;
 		Amount = 0;
 	}
 

@@ -71,7 +71,7 @@ public class GameController : ParentController {
 	// When Conditions
 	private bool UnitsArePlaced {
 		get{
-			foreach(MatchUnit unit in GameData.CurrentMatch.AlliedUnits.Values) {
+			foreach(UnitInfo unit in GameData.CurrentMatch.AlliedUnits.Values) {
 				if(unit.X == -1) {
 					return false;
 				}
@@ -96,7 +96,7 @@ public class GameController : ParentController {
 		myUnits = new Dictionary<int, Unit>();
 		enemyUnits = new Dictionary<int, Unit>();
 		PlacingUnits = !UnitsArePlaced;
-		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
+		_currentMap = GameData.GetMaps[GameData.CurrentMatch.MapName];
 		SC.CreateMap(GameData.CurrentMatch.MapName);
 		if(PlacingUnits) {
 			PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();
@@ -130,7 +130,7 @@ public class GameController : ParentController {
 		Unit unit = token.CurrentUnit;
 		ShowUnitInfo(unit);
 		SelectedToken = token;
-		if(unit.MyTeam && !unit.TakenAction && GameData.CurrentMatch.UserTurn) {
+		if(unit.MyTeam && !unit.Info.Acted && GameData.CurrentMatch.UserTurn) {
 			SetValidActions(token);
 		}
 	}
@@ -169,7 +169,7 @@ public class GameController : ParentController {
 		if((currToken.CanAttack && currToken.HasEnemy) || (currToken.CanHeal && currToken.HasAlly)) {
 			int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - currToken.X) : Mathf.Abs(SelectedToken.X - currToken.X);
 			int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - currToken.Y) : Mathf.Abs(SelectedToken.Y - currToken.Y);
-			int range = GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value; 
+			int range = GameData.GetUnits[SelectedToken.CurrentUnit.Info.Name].GetStats["Attack Range"].Value; 
 			return range >= _deltaX + _deltaY;
 		}
 		return false;
@@ -178,7 +178,7 @@ public class GameController : ParentController {
 	public bool CanTargetCounter() {
 		int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - IntendedTarget.X) : Mathf.Abs(SelectedToken.X - IntendedTarget.X);
 		int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - IntendedTarget.Y) : Mathf.Abs(SelectedToken.Y - IntendedTarget.Y);
-		int range = GameData.GetUnit(IntendedTarget.CurrentUnit.Info.Name).GetStat("Attack Range").Value; 
+		int range = GameData.GetUnits[IntendedTarget.CurrentUnit.Info.Name].GetStats["Attack Range"].Value; 
 		return range >= _deltaX + _deltaY;
 	}
 
@@ -228,8 +228,8 @@ public class GameController : ParentController {
 		if(Server.TakeTargetAction(SelectedToken.CurrentUnit, action, targetUnit.Info.ID, out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y)) {
 
 			// Update unit info
-			SelectedToken.CurrentUnit.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
-			targetUnit.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
+			SelectedToken.CurrentUnit.Info.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
+			targetUnit.Info.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
 			if(SelectedToken.CurrentUnit.Info.HP <= 0) {
 				SelectedToken.CurrentUnit.DestroyUnit();
 				UnselectUnit();
@@ -251,12 +251,12 @@ public class GameController : ParentController {
 		// Info about the unit being checked
 		Unit movingUnit = token.CurrentUnit;
 		string unitName = movingUnit.name;
-		int movementRemaining = GameData.GetUnit(unitName).GetStat("Move").Value;
+		int movementRemaining = GameData.GetUnits[unitName].GetStats["Move"].Value;
 
 		// Attack range if the unit can attack or heal
 		// As of now, for a unit that can do both, attack is determined first,
 		// meaning that unoccupied valid targets will be red, not green
-		int startingAttackRange = GameData.GetUnit(unitName).GetStat("Attack Range").Value;
+		int startingAttackRange = GameData.GetUnits[unitName].GetStats["Attack Range"].Value;
 
 		// Elements queued to be (or already) checked
 		bool[][] queuedTokens  = JaggedArray.CreateJaggedArray<bool[][]>(GridLength,GridHeight);
@@ -288,8 +288,8 @@ public class GameController : ParentController {
 		bool checkNeighbors = false;
 
 		// Determmine if the unit can attack or heal before entering loop
-		bool canAttack = GameData.GetUnit(unitName).GetAction("Attack");
-		bool canHeal = GameData.GetUnit(unitName).GetAction("Heal");
+		bool canAttack = GameData.GetUnits[unitName].Can("Attack");
+		bool canHeal = GameData.GetUnits[unitName].Can("Heal");
 
 		// List of valid actions that this unit can take, using the UnitActions Enum
 		List<int> validActionIds = new List<int>();
@@ -415,7 +415,7 @@ public class GameController : ParentController {
 									queuedTokens[currX + nbr.Item1][currY + nbr.Item2] = true;
 
 									// Movement remaining is existing remaining movement - terrain weight
-									terrainWeight = GameData.TerrainWeight(unitName, Tokens[currX + nbr.Item1][currY + nbr.Item2].CurrentTerrain.shortName);
+									terrainWeight = GameData.TerrainWeight(unitName, Tokens[currX + nbr.Item1][currY + nbr.Item2].CurrentTerrain.ShortName);
 									movementRemaining = (phase == (int)UnitAction.move)?
 									currElement.Item2 - terrainWeight: currElement.Item2 - 1;
 
@@ -465,7 +465,7 @@ public class GameController : ParentController {
 	public void EndTurn() {
 		if(Server.EndTurn()) {
 			_endTurn = false;
-			GameData.CurrentMatch.UserTurn = false;
+			GameData.CurrentMatch.EndTurn();
 			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
 			EndTurnGO.SetActive(false);
 			ChangeTurn();
@@ -489,12 +489,12 @@ public class GameController : ParentController {
 
 	// Initializes the game map when opening after place units has already been completed
 	private void InitializeMap() {
-		foreach(MatchUnit unit in GameData.CurrentMatch.AlliedUnits.Values) {
+		foreach(UnitInfo unit in GameData.CurrentMatch.AlliedUnits.Values) {
 			if(unit.X != -1 && unit.HP > 0) {
 				SC.CreateUnit(unit, unit.X, unit.Y, true);
 			}
 		}
-		foreach(MatchUnit unit in GameData.CurrentMatch.EnemyUnits.Values) {
+		foreach(UnitInfo unit in GameData.CurrentMatch.EnemyUnits.Values) {
 			if(unit.X != -1 && unit.HP > 0) {
 				SC.CreateUnit(unit, unit.X, unit.Y, false);
 			}

@@ -3,185 +3,156 @@ using System.Collections.Generic;		// For dictionaries
 // Starting reference point for all static game data
 public static class GameData {
 
-	public static PlayerData 	Player;
-	public static MatchData 	CurrentMatch;
-	public static VersionData 	Version;
+	private static PlayerData 	_player;						// Reference to the logged in user
+	private static MatchData 	_currentMatch;					// Reference to the actively open match
+	private static VersionData 	_version;						// Reference to version specific data
 
-	private static Dictionary<string, object> playerData;
+	private static Dictionary<int, MatchData> 		_matches;	// List of matches brought back from QGU
+	private static Dictionary<string, MapData> 		_maps;		// List of static map data
+	private static Dictionary<string, TerrainData> 	_terrains;	// List of static terrain data
+	private static Dictionary<string, UnitData> 	_units;		// List of static unit data
+	private static Dictionary<string, ActionData> 	_actions;	// List of static action data
+	private static Dictionary<string, StatData> 	_stats;		// List of static stat data
+	private static Dictionary<string, LeaderData> 	_leaders;	// List of static leader data
+	private static Dictionary<string, AbilityData> 	_abilities;	// List of static ability data
+	private static Dictionary<string, PerkData> 	_perks;		// List of static perk data
+	
+	private static Dictionary<string, Dictionary<string, int>> _terrainWeight;	// Terrain weight of movement for each unit
 
-	private static List<object> matchData;
-	private static Dictionary<int, MatchData> matches;
-
-	private static List<StatData> stats;
-	private static Dictionary<string, object> statData;
-	private static List<AbilityData> abilities;
-	private static Dictionary<string, object> abilityData;
-	private static List<ActionData> actions;
-	private static Dictionary<string, object> actionData;
-	private static List<PerkData> perks;
-	private static Dictionary<string, object> perkData;
-	private static List<UnitData> units;
-	private static Dictionary<string, object> unitData;
-	private static List<LeaderData> leaders;
-	private static Dictionary<string, object> leaderData;
-	private static List<TerrainData> terrains;
-	private static Dictionary<string, object> terrainData;
-	private static List<MapData> maps;
-	private static Dictionary<string, object> mapData;
-
-	private static int[][] terrainWeight;			// int map of terrain weights for each terrain and unit class
-
-	// Sets player data
-	public static void SetPlayerData(Dictionary<string, object> responseDict) {
-		playerData = responseDict;
-		Player = new PlayerData(playerData);
+#region // Public properties
+	public static PlayerData Player {
+		get{return _player;}
+		set{_player = value;}
 	}
+	public static MatchData CurrentMatch {
+		get{return _currentMatch;} 
+		set{_currentMatch = value;}
+	}
+	public static VersionData Version {
+		get{return _version;} 
+		set{_version = value;}
+	}
+#endregion
+
 
 	// Sets static game data
-	public static void SetGameData(Dictionary<string, object> responseDict) {
-		// Initiate private vars
-		stats = new List<StatData>();
-		abilities = new List<AbilityData>();
-		actions = new List<ActionData>();
-		perks = new List<PerkData>();
-		units = new List<UnitData>();
-		leaders = new List<LeaderData>();
-		terrains = new List<TerrainData>();
-		maps = new List<MapData>();
-		// ------------------------------
-		statData = (Dictionary<string, object>)responseDict["Stats"];
-		abilityData = (Dictionary<string, object>)responseDict["Abilities"];
-		actionData  = (Dictionary<string, object>)responseDict["Actions"];
-		perkData = (Dictionary<string, object>)responseDict["Perks"];
-		unitData = (Dictionary<string, object>)responseDict["Classes"];
-		leaderData = (Dictionary<string, object>)responseDict["Leaders"];
-		terrainData = (Dictionary<string, object>)responseDict["Terrain"];
-		mapData = (Dictionary<string, object>)responseDict["Maps"];
+	public static void SetGameData(Dictionary<string, object> gameData) {
+		// Initiate dictionaries
+		_maps 		= new Dictionary<string, MapData>();
+		_terrains 	= new Dictionary<string, TerrainData>();
+		_units 		= new Dictionary<string, UnitData>();
+		_actions 	= new Dictionary<string, ActionData>();
+		_stats 		= new Dictionary<string, StatData>();
+		_leaders 	= new Dictionary<string, LeaderData>();
+		_abilities 	= new Dictionary<string, AbilityData>();
+		_perks 		= new Dictionary<string, PerkData>();
+		
+		// Map IL Data to temp dictionaries
+		Dictionary<string, object> mapData 		= (Dictionary<string, object>)gameData["Maps"];
+		Dictionary<string, object> terrainData 	= (Dictionary<string, object>)gameData["Terrain"];
+		Dictionary<string, object> unitData 	= (Dictionary<string, object>)gameData["Classes"];
+		Dictionary<string, object> actionData  	= (Dictionary<string, object>)gameData["Actions"];
+		Dictionary<string, object> statData 	= (Dictionary<string, object>)gameData["Stats"];
+		Dictionary<string, object> leaderData 	= (Dictionary<string, object>)gameData["Leaders"];
+		Dictionary<string, object> abilityData 	= (Dictionary<string, object>)gameData["Abilities"];
+		Dictionary<string, object> perkData 	= (Dictionary<string, object>)gameData["Perks"];
 
+		// Set dictionaries (ORDER MATTERS - i.e. Ability must come before Leader)
+		SetMapData(mapData);
+		SetTerrainData(terrainData);
+		SetUnitData(unitData);
+		SetActionData(actionData);
 		SetStatData(statData);
 		SetAbilityData(abilityData);
-		SetActionData(actionData);
-		SetPerkData(perkData);
-		SetUnitData(unitData);
 		SetLeaderData(leaderData);
-		SetTerrainData(terrainData);
-		SetMapData(mapData);
+		SetPerkData(perkData);
 
-		Version = new VersionData((Dictionary<string, object>)responseDict["Version"]);
-
-		CreateWeightMap();
+		// Other
+		_version = new VersionData((Dictionary<string, object>)gameData["Version"]);
+		CreateWeightMap(unitData);
 	}
 
 #region // Set Static Data
 
+	// Sets player data
+	public static void SetPlayerData(Dictionary<string, object> playerData) {
+		_player = (playerData != null)? new PlayerData(playerData) : null;
+	}
+
 	// Populates match data and creates callable list
 	public static void SetMatchData(Dictionary<string, object> matchDict) {
-		matches = new Dictionary<int, MatchData>();
-		matches.Clear();
-
+		// Return if no matches
 		if(matchDict["Games"].ToString() == "[]") {
 			return;
 		}
-		matchData = Json.ToList(matchDict["Games"].ToString());
 
+		_matches = new Dictionary<int, MatchData>();
 		int key;
-		Dictionary<string, object> _matchDataAsDict;
+		List<object> matchData = Json.ToList(matchDict["Games"].ToString());
+		Dictionary<string, object> matchDataAsDict;
+
+		// Populate matches
 		foreach(object match in matchData) {
-			_matchDataAsDict = Json.ToDict(match.ToString());
-			key = int.Parse(_matchDataAsDict["ID"].ToString());
-			matches[key] = new MatchData(_matchDataAsDict);
+			matchDataAsDict = Json.ToDict(match.ToString());
+			key = int.Parse(matchDataAsDict["ID"].ToString());
+			_matches[key] = new MatchData(matchDataAsDict);
 		}
 	}
 
-	// Populates terrain data and creates callable list
-	private static void SetTerrainData(Dictionary<string, object> terrainDict) {
-		foreach(KeyValuePair<string, object> terrain in terrainDict) {
-			terrains.Add(new TerrainData(terrain));
-		}
-	}
-
-	// Populates stat data and creates callable list
-	private static void SetStatData(Dictionary<string, object> statDict) {
-		foreach(KeyValuePair<string, object> stat in statDict) {
-			stats.Add(new StatData(stat, false));
-		}
-	}
-
-	// Populates ability data and creates callable list
-	private static void SetAbilityData(Dictionary<string, object> abilDict) {
-		foreach(KeyValuePair<string, object> ability in abilDict) {
-			abilities.Add(new AbilityData(ability));
-		}
-	}
-
-	// Populates action data and creates callable list
-	private static void SetActionData(Dictionary<string, object> actionDict) {
-		foreach(KeyValuePair<string, object> action in actionDict) {
-			actions.Add(new ActionData(action));
-		}
-	}
-
-	// Populates perk data and creates callable list
-	private static void SetPerkData(Dictionary<string, object> perkDict) {
-		foreach(KeyValuePair<string, object> perk in perkDict) {
-			perks.Add(new PerkData(perk));
-		}
-		perks.Sort((x,y) => x.tier.CompareTo(y.tier));
-	}
-
-	// Populates unit data and creates callable list
-	private static void SetUnitData(Dictionary<string, object> unitDict) {
-		foreach(KeyValuePair<string, object> unit in unitDict) {
-			units.Add(new UnitData(unit));
-		}
-	}
-
-	// Populates leader data and creates callable list
-	private static void SetLeaderData(Dictionary<string, object> leaderDict) {
-		foreach(KeyValuePair<string, object> leader in leaderDict) {
-			leaders.Add(new LeaderData(leader));
-		}
-	}
-
-	// Populates map data and creates callable list
+	// Populate map data into static list
 	private static void SetMapData(Dictionary<string, object> mapDict) {
 		foreach(KeyValuePair<string, object> map in mapDict) {
-			maps.Add(new MapData(map));
+			_maps[map.Key] = new MapData(map);
 		}
 	}
 
-	// Update a specific game's data based on a received end turn message
-	public static void UpdateETGameData(int gameID){
-		if(!matches.ContainsKey(gameID)){
-			return;
+	// Populate terrain data into static list
+	private static void SetTerrainData(Dictionary<string, object> terrainDict) {
+		foreach(KeyValuePair<string, object> terrain in terrainDict) {
+			_terrains[terrain.Key] = new TerrainData(terrain);
 		}
-
-		matches[gameID].UserTurn = true;
 	}
 
-	// Update a specific game's data based on a received take action message
-	public static void UpdateTAGameData(int key, Dictionary<string, object> unit, Dictionary<string, object> target){
-
-		// The 'Unit' from user 2's perspective is the enemy
-		int enemy_id = int.Parse(unit["ID"].ToString());
-		MatchUnit enemy = matches[key].EnemyUnits[enemy_id];
-		enemy.X  = int.Parse(unit["NewX"].ToString());
-		enemy.Y  = int.Parse(unit["NewY"].ToString());
-		enemy.Acted = true;
-
-		// The 'Target' from user 2's perspective is his/her unit
-		if(target != null){
-			int allied_id = int.Parse(target["ID"].ToString());
-			MatchUnit ally = matches[key].AlliedUnits[allied_id];
-			ally.HP = int.Parse(target["NewHP"].ToString());
-
-			// HP can only change for actions that involved a target
-			enemy.HP = int.Parse(unit["NewHP"].ToString());
-
-			matches[key].AlliedUnits[allied_id] = ally;
+	// Populate unit data into static list
+	private static void SetUnitData(Dictionary<string, object> unitDict) {
+		foreach(KeyValuePair<string, object> unit in unitDict) {
+			_units[unit.Key] = new UnitData(unit);
 		}
+	}
 
-		matches[key].EnemyUnits[enemy_id] = enemy;
+	// Populate action data into static list
+	private static void SetActionData(Dictionary<string, object> actionDict) {
+		foreach(KeyValuePair<string, object> action in actionDict) {
+			_actions[action.Key] = new ActionData(action);
+		}
+	}
+
+	// Populate stat data into static list
+	private static void SetStatData(Dictionary<string, object> statDict) {
+		foreach(KeyValuePair<string, object> stat in statDict) {
+			_stats[stat.Key] = new StatData(stat, false);
+		}
+	}
+
+	// Populate ability data into static list
+	private static void SetAbilityData(Dictionary<string, object> abilDict) {
+		foreach(KeyValuePair<string, object> ability in abilDict) {
+			_abilities[ability.Key] = new AbilityData(ability);
+		}
+	}
+
+	// Populate leader data into static list
+	private static void SetLeaderData(Dictionary<string, object> leaderDict) {
+		foreach(KeyValuePair<string, object> leader in leaderDict) {
+			_leaders[leader.Key] = new LeaderData(leader);
+		}
+	}
+
+	// Populate perk data into static list
+	private static void SetPerkData(Dictionary<string, object> perkDict) {
+		foreach(KeyValuePair<string, object> perk in perkDict) {
+			_perks[perk.Key] = new PerkData(perk);
+		}
 	}
 #endregion
 
@@ -189,94 +160,107 @@ public static class GameData {
 
 	// Called to retrieve dynamic match data
 	public static Dictionary<int, MatchData> GetMatches {
-		get{return matches;}
+		get{return _matches;}
 	}
 
 	// Called to retrieve static terrain data
-	public static TerrainData GetTerrain(string shortNameKey) {
-		return terrains.Find(x => x.shortName == shortNameKey);
-	}
-	public static List<TerrainData> GetTerrains {
-		get{return terrains;}
+	public static Dictionary<string, TerrainData> GetTerrains {
+		get{return _terrains;}
 	}
 
 	// Called to retrieve static stat data
-	public static StatData GetStat(string nameKey) {
-		return stats.Find(x => x.name == nameKey);
-	}
-	public static List<StatData> GetStats {
-		get{return stats;}
+	public static Dictionary<string, StatData> GetStats {
+		get{return _stats;}
 	}
 
 	// Called to retrieve static ability data
-	public static AbilityData GetAbility(string nameKey) {
-		return abilities.Find(x => x.name == nameKey);
-	}
-	public static List<AbilityData> GetAbilities {
-		get{return abilities;}
+	public static Dictionary<string, AbilityData> GetAbilities {
+		get{return _abilities;}
 	}
 
 	// Called to retrieve static action data
-	public static ActionData GetAction(string nameKey) {
-		return actions.Find(x => x.name == nameKey);
-	}
-	public static List<ActionData> GetActions {
-		get{return actions;}
+	public static Dictionary<string, ActionData> GetActions {
+		get{return _actions;}
 	}
 
 	// Called to retrieve static perk data
-	public static PerkData GetPerk(string nameKey) {
-		return perks.Find(x => x.name == nameKey);
-	}
-	public static List<PerkData> GetPerks {
-		get{return perks;}
+	public static Dictionary<string, PerkData> GetPerks {
+		get{return _perks;}
 	}
 
 	// Called to retrieve static unit data
-	public static UnitData GetUnit(string nameKey) {
-		return units.Find(x => x.name == nameKey);
-	}
-	public static List<UnitData> GetUnits {
-		get{return units;}
+	public static Dictionary<string, UnitData> GetUnits {
+		get{return _units;}
 	}
 
 	// Called to retrieve static leader data
-	public static LeaderData GetLeader(string nameKey) {
-		return leaders.Find(x => x.name == nameKey);
-	}
-	public static List<LeaderData> GetLeaders {
-		get{return leaders;}
+	public static Dictionary<string, LeaderData> GetLeaders {
+		get{return _leaders;}
 	}
 
 	// Called to retrieve static map data
-	public static MapData GetMap(string nameKey) {
-		return maps.Find(x => x.name == nameKey);
-	}
-	public static List<MapData> GetMaps {
-		get{return maps;}
+	public static Dictionary<string, MapData> GetMaps {
+		get{return _maps;}
 	}
 
 	// Called to easily get the terrain weight for a given terrain type and unit class
 	// TerrainWeight("Mage", "Mountain") returns 3
 	public static int TerrainWeight(string unitName, string terrainShortName) {
-		return terrainWeight[units.FindIndex(x => x.name == unitName)][ terrains.FindIndex(y => y.shortName == terrainShortName)];
+		return _terrainWeight[_units[unitName].Name][_terrains[terrainShortName].ShortName];
 	}
 #endregion
 
 #region // Supporting Methods
 
-	// Initialize the 2d array based on list counts, then extract weight from server response
-	private static void CreateWeightMap(){
-		terrainWeight = JaggedArray.CreateJaggedArray<int[][]>(units.Count, terrains.Count);
-
-		foreach(UnitData unit in units) {
-			foreach(TerrainData terrain in terrains) {
-				Dictionary<string, object> unitDict = (Dictionary<string, object>)unitData[unit.name];
-				Dictionary<string, object> terrainDict = (Dictionary<string, object>)unitDict["Terrain"];
-				int unitTerrainWeight = int.Parse(terrainDict[terrain.shortName].ToString());
-				terrainWeight[units.IndexOf(unit)][terrains.IndexOf(terrain)] = unitTerrainWeight;
+	// Initialize dictionary of dictionaries referring to terrain weight for each unit
+	private static void CreateWeightMap(Dictionary<string, object> unitData){
+		_terrainWeight = new Dictionary<string, Dictionary<string, int>>();
+		Dictionary<string, object> unitTerrainData;
+		
+		// Loop through units
+		foreach(KeyValuePair<string, object> unit in unitData) {
+			unitTerrainData = Json.ToDict(unit.Value.ToString());
+			_terrainWeight[unit.Key] = new Dictionary<string, int>();
+			
+			// Loop through terrain weights for current unit
+			foreach(KeyValuePair<string, object> terrain in unitTerrainData) {
+				int unitTerrainWeight = int.Parse(terrain.Value.ToString());
+				_terrainWeight[unit.Key][terrain.Key] = unitTerrainWeight;
 			}
 		}
+	}
+
+	// Update a specific game's data based on a received end turn message
+	public static void UpdateETGameData(int matchID){
+		if(!_matches.ContainsKey(matchID)){
+			return;
+		}
+		_matches[matchID].StartTurn();
+	}
+
+	// Update a specific game's data based on a received take action message
+	public static void UpdateTAGameData(int matchID, Dictionary<string, object> unit, Dictionary<string, object> target){
+		// The 'Unit' from user 2's perspective is the enemy
+		int enemy_id = int.Parse(unit["ID"].ToString());
+		UnitInfo enemy = _matches[matchID].EnemyUnits[enemy_id];
+		int enemyX  = int.Parse(unit["NewX"].ToString());
+		int enemyY  = int.Parse(unit["NewY"].ToString());
+
+		// The 'Target' from user 2's perspective is his/her unit
+		if(target != null){
+			int allied_id = int.Parse(target["ID"].ToString());
+			UnitInfo ally = _matches[matchID].AlliedUnits[allied_id];
+			int allyHP = int.Parse(target["NewHP"].ToString());
+
+			// HP can only change for actions that involved a target
+			int enemyHP = int.Parse(unit["NewHP"].ToString());
+
+			ally.UpdateInfo(allyHP);
+			enemy.UpdateInfo(enemyHP, enemyX, enemyY);
+		}else {
+			enemy.UpdateInfo(newX: enemyX, newY: enemyY);
+		}
+		enemy.SetActed(true);
 	}
 #endregion
 

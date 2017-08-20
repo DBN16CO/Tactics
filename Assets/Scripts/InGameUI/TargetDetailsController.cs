@@ -42,20 +42,17 @@ public class TargetDetailsController : MonoBehaviour {
 		// Update dmg or heal text
 		DmgOrHeal.text = (IsAttack)? "DMG" : "HEAL";
 		// Set unit stats
-		UnitData myUnit 	= GameData.GetUnit(GameController.SelectedToken.CurrentUnit.Info.Name);
-		UnitData targUnit 	= GameData.GetUnit(GameController.IntendedTarget.CurrentUnit.Info.Name);
+		UnitData myUnit 	= GameData.GetUnits[GameController.SelectedToken.CurrentUnit.Info.Name];
+		UnitData targUnit 	= GameData.GetUnits[GameController.IntendedTarget.CurrentUnit.Info.Name];
 		// DEVELOPMENT UNTIL BETTER WAY TO DETERMINE PHYSICAL VS MAGICAL
-		bool myPhysical 	= myUnit.GetStat("Strength").Value > myUnit.GetStat("Intelligence").Value;
-		bool targPhysical	= targUnit.GetStat("Strength").Value > targUnit.GetStat("Intelligence").Value;
+		bool myPhysical 	= myUnit.GetStats["Strength"].Value > myUnit.GetStats["Intelligence"].Value;
 
-		int myPower = (myPhysical)? myUnit.GetStat("Strength").Value : myUnit.GetStat("Intelligence").Value;
-		int myDef	= (targPhysical)? myUnit.GetStat("Defense").Value : myUnit.GetStat("Resistance").Value;
-		int myAgil	= myUnit.GetStat("Agility").Value;
-		int myLuck	= myUnit.GetStat("Luck").Value;
-		int targPower 	= (targPhysical)? targUnit.GetStat("Strength").Value : targUnit.GetStat("Intelligence").Value;
-		int targDef		= (myPhysical)? targUnit.GetStat("Defense").Value : targUnit.GetStat("Resistance").Value;
-		int targAgil	= targUnit.GetStat("Agility").Value;
-		int targLuck	= targUnit.GetStat("Luck").Value;
+		int myPower 	= (myPhysical)? myUnit.GetStats["Strength"].Value : myUnit.GetStats["Intelligence"].Value;
+		int myAgil		= myUnit.GetStats["Agility"].Value;
+		int myLuck		= myUnit.GetStats["Luck"].Value;
+		int targDef		= (myPhysical)? targUnit.GetStats["Defense"].Value : targUnit.GetStats["Resistance"].Value;
+		int targAgil	= targUnit.GetStats["Agility"].Value;
+		int targLuck	= targUnit.GetStats["Luck"].Value;
 
 		// Calculate vars
 		int myDmg 	= Mathf.Max(0, myPower - targDef);
@@ -64,6 +61,10 @@ public class TargetDetailsController : MonoBehaviour {
 
 		int targDmg; int targHit; int targCrit;
 		if(GameController.Main.CanTargetCounter() && IsAttack) {
+			bool targPhysical	= targUnit.GetStats["Strength"].Value > targUnit.GetStats["Intelligence"].Value;
+			int myDef	= (targPhysical)? myUnit.GetStats["Defense"].Value : myUnit.GetStats["Resistance"].Value;
+			int targPower 	= (targPhysical)? targUnit.GetStats["Strength"].Value : targUnit.GetStats["Intelligence"].Value;
+			
 			targDmg 	= Mathf.Max(0, targPower - myDef);
 			targHit 	= 100 - Mathf.Max(0, ((myAgil - targAgil) * 5) + 5);
 			targCrit 	= Mathf.Max(0, ((targLuck - myLuck) * 5) + 5);
