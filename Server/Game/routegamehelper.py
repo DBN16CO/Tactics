@@ -111,6 +111,10 @@ def queryGamesUser(data):
 	:param data: The necessary input information to process the command should
 				 be of the following format:\n
 				 {\n
+				     "Filters": {\n
+						"Game_ID": 1,\n
+						"Num_Prev_Turns": 0-N (default is 2 if not specified)\n
+				     }\n
 				 }\n
 
 	:rtype: 	 Dictionary
@@ -200,6 +204,11 @@ def queryGamesUser(data):
 
 	"""
 	username = data['session_username']
+	filters = {}
+	if 'Filters' in data:
+		filters = data['Filters']
+		logging.info("QGU Filters: {}".format(filters))
+
 	user = Users.objects.filter(username=username).first()
 	in_game_queue = Game_Queue.objects.filter(user=user).first() != None
 	response = {"Success": True, "Games": [], "In_Game_Queue": in_game_queue}
@@ -209,6 +218,9 @@ def queryGamesUser(data):
 		my_game_users = Game_User.objects.filter(user=user)
 		for game_user in my_game_users:
 			game = game_user.game
+			if filters and 'Game_ID' in filters and filters['Game_ID'] != game.id:
+				logging.info("Game with id {0} did not match filter game id {1}".format(game.id, filters['Game_ID']))
+				continue
 
 			if not game:
 
