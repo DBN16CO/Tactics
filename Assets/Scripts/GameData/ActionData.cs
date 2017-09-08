@@ -19,7 +19,7 @@ public class ActionData {
 	// Constructor when starting from IL Server call
 	public ActionData(KeyValuePair<string, object> action) {
 		_name = action.Key;
-		_description = action.Value.ToString();
+		_description = Parse.String(action.Value);
 	}
 
 }

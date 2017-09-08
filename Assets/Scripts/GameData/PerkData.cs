@@ -29,8 +29,8 @@ public class PerkData {
 		Dictionary<string, object> perkData = (Dictionary<string, object>)perk.Value;
 
 		_name = perk.Key;
-		_tier = int.Parse(perkData["Tier"].ToString());
-		_description = perkData["Description"].ToString();
+		_tier = Parse.Int(perkData["Tier"]);
+		_description = Parse.String(perkData["Description"]);
 
 		_iconSpritePath = "Sprites/PerkIcons/DefaultTier" + Tier; // Testing
 	}

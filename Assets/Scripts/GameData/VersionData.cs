@@ -14,7 +14,7 @@ public class VersionData {
 
 	// Constructor when starting from IL Server call
 	public VersionData(Dictionary<string, object> versionData) {
-		_maxFunds = int.Parse(versionData["Price_Max"].ToString());
+		_maxFunds = Parse.Int(versionData["Price_Max"]);
 	}
 
 }

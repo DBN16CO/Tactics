@@ -30,12 +30,12 @@ public class LeaderData {
 		Dictionary<string, object> leaderData = (Dictionary<string, object>)leader.Value;
 
 		_name = leader.Key;
-		_description = leaderData["Description"].ToString();
-		_spritePath = "Sprites/Units/" + Name;
+		_description = Parse.String(leaderData["Description"]);
+		_spritePath = "Sprites/Units/" + _name;
 
 		// Populate abilities
 		_abilities = new Dictionary<string, AbilityData>();
-		foreach(string ability in Json.ToList(leaderData["Abilities"].ToString())) {
+		foreach(string ability in Json.ToList(Parse.String(leaderData["Abilities"]))) {
 			_abilities[ability] = new AbilityData(ability);
 		}
 	}

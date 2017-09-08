@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Common.Cryptography;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Linq;
 using System.Text;
 
 public class CommunicationManager

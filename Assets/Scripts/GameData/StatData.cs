@@ -27,11 +27,11 @@ public class StatData {
 		// For UI display (Name/Description)
 		if(!forUnit) {
 			Dictionary<string, object> statData = (Dictionary<string, object>)stat.Value;
-			_description = statData["Description"].ToString();
+			_description = Parse.String(statData["Description"]);
 		}
 		// For Units (Name/Value)
 		else {
-			_value = int.Parse(stat.Value.ToString());
+			_value = Parse.Int(stat.Value);
 		}
 	}
 

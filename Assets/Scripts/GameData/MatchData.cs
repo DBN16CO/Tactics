@@ -78,99 +78,93 @@ public class MatchData {
 	// Parses all fields necessary to describe the game to the front end
 	public MatchData(Dictionary<string, object> matchData) {
 		// General match information
-		_id          = int.Parse(matchData["ID"].ToString());
-		_name        = matchData["Name"].ToString();
-		_opponent    = matchData["Opponent"].ToString();
-    	_round       = int.Parse(matchData["Round"].ToString());
-        _userTurn    = (bool)matchData["Your_Turn"];
-        _mapName     = matchData["Map"].ToString();
-        _finished    = (bool)matchData["Finished"];
-		_userTeam    = int.Parse(matchData["Your_Team"].ToString());
-		_enemyTeam   = int.Parse(matchData["Enemy_Team"].ToString());
+		_id          = Parse.Int(matchData["ID"]);
+		_name        = Parse.String(matchData["Name"]);
+		_opponent    = Parse.String(matchData["Opponent"]);
+    	_round       = Parse.Int(matchData["Round"]);
+        _userTurn    = Parse.Bool(matchData["Your_Turn"]);
+        _mapName     = Parse.String(matchData["Map"]);
+        _finished    = Parse.Bool(matchData["Finished"]);
+		_userTeam    = Parse.Int(matchData["Your_Team"]);
+		_enemyTeam   = Parse.Int(matchData["Enemy_Team"]);
 
 		// Get all the allied units
 		_alliedUnits = new Dictionary<int, UnitInfo>();
-		foreach(object unitData in Json.ToList(matchData["Your_Units"].ToString())){
-			if(unitData != null) {
-				Dictionary<string, object> unit = Json.ToDict(unitData.ToString());
-				UnitInfo alliedUnit = new UnitInfo(unit);
-				_alliedUnits[alliedUnit.ID] = alliedUnit;
-			}
-		}
-
-		// Get all the allied perks
-		_alliedPerks = new List<MatchPerk>();
-		foreach(object perkData in Json.ToList(matchData["Your_Perks"].ToString())){
-			Dictionary<string, object> perk = Json.ToDict(perkData.ToString());
-
-			MatchPerk alliedPerk = new MatchPerk();
-
-			alliedPerk.Tier = int.Parse(perk["Tier"].ToString());
-			alliedPerk.Name = perk["Name"].ToString();
-
-			_alliedPerks.Add(alliedPerk);
+		foreach(object unitData in Json.ToList(Parse.String(matchData["Your_Units"]))){
+			Dictionary<string, object> unit = Json.ToDict(Parse.String(unitData));
+			UnitInfo alliedUnit = new UnitInfo(unit);
+			_alliedUnits[alliedUnit.ID] = alliedUnit;
 		}
 
 		// Allied leader data
 		Dictionary<string, object> leaderData = (Dictionary<string, object>)matchData["Your_Leader"];
-		_alliedLeader.Name    = leaderData["Name"].ToString();
-		_alliedLeader.Ability = leaderData["Ability"].ToString();
+		_alliedLeader.Name    = Parse.String(leaderData["Name"]);
+		_alliedLeader.Ability = Parse.String(leaderData["Ability"]);
+
+		// Get all the allied perks
+		_alliedPerks = new List<MatchPerk>();
+		foreach(object perkData in Json.ToList(Parse.String(matchData["Your_Perks"]))){
+			Dictionary<string, object> perk = Json.ToDict(Parse.String(perkData));
+
+			MatchPerk alliedPerk = new MatchPerk();
+			alliedPerk.Tier = Parse.Int(perk["Tier"]);
+			alliedPerk.Name = Parse.String(perk["Name"]);
+
+			_alliedPerks.Add(alliedPerk);
+		}
 
 		// Get all the enemy units
 		_enemyUnits = new Dictionary<int, UnitInfo>();
-		foreach(object unitData in Json.ToList(matchData["Enemy_Units"].ToString())){
-			if(unitData != null) {
-				Dictionary<string, object> unit = Json.ToDict(unitData.ToString());
-				UnitInfo enemyUnit = new UnitInfo(unit);
-				_enemyUnits[enemyUnit.ID] = enemyUnit;
-			}
+		foreach(object unitData in Json.ToList(Parse.String(matchData["Enemy_Units"]))){
+			Dictionary<string, object> unit = Json.ToDict(Parse.String(unitData));
+			UnitInfo enemyUnit = new UnitInfo(unit);
+			_enemyUnits[enemyUnit.ID] = enemyUnit;
 		}
 
 		// Enemy leader data
 		leaderData = (Dictionary<string, object>)matchData["Enemy_Leader"];
-		_enemyLeader.Name    = leaderData["Name"].ToString();
-		_enemyLeader.Ability = leaderData["Ability"].ToString();
+		_enemyLeader.Name    = Parse.String(leaderData["Name"]);
+		_enemyLeader.Ability = Parse.String(leaderData["Ability"]);
 
 		// Get all the enemy perks
 		_enemyPerks = new List<MatchPerk>();
-		foreach(object perkData in Json.ToList(matchData["Enemy_Perks"].ToString())){
-			Dictionary<string, object> perk = Json.ToDict(perkData.ToString());
+		foreach(object perkData in Json.ToList(Parse.String(matchData["Enemy_Perks"]))){
+			Dictionary<string, object> perk = Json.ToDict(Parse.String(perkData));
 
 			MatchPerk enemyPerk = new MatchPerk();
-
-			enemyPerk.Tier = int.Parse(perk["Tier"].ToString());
-			enemyPerk.Name = perk["Name"].ToString();
+			enemyPerk.Tier = Parse.Int(perk["Tier"]);
+			enemyPerk.Name = Parse.String(perk["Name"]);
 
 			_enemyPerks.Add(enemyPerk);
 		}
 
 		// Get all of the Action History Data
 		_gameActions = new List<MatchAction>();
-		foreach(object actionData in Json.ToList(matchData["Action_History"].ToString())){
-			Dictionary<string, object> actn = Json.ToDict(actionData.ToString());
+		foreach(object actionData in Json.ToList(Parse.String(matchData["Action_History"]))){
+			Dictionary<string, object> actn = Json.ToDict(Parse.String(actionData));
 
 			MatchAction currAction = new MatchAction();
 
-			currAction.Order         = int.Parse(actn["Order"].ToString());
-			currAction.Turn          = int.Parse(actn["Turn"].ToString());
-			currAction.YourAction    = (bool)actn["Your_Action"];
-			currAction.Action        = actn["Action"].ToString();
-			currAction.UnitID        = int.Parse(actn["Unit"].ToString());
-			currAction.UnitOldX      = int.Parse(actn["Old_X"].ToString());
-			currAction.UnitNewX      = int.Parse(actn["New_X"].ToString());
-			currAction.UnitOldY      = int.Parse(actn["Old_Y"].ToString());
-			currAction.UnitNewY      = int.Parse(actn["New_Y"].ToString());
-			currAction.UnitOldHP     = int.Parse(actn["Old_HP"].ToString());
-			currAction.UnitNewHP     = int.Parse(actn["New_HP"].ToString());
-			currAction.UnitCrit      = (bool)actn["Crit"];
-			currAction.UnitMiss      = (bool)actn["Miss"];
+			currAction.Order         = Parse.Int(actn["Order"]);
+			currAction.Turn          = Parse.Int(actn["Turn"]);
+			currAction.YourAction    = Parse.Bool(actn["Your_Action"]);
+			currAction.Action        = Parse.String(actn["Action"]);
+			currAction.UnitID        = Parse.Int(actn["Unit"]);
+			currAction.UnitOldX      = Parse.Int(actn["Old_X"]);
+			currAction.UnitNewX      = Parse.Int(actn["New_X"]);
+			currAction.UnitOldY      = Parse.Int(actn["Old_Y"]);
+			currAction.UnitNewY      = Parse.Int(actn["New_Y"]);
+			currAction.UnitOldHP     = Parse.Int(actn["Old_HP"]);
+			currAction.UnitNewHP     = Parse.Int(actn["New_HP"]);
+			currAction.UnitCrit      = Parse.Bool(actn["Crit"]);
+			currAction.UnitMiss      = Parse.Bool(actn["Miss"]);
 			if(actn["Target"] != null) {
-				currAction.TargetID      = int.Parse(actn["Target"].ToString());
-				currAction.TargetOldHP   = int.Parse(actn["Tgt_Old_HP"].ToString());
-				currAction.TargetNewHP   = int.Parse(actn["Tgt_New_HP"].ToString());
-				currAction.TargetCounter = (bool)actn["Tgt_Counter"];
-				currAction.TargetCrit    = (bool)actn["Tgt_Crit"];
-				currAction.TargetMiss    = (bool)actn["Tgt_Miss"];
+				currAction.TargetID      = Parse.Int(actn["Target"]);
+				currAction.TargetOldHP   = Parse.Int(actn["Tgt_Old_HP"]);
+				currAction.TargetNewHP   = Parse.Int(actn["Tgt_New_HP"]);
+				currAction.TargetCounter = Parse.Bool(actn["Tgt_Counter"]);
+				currAction.TargetCrit    = Parse.Bool(actn["Tgt_Crit"]);
+				currAction.TargetMiss    = Parse.Bool(actn["Tgt_Miss"]);
 			}
 
 			_gameActions.Add(currAction);

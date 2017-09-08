@@ -35,9 +35,9 @@ public class UnitData {
 		Dictionary<string, object> unitData = (Dictionary<string, object>)unit.Value;
 
 		_name = unit.Key;
-		_description = unitData["Description"].ToString();
-		_price = int.Parse(unitData["Price"].ToString());
-		_spritePath = "Sprites/Units/" + Name;
+		_description = Parse.String(unitData["Description"]);
+		_price = Parse.Int(unitData["Price"]);
+		_spritePath = "Sprites/Units/" + _name;
 
 		// Populate stats
 		_stats = new Dictionary<string, StatData>();
@@ -48,7 +48,7 @@ public class UnitData {
 		// Populate actions
 		_actions = new Dictionary<string, bool>();
 		foreach(KeyValuePair<string, object> actn in (Dictionary<string, object>)unitData["Actions"]) {
-			_actions[actn.Key] = (bool)actn.Value;
+			_actions[actn.Key] = Parse.Bool(actn.Value);
 		}
 		
 	}

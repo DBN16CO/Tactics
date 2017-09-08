@@ -34,12 +34,12 @@ public class UnitInfo {
 
 	// Default constructor
 	public UnitInfo(Dictionary<string, object> unit) {
-		_id 	= int.Parse(unit["ID"].ToString());
-		_name 	= unit["Name"].ToString();
-		_hp 	= int.Parse(unit["HP"].ToString());
-		_x 		= int.Parse(unit["X"].ToString());
-		_y 		= int.Parse(unit["Y"].ToString());
-		_acted  = (bool)unit["Acted"];
+		_id 	= Parse.Int(unit["ID"]);
+		_name 	= Parse.String(unit["Name"]);
+		_hp 	= Parse.Int(unit["HP"]);
+		_x 		= Parse.Int(unit["X"]);
+		_y 		= Parse.Int(unit["Y"]);
+		_acted  = Parse.Bool(unit["Acted"]);
 	}
 
 	// Updates info, defaulting each parameter to itself

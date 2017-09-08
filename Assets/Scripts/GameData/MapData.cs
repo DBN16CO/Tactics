@@ -33,7 +33,7 @@ public class MapData {
 	// Constructor when starting from IL Server call
 	public MapData(KeyValuePair<string, object> map) {
 		_name = map.Key;
-		CreateMapData(map.Value.ToString());
+		CreateMapData(Parse.String(map.Value));
 	}
 
 	// Creates public arrays from map size and values

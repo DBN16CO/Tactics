@@ -72,7 +72,18 @@ public class SpawnController : ParentController {
 			}
 			ret.Info = unit;
 			ret.MyTeam = myTeam;
-			ret.PaintUnit((ret.Info.Acted)? "disable": ((ret.MyTeam)? "ally": "enemy"));
+
+			// If the unit is on the opposite team of the user who's turn it is
+			if((GameData.CurrentMatch.UserTurn && !ret.MyTeam) || (!GameData.CurrentMatch.UserTurn && ret.MyTeam)) {
+				// Disabled doesn't apply if it's not the user's turn
+				ret.PaintUnit((ret.MyTeam)? "ally" : "enemy");
+			}
+			// If the unit is on the same team of the user who's turn it is
+			else {
+				// Disabled does apply if it's the user's turn
+				ret.PaintUnit((ret.Info.Acted)? "disable" : (ret.MyTeam)? "ally" : "enemy");
+			}
+
 			GameController.Tokens[x][y].CurrentUnit = ret;
 			GameController.Units.Add(ret);
 

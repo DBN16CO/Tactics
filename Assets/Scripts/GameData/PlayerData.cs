@@ -35,11 +35,11 @@ public class PlayerData {
 
 	// Constructor when starting from IL Server call
 	public PlayerData(Dictionary<string, object> player) {
-		_username = player["Username"].ToString();
-		_email = player["Email"].ToString();
-		_verified = (bool)player["Verified"];
-		_level = int.Parse(player["Level"].ToString());
-		_experience = int.Parse(player["Experience"].ToString());
+		_username = Parse.String(player["Username"]);
+		_email = Parse.String(player["Email"]);
+		_verified = Parse.Bool(player["Verified"]);
+		_level = Parse.Int(player["Level"]);
+		_experience = Parse.Int(player["Experience"]);
 
 		_preferences = new PreferenceData((Dictionary<string, object>)player["Preferences"]);
 	}

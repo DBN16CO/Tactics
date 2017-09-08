@@ -88,13 +88,13 @@ public static class GameData {
 
 		_matches = new Dictionary<int, MatchData>();
 		int key;
-		List<object> matchData = Json.ToList(matchDict["Games"].ToString());
+		List<object> matchData = Json.ToList(Parse.String(matchDict["Games"]));
 		Dictionary<string, object> matchDataAsDict;
 
 		// Populate matches
 		foreach(object match in matchData) {
-			matchDataAsDict = Json.ToDict(match.ToString());
-			key = int.Parse(matchDataAsDict["ID"].ToString());
+			matchDataAsDict = Json.ToDict(Parse.String(match));
+			key = Parse.Int(matchDataAsDict["ID"]);
 			_matches[key] = new MatchData(matchDataAsDict);
 		}
 	}
@@ -213,18 +213,20 @@ public static class GameData {
 #region // Supporting Methods
 
 	// Initialize dictionary of dictionaries referring to terrain weight for each unit
-	private static void CreateWeightMap(Dictionary<string, object> unitData){
+	private static void CreateWeightMap(Dictionary<string, object> unitsDict){
 		_terrainWeight = new Dictionary<string, Dictionary<string, int>>();
-		Dictionary<string, object> unitTerrainData;
+		Dictionary<string, object> unitDict;
+		Dictionary<string, object> unitTerrainDict;
 		
 		// Loop through units
-		foreach(KeyValuePair<string, object> unit in unitData) {
-			unitTerrainData = Json.ToDict(unit.Value.ToString());
+		foreach(KeyValuePair<string, object> unit in unitsDict) {
+			unitDict = (Dictionary<string, object>)unit.Value;
+			unitTerrainDict = (Dictionary<string, object>)unitDict["Terrain"];
 			_terrainWeight[unit.Key] = new Dictionary<string, int>();
 			
 			// Loop through terrain weights for current unit
-			foreach(KeyValuePair<string, object> terrain in unitTerrainData) {
-				int unitTerrainWeight = int.Parse(terrain.Value.ToString());
+			foreach(KeyValuePair<string, object> terrain in unitTerrainDict) {
+				int unitTerrainWeight = Parse.Int(terrain.Value);
 				_terrainWeight[unit.Key][terrain.Key] = unitTerrainWeight;
 			}
 		}
@@ -241,19 +243,19 @@ public static class GameData {
 	// Update a specific game's data based on a received take action message
 	public static void UpdateTAGameData(int matchID, Dictionary<string, object> unit, Dictionary<string, object> target){
 		// The 'Unit' from user 2's perspective is the enemy
-		int enemy_id = int.Parse(unit["ID"].ToString());
+		int enemy_id = Parse.Int(unit["ID"]);
 		UnitInfo enemy = _matches[matchID].EnemyUnits[enemy_id];
-		int enemyX  = int.Parse(unit["NewX"].ToString());
-		int enemyY  = int.Parse(unit["NewY"].ToString());
+		int enemyX  = Parse.Int(unit["NewX"]);
+		int enemyY  = Parse.Int(unit["NewY"]);
 
 		// The 'Target' from user 2's perspective is his/her unit
 		if(target != null){
-			int allied_id = int.Parse(target["ID"].ToString());
+			int allied_id = Parse.Int(target["ID"]);
 			UnitInfo ally = _matches[matchID].AlliedUnits[allied_id];
-			int allyHP = int.Parse(target["NewHP"].ToString());
+			int allyHP = Parse.Int(target["NewHP"]);
 
 			// HP can only change for actions that involved a target
-			int enemyHP = int.Parse(unit["NewHP"].ToString());
+			int enemyHP = Parse.Int(unit["NewHP"]);
 
 			ally.UpdateInfo(allyHP);
 			enemy.UpdateInfo(enemyHP, enemyX, enemyY);

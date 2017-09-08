@@ -98,10 +98,10 @@ public class GameController : ParentController {
 		PlacingUnits = !UnitsArePlaced;
 		_currentMap = GameData.GetMaps[GameData.CurrentMatch.MapName];
 		SC.CreateMap(GameData.CurrentMatch.MapName);
+		InitializeUI();
 		if(PlacingUnits) {
 			PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();
 		}else{
-			InitializeUI();
 			InitializeMap();
 		}
 
@@ -482,7 +482,7 @@ public class GameController : ParentController {
 		BackToMenuGO.SetActive(false);
 		_endTurn = false;
 		_backToMenu = false;
-		if(!GameData.CurrentMatch.UserTurn) {
+		if(!GameData.CurrentMatch.UserTurn || PlacingUnits) {
 			EndTurnGO.SetActive(false);
 		}
 	}

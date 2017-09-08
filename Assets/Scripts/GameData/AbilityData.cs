@@ -19,13 +19,13 @@ public class AbilityData {
 	// Constructor when starting from IL Server call
 	public AbilityData(KeyValuePair<string, object> ability) {
 		_name = ability.Key;
-		_description = ability.Value.ToString();
+		_description = Parse.String(ability.Value);
 	}
 
 	// Constructor for after IL Server call when we no longer have the IL dictionary
 	public AbilityData(string ability) {
 		_name = ability;
-		_description = GameData.GetAbilities[_name].ToString();
+		_description = GameData.GetAbilities[_name]._description;
 	}
 
 }

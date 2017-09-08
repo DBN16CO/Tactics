@@ -14,7 +14,7 @@ public class PreferenceData {
 
 	// Constructor when starting from IL Server call
 	public PreferenceData(Dictionary<string, object> preferences) {
-		_gridOpacity = preferences["Grid Opacity"].ToString();
+		_gridOpacity = Parse.String(preferences["Grid Opacity"]);
 	}
 
 }

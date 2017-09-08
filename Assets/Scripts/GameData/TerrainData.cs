@@ -28,11 +28,9 @@ public class TerrainData {
 	public TerrainData(KeyValuePair<string, object> terrain) {
 		Dictionary<string, object> terrainData = (Dictionary<string, object>)terrain.Value;
 
-		_name = terrainData["DisplayName"].ToString();
+		_name = Parse.String(terrainData["DisplayName"]);
 		_shortName = terrain.Key;
-		if(terrainData.ContainsKey("Description")) {
-			_description = terrainData["Description"].ToString();
-		}
+		_description = Parse.String(terrainData["Description"]);
 		_spritePath = "Sprites/Terrain/" + _name + GameData.Player.Preferences.GridOpacity;
 	}
 
