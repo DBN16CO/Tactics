@@ -33,7 +33,7 @@ public class ILTest
 
 	[Test]
 	public void ActionDataTest(){
-		ActionData ad = new ActionData(new KeyValuePair<string, object>(testNameVal, testDict));
+		ActionData ad = new ActionData(new KeyValuePair<string, object>(testNameVal, testDescVal));
 
 		Assert.AreEqual(ad.Name, testNameVal);
 		Assert.AreEqual(ad.Description, testDescVal);
