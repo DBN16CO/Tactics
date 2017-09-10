@@ -15,7 +15,7 @@ public class SpawnController : ParentController {
 
 	// Call this to instantiate a new game grid
 	public void CreateMap(string mapKey) {
-		MapData map = GameData.GetMaps[mapKey];
+		MapData map = GameData.GetMap(mapKey);
 		// Initialize Tokens jagged array
 		Token[][] tokens = new Token[map.Width][];
 		for(int x = 0; x < tokens.Length; x++) {
@@ -68,7 +68,7 @@ public class SpawnController : ParentController {
 			// Add to GameController Units and Return final unit
 			if(unit.X == -1 || unit.Y == -1) {
 				// Set initial params if new unit
-				unit.UpdateInfo(GameData.GetUnits[unit.Name].GetStats["HP"].Value, x, y);
+				unit.UpdateInfo(GameData.GetUnit(unit.Name).GetStat("HP").Value, x, y);
 			}
 			ret.Info = unit;
 			ret.MyTeam = myTeam;

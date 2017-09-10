@@ -4,8 +4,8 @@
 public class StatData {
 
 	private string 	_name;
-	private string 	_description;	// Used in GameData.GetStats (i.e. for UI display)
-	private int 	_value;			// Used in UnitData.GetStats (i.e. for in-game processing)
+	private string 	_description;	// Used in GameData.GetStat (i.e. for UI display)
+	private int 	_value;			// Used in UnitData.GetStat (i.e. for in-game processing)
 
 #region // Public properties
 	public string Name {

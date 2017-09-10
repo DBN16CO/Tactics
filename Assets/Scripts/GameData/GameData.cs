@@ -159,48 +159,60 @@ public static class GameData {
 #region // Retrieve Static Data
 
 	// Called to retrieve dynamic match data
-	public static Dictionary<int, MatchData> GetMatches {
+	public static Dictionary<int, MatchData> Matches {
 		get{return _matches;}
+	}
+	public static MatchData GetMatch(int match) {
+		return _matches[match];
 	}
 
 	// Called to retrieve static terrain data
-	public static Dictionary<string, TerrainData> GetTerrains {
-		get{return _terrains;}
+	public static TerrainData GetTerrain(string terrain) {
+		return _terrains[terrain];
 	}
 
 	// Called to retrieve static stat data
-	public static Dictionary<string, StatData> GetStats {
-		get{return _stats;}
+	public static StatData GetStat(string stat) {
+		return _stats[stat];
 	}
 
 	// Called to retrieve static ability data
-	public static Dictionary<string, AbilityData> GetAbilities {
-		get{return _abilities;}
+	public static AbilityData GetAbility(string ability) {
+		return _abilities[ability];
 	}
 
 	// Called to retrieve static action data
-	public static Dictionary<string, ActionData> GetActions {
-		get{return _actions;}
+	public static ActionData GetAction(string action) {
+		return _actions[action];
 	}
 
 	// Called to retrieve static perk data
-	public static Dictionary<string, PerkData> GetPerks {
+	public static Dictionary<string, PerkData> Perks {
 		get{return _perks;}
+	}
+	public static PerkData GetPerk(string perk) {
+		return _perks[perk];
 	}
 
 	// Called to retrieve static unit data
-	public static Dictionary<string, UnitData> GetUnits {
+	public static Dictionary<string, UnitData> Units {
 		get{return _units;}
+	}
+	public static UnitData GetUnit(string unit) {
+		return _units[unit];
 	}
 
 	// Called to retrieve static leader data
-	public static Dictionary<string, LeaderData> GetLeaders {
+	public static Dictionary<string, LeaderData> Leaders {
 		get{return _leaders;}
+	}
+	public static LeaderData GetLeader(string leader) {
+		return _leaders[leader];
 	}
 
 	// Called to retrieve static map data
-	public static Dictionary<string, MapData> GetMaps {
-		get{return _maps;}
+	public static MapData GetMap(string map) {
+		return _maps[map];
 	}
 
 	// Called to easily get the terrain weight for a given terrain type and unit class

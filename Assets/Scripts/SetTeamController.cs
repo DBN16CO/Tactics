@@ -28,19 +28,19 @@ public class SetTeamController : ParentController {
 
 	void Start () {
 		// Populate LeaderTab
-		List<string> strLeaders = new List<string>(GameData.GetLeaders.Keys);
+		List<string> strLeaders = new List<string>(GameData.Leaders.Keys);
 		for(int i = 0; i < strLeaders.Count; i++) {
-			AddLeader(i, GameData.GetLeaders[strLeaders[i]]);
+			AddLeader(i, GameData.GetLeader(strLeaders[i]));
 		}
 		// Populate UnitTab
-		List<string> strUnits = new List<string>(GameData.GetUnits.Keys);
+		List<string> strUnits = new List<string>(GameData.Units.Keys);
 		for(int i = 0; i < strUnits.Count; i++) {
-			AddUnit(i, GameData.GetUnits[strUnits[i]]);
+			AddUnit(i, GameData.GetUnit(strUnits[i]));
 		}
 		// Populate PerkTab
-		List<string> strPerks = new List<string>(GameData.GetPerks.Keys);
+		List<string> strPerks = new List<string>(GameData.Perks.Keys);
 		for(int i = 0; i < strPerks.Count; i++) {
-			AddPerk(i, GameData.GetPerks[strPerks[i]]);
+			AddPerk(i, GameData.GetPerk(strPerks[i]));
 		}
 
 		// Init variables

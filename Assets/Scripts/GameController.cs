@@ -96,7 +96,7 @@ public class GameController : ParentController {
 		myUnits = new Dictionary<int, Unit>();
 		enemyUnits = new Dictionary<int, Unit>();
 		PlacingUnits = !UnitsArePlaced;
-		_currentMap = GameData.GetMaps[GameData.CurrentMatch.MapName];
+		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
 		SC.CreateMap(GameData.CurrentMatch.MapName);
 		InitializeUI();
 		if(PlacingUnits) {
@@ -169,7 +169,7 @@ public class GameController : ParentController {
 		if((currToken.CanAttack && currToken.HasEnemy) || (currToken.CanHeal && currToken.HasAlly)) {
 			int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - currToken.X) : Mathf.Abs(SelectedToken.X - currToken.X);
 			int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - currToken.Y) : Mathf.Abs(SelectedToken.Y - currToken.Y);
-			int range = GameData.GetUnits[SelectedToken.CurrentUnit.Info.Name].GetStats["Attack Range"].Value; 
+			int range = GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value; 
 			return range >= _deltaX + _deltaY;
 		}
 		return false;
@@ -178,7 +178,7 @@ public class GameController : ParentController {
 	public bool CanTargetCounter() {
 		int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - IntendedTarget.X) : Mathf.Abs(SelectedToken.X - IntendedTarget.X);
 		int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - IntendedTarget.Y) : Mathf.Abs(SelectedToken.Y - IntendedTarget.Y);
-		int range = GameData.GetUnits[IntendedTarget.CurrentUnit.Info.Name].GetStats["Attack Range"].Value; 
+		int range = GameData.GetUnit(IntendedTarget.CurrentUnit.Info.Name).GetStat("Attack Range").Value; 
 		return range >= _deltaX + _deltaY;
 	}
 
@@ -251,12 +251,12 @@ public class GameController : ParentController {
 		// Info about the unit being checked
 		Unit movingUnit = token.CurrentUnit;
 		string unitName = movingUnit.name;
-		int movementRemaining = GameData.GetUnits[unitName].GetStats["Move"].Value;
+		int movementRemaining = GameData.GetUnit(unitName).GetStat("Move").Value;
 
 		// Attack range if the unit can attack or heal
 		// As of now, for a unit that can do both, attack is determined first,
 		// meaning that unoccupied valid targets will be red, not green
-		int startingAttackRange = GameData.GetUnits[unitName].GetStats["Attack Range"].Value;
+		int startingAttackRange = GameData.GetUnit(unitName).GetStat("Attack Range").Value;
 
 		// Elements queued to be (or already) checked
 		bool[][] queuedTokens  = JaggedArray.CreateJaggedArray<bool[][]>(GridLength,GridHeight);
@@ -288,8 +288,8 @@ public class GameController : ParentController {
 		bool checkNeighbors = false;
 
 		// Determmine if the unit can attack or heal before entering loop
-		bool canAttack = GameData.GetUnits[unitName].Can("Attack");
-		bool canHeal = GameData.GetUnits[unitName].Can("Heal");
+		bool canAttack = GameData.GetUnit(unitName).Can("Attack");
+		bool canHeal = GameData.GetUnit(unitName).Can("Heal");
 
 		// List of valid actions that this unit can take, using the UnitActions Enum
 		List<int> validActionIds = new List<int>();
@@ -576,7 +576,7 @@ public class GameController : ParentController {
 			GameData.UpdateTAGameData(key, unit, target);
 
 			if(key == GameData.CurrentMatch.ID){
-				GameData.CurrentMatch = GameData.GetMatches[key];
+				GameData.CurrentMatch = GameData.GetMatch(key);
 				SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 			}
 		}
@@ -596,7 +596,7 @@ public class GameController : ParentController {
 			GameData.UpdateETGameData(gameID);
 
 			if(gameID == GameData.CurrentMatch.ID){
-				GameData.CurrentMatch = GameData.GetMatches[gameID];
+				GameData.CurrentMatch = GameData.GetMatch(gameID);
 				ChangeTurn();
 				EndTurnGO.SetActive(true);
 			}

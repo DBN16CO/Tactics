@@ -358,14 +358,14 @@ public class CommunicationManager
 	private static bool SendCommand(Dictionary<string, object> request)
 	{
 		// Verify the websocket is still connected and try to reconnect if it isn't
-		if (!Communication.IsConnected)
+		if (!Communication.IsConnected())
 		{
 			Communication.Close();
 			Communication.Connect(new Uri(url));
 		}
 
 		// Failed to reconnect with the server
-		if (!Communication.IsConnected)
+		if (!Communication.IsConnected())
 		{
 			return false;
 		}

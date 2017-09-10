@@ -89,8 +89,8 @@ public static class Communication{
 		return m_IsConnected;
 	}
 
-	public static bool IsConnected {
-		get{return m_Socket != null && m_Socket.IsAlive && m_IsConnected;}
+	public static bool IsConnected() {
+		return m_Socket != null && m_Socket.IsAlive && m_IsConnected;
 	}
 
 	public static void Send(byte[] buffer)

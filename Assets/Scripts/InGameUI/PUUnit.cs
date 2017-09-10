@@ -11,7 +11,7 @@ public class PUUnit : UIAnimations, IPointerClickHandler {
 	// Sets unit info on generic unit within place units tab
 	public void SetInfo(UnitInfo unit) {
 		_pu = GameObject.Find("PlaceUnits").GetComponent<PlaceUnitsController>();
-		gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>(GameData.GetUnits[unit.Name].SpritePath);
+		gameObject.GetComponent<Image>().sprite = Resources.Load<Sprite>(GameData.GetUnit(unit.Name).SpritePath);
 		matchUnit = unit;
 	}
 

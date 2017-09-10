@@ -154,7 +154,7 @@ public class Token : MonoBehaviour {
 
 	// Sets the token's terrain based on string input
 	public void SetTerrain(string shortName) {
-		CurrentTerrain = GameData.GetTerrains[shortName];
+		CurrentTerrain = GameData.GetTerrain(shortName);
 		gameObject.name = CurrentTerrain.Name;
 		gameObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(CurrentTerrain.SpritePath);
 	}

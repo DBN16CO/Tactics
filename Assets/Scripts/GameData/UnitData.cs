@@ -24,8 +24,8 @@ public class UnitData {
 	public string SpritePath {
 		get{return _spritePath;}
 	}
-	public Dictionary<string, StatData> GetStats {
-		get{return _stats;}
+	public StatData GetStat(string stat) {
+		return _stats[stat];
 	}
 #endregion
 
