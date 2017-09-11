@@ -28,23 +28,26 @@ public class SetTeamController : ParentController {
 
 	void Start () {
 		// Populate LeaderTab
-		for(int i = 0; i < GameData.GetLeaders.Count; i++) {
-			AddLeader(i, GameData.GetLeaders[i]);
+		List<string> strLeaders = new List<string>(GameData.Leaders.Keys);
+		for(int i = 0; i < strLeaders.Count; i++) {
+			AddLeader(i, GameData.GetLeader(strLeaders[i]));
 		}
 		// Populate UnitTab
-		for(int i = 0; i < GameData.GetUnits.Count; i++) {
-			AddUnit(i, GameData.GetUnits[i]);
+		List<string> strUnits = new List<string>(GameData.Units.Keys);
+		for(int i = 0; i < strUnits.Count; i++) {
+			AddUnit(i, GameData.GetUnit(strUnits[i]));
 		}
 		// Populate PerkTab
-		for(int i = 0; i < GameData.GetPerks.Count; i++) {
-			AddPerk(i, GameData.GetPerks[i]);
+		List<string> strPerks = new List<string>(GameData.Perks.Keys);
+		for(int i = 0; i < strPerks.Count; i++) {
+			AddPerk(i, GameData.GetPerk(strPerks[i]));
 		}
 
 		// Init variables
 		leader = null;
 		units = new List<string>();
 		perks = new List<GameObject>(3) {null,null,null};
-		_maxFunds = GameData.Version.maxFunds;
+		_maxFunds = GameData.Version.MaxFunds;
 		FundsRemaining = _maxFunds;
 	}
 
@@ -82,9 +85,11 @@ public class SetTeamController : ParentController {
 	public void SetTeam() {
 		// Testing ------------
 		if(leader != null) {
-			ability = leader.GetComponent<SelectLeaderController>().data.Abilities[0].name;
+			LeaderData data = leader.GetComponent<SelectLeaderController>().data;
+			List<string> strAbilities = new List<string>(data.Abilities.Keys);
+			ability = data.Abilities[strAbilities[0]].Name;
 		}else{
-			Debug.Log("Select a leader, dick.");
+			Debug.Log("Select a leader.");
 			return;
 		}
 		// End Testing --------

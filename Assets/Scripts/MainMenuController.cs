@@ -6,7 +6,6 @@ public class MainMenuController : ParentController {
 
 	// Initiate variables and load active games
 	void Start () {
-		Server.inQueue = false;
 		LoadCustomGames();
 	}
 
@@ -22,7 +21,7 @@ public class MainMenuController : ParentController {
 		Transform activeGames = GameObject.Find("ActiveCustomGamesContent").transform;
 
 		// For each game brought back, instantiate prefab and set position
-		Dictionary<int, MatchData> _theMatches = GameData.GetMatches;
+		Dictionary<int, MatchData> _theMatches = GameData.Matches;
 		int i = 0;
 		foreach(KeyValuePair<int, MatchData> pair in _theMatches){
 			GameObject currGame = Instantiate(Resources.Load("Prefabs/ActiveCustomGame"), Vector3.zero, Quaternion.identity, activeGames) as GameObject;

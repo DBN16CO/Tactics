@@ -1,11 +1,20 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
+// Holds player preference data
 public class PreferenceData {
 
-	public string gridOpacity;
+	private string _gridOpacity;
 
+#region // Public properties
+	public string GridOpacity {
+		get{return _gridOpacity;}
+	}
+#endregion
+
+
+	// Constructor when starting from IL Server call
 	public PreferenceData(Dictionary<string, object> preferences) {
-		gridOpacity = preferences["Grid Opacity"].ToString();
+		_gridOpacity = Parse.String(preferences["Grid Opacity"]);
 	}
 
 }

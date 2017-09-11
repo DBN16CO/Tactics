@@ -1,20 +1,38 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each unit
+// Holds game data for each perk
 public class PerkData {
 
-	public string name;
-	public int tier;
-	public string description;
-	public string iconSpritePath;
+	private string 	_name;
+	private string 	_description;
+	private int 	_tier;
+	private string 	_iconSpritePath;
 
+#region // Public properties
+	public string Name {
+		get{return _name;}
+	}
+	public string Description {
+		get{return _description;}
+	}
+	public int Tier {
+		get{return _tier;}
+	}
+	public string IconSpritePath {
+		get{return _iconSpritePath;}
+	}
+#endregion
+
+
+	// Constructor when starting from IL Server call
 	public PerkData(KeyValuePair<string, object> perk) {
 		Dictionary<string, object> perkData = (Dictionary<string, object>)perk.Value;
-		name = perk.Key;
-		tier = int.Parse(perkData["Tier"].ToString());
-		description = perkData["Description"].ToString();
 
-		iconSpritePath = "Sprites/PerkIcons/DefaultTier" + tier; // Testing
+		_name = perk.Key;
+		_tier = Parse.Int(perkData["Tier"]);
+		_description = Parse.String(perkData["Description"]);
+
+		_iconSpritePath = "Sprites/PerkIcons/DefaultTier" + Tier; // Testing
 	}
 
 }

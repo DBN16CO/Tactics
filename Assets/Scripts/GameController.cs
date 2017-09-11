@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-
 using System.Collections.Generic;
 
 public class GameController : ParentController {
@@ -72,7 +71,7 @@ public class GameController : ParentController {
 	// When Conditions
 	private bool UnitsArePlaced {
 		get{
-			foreach(MatchUnit unit in GameData.CurrentMatch.AlliedUnits.Values) {
+			foreach(UnitInfo unit in GameData.CurrentMatch.AlliedUnits.Values) {
 				if(unit.X == -1) {
 					return false;
 				}
@@ -99,10 +98,10 @@ public class GameController : ParentController {
 		PlacingUnits = !UnitsArePlaced;
 		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
 		SC.CreateMap(GameData.CurrentMatch.MapName);
+		InitializeUI();
 		if(PlacingUnits) {
 			PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();
 		}else{
-			InitializeUI();
 			InitializeMap();
 		}
 
@@ -131,7 +130,7 @@ public class GameController : ParentController {
 		Unit unit = token.CurrentUnit;
 		ShowUnitInfo(unit);
 		SelectedToken = token;
-		if(unit.MyTeam && !unit.TakenAction && GameData.CurrentMatch.UserTurn) {
+		if(unit.MyTeam && !unit.Info.Acted && GameData.CurrentMatch.UserTurn) {
 			SetValidActions(token);
 		}
 	}
@@ -229,8 +228,8 @@ public class GameController : ParentController {
 		if(Server.TakeTargetAction(SelectedToken.CurrentUnit, action, targetUnit.Info.ID, out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y)) {
 
 			// Update unit info
-			SelectedToken.CurrentUnit.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
-			targetUnit.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
+			SelectedToken.CurrentUnit.Info.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
+			targetUnit.Info.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
 			if(SelectedToken.CurrentUnit.Info.HP <= 0) {
 				SelectedToken.CurrentUnit.DestroyUnit();
 				UnselectUnit();
@@ -289,8 +288,8 @@ public class GameController : ParentController {
 		bool checkNeighbors = false;
 
 		// Determmine if the unit can attack or heal before entering loop
-		bool canAttack = GameData.GetUnit(unitName).GetAction("Attack");
-		bool canHeal = GameData.GetUnit(unitName).GetAction("Heal");
+		bool canAttack = GameData.GetUnit(unitName).Can("Attack");
+		bool canHeal = GameData.GetUnit(unitName).Can("Heal");
 
 		// List of valid actions that this unit can take, using the UnitActions Enum
 		List<int> validActionIds = new List<int>();
@@ -416,7 +415,7 @@ public class GameController : ParentController {
 									queuedTokens[currX + nbr.Item1][currY + nbr.Item2] = true;
 
 									// Movement remaining is existing remaining movement - terrain weight
-									terrainWeight = GameData.TerrainWeight(unitName, Tokens[currX + nbr.Item1][currY + nbr.Item2].CurrentTerrain.shortName);
+									terrainWeight = GameData.TerrainWeight(unitName, Tokens[currX + nbr.Item1][currY + nbr.Item2].CurrentTerrain.ShortName);
 									movementRemaining = (phase == (int)UnitAction.move)?
 									currElement.Item2 - terrainWeight: currElement.Item2 - 1;
 
@@ -466,7 +465,7 @@ public class GameController : ParentController {
 	public void EndTurn() {
 		if(Server.EndTurn()) {
 			_endTurn = false;
-			GameData.CurrentMatch.UserTurn = false;
+			GameData.CurrentMatch.EndTurn();
 			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
 			EndTurnGO.SetActive(false);
 			ChangeTurn();
@@ -483,19 +482,19 @@ public class GameController : ParentController {
 		BackToMenuGO.SetActive(false);
 		_endTurn = false;
 		_backToMenu = false;
-		if(!GameData.CurrentMatch.UserTurn) {
+		if(!GameData.CurrentMatch.UserTurn || PlacingUnits) {
 			EndTurnGO.SetActive(false);
 		}
 	}
 
 	// Initializes the game map when opening after place units has already been completed
 	private void InitializeMap() {
-		foreach(MatchUnit unit in GameData.CurrentMatch.AlliedUnits.Values) {
+		foreach(UnitInfo unit in GameData.CurrentMatch.AlliedUnits.Values) {
 			if(unit.X != -1 && unit.HP > 0) {
 				SC.CreateUnit(unit, unit.X, unit.Y, true);
 			}
 		}
-		foreach(MatchUnit unit in GameData.CurrentMatch.EnemyUnits.Values) {
+		foreach(UnitInfo unit in GameData.CurrentMatch.EnemyUnits.Values) {
 			if(unit.X != -1 && unit.HP > 0) {
 				SC.CreateUnit(unit, unit.X, unit.Y, false);
 			}
@@ -577,7 +576,7 @@ public class GameController : ParentController {
 			GameData.UpdateTAGameData(key, unit, target);
 
 			if(key == GameData.CurrentMatch.ID){
-				GameData.CurrentMatch = GameData.GetMatches[key];
+				GameData.CurrentMatch = GameData.GetMatch(key);
 				SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 			}
 		}
@@ -597,7 +596,7 @@ public class GameController : ParentController {
 			GameData.UpdateETGameData(gameID);
 
 			if(gameID == GameData.CurrentMatch.ID){
-				GameData.CurrentMatch = GameData.GetMatches[gameID];
+				GameData.CurrentMatch = GameData.GetMatch(gameID);
 				ChangeTurn();
 				EndTurnGO.SetActive(true);
 			}

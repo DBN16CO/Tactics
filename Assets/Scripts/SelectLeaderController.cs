@@ -22,8 +22,8 @@ public class SelectLeaderController : ParentController {
 	public void AssignLeader(LeaderData leaderData) {
 		stc = GameObject.Find("SetTeamController").GetComponent<SetTeamController>();
 		data = leaderData;
-		gameObject.name = data.name;
-		LeaderImage = Resources.Load<Sprite>(data.spritePath);
+		gameObject.name = data.Name;
+		LeaderImage = Resources.Load<Sprite>(data.SpritePath);
 		DisplayName = gameObject.name;
 	}
 
