@@ -4,19 +4,18 @@ using System.Collections.Generic;
 // Class governing unit options
 public class Unit : MonoBehaviour {
 
-	private MatchUnit _info;
+	private UnitInfo _info;
 	private Dictionary<string, Stat> _stats;
 	// Situational stats
 	private int  _remainingMoveRange;
 
 	private bool _selected;
-	private bool _takenAction;
 	private bool _myTeam;
 
 
 #region Setters and Getters
 	// Returns unit information
-	public MatchUnit Info {
+	public UnitInfo Info {
 		get{return _info;}
 		set{_info = value;}
 	}
@@ -39,10 +38,6 @@ public class Unit : MonoBehaviour {
 		get{return _remainingMoveRange;}
 		set{_remainingMoveRange = value;}
 	}
-	public bool TakenAction {
-		get{return _takenAction;}
-		set{_takenAction = value;}
-	}
 #endregion
 
 	// Runs on unit instantiation
@@ -64,17 +59,6 @@ public class Unit : MonoBehaviour {
 		}
 	}
 
-	// Updates matchunit info, defaulting each parameter to itself
-	// Pass in optional paramters via declaration: UpdateInfo(X: 5, Y: 7) to keep HP constant
-	public void UpdateInfo(int HP = -1, int X = -1, int Y = -1) {
-		MatchUnit tempUnit = Info;
-		tempUnit.HP = (HP == -1)? tempUnit.HP : HP;
-		tempUnit.X = (X == -1)? tempUnit.X : X;
-		tempUnit.Y = (Y == -1)? tempUnit.Y : Y;
-		Info = tempUnit;
-		UpdateInfoStruct();		
-	}
-
 	// Public function to deselect this unit
 	public void UnselectUnit() {
 		_selected = false;
@@ -86,10 +70,8 @@ public class Unit : MonoBehaviour {
 
 	public void ConfirmMove() {
 		_selected = false;
-		UpdateInfo(X: GameController.IntendedMove.X, Y: GameController.IntendedMove.Y);
-		TakenAction = true;
-		_info.Acted = true;
-		UpdateInfoStruct();
+		_info.UpdateInfo(newX: GameController.IntendedMove.X, newY: GameController.IntendedMove.Y);
+		_info.SetActed(true);
 		PaintUnit("disable");
 		GameController.Main.UnselectUnit();
 	}
@@ -114,22 +96,8 @@ public class Unit : MonoBehaviour {
 
 	// Resets unit at start of turn
 	public void Reset() {
-		TakenAction = false;
-		_info.Acted = false;
-		PaintUnit((MyTeam)?"ally":"enemy");
-		UpdateInfoStruct();
-
-	}
-
-	// Updates the 'Info' struct everywhere it has been duplicated, currently:
-	// AlliedUnits or EnemyUnits
-	public void UpdateInfoStruct(){
-		if(MyTeam){
-			GameData.CurrentMatch.AlliedUnits[Info.ID] = Info;
-		}
-		else{
-			GameData.CurrentMatch.EnemyUnits[Info.ID] = Info;
-		}
+		_info.SetActed(false);
+		PaintUnit((_myTeam)?"ally":"enemy");
 	}
 
 }

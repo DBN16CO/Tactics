@@ -1,48 +1,62 @@
-﻿using System;
-using System.Collections.Generic;		// For dictionaries
+﻿using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each unit
+// Holds game data for each unit
 public class UnitData {
 
-	public string name;
-	public string description;
-	public int price;
-	public string spritePath;
-	public Dictionary<string, bool> actions;
+	private string 	_name;
+	private string 	_description;
+	private int 	_price;
+	private string 	_spritePath;
 
-	private List<StatData> stats;
+	private Dictionary<string, bool> 		_actions;
+	private Dictionary<string, StatData> 	_stats;
 
+#region // Public properties
+	public string Name {
+		get{return _name;}
+	}
+	public string Description {
+		get{return _description;}
+	}
+	public int Price {
+		get{return _price;}
+	}
+	public string SpritePath {
+		get{return _spritePath;}
+	}
+	public StatData GetStat(string stat) {
+		return _stats[stat];
+	}
+#endregion
+
+
+	// Constructor when starting from IL Server call
 	public UnitData(KeyValuePair<string, object> unit) {
 		Dictionary<string, object> unitData = (Dictionary<string, object>)unit.Value;
-		name = unit.Key;
-		description = unitData["Description"].ToString();
-		price = Int32.Parse(unitData["Price"].ToString());
-		spritePath = "Sprites/Units/axeman"; // Testing
 
-		stats = new List<StatData>();
+		_name = unit.Key;
+		_description = Parse.String(unitData["Description"]);
+		_price = Parse.Int(unitData["Price"]);
+		_spritePath = "Sprites/Units/" + _name;
+
+		// Populate stats
+		_stats = new Dictionary<string, StatData>();
 		foreach(KeyValuePair<string, object> stat in (Dictionary<string, object>)unitData["Stats"]) {
-			stats.Add(new StatData(stat, true));
+			_stats[stat.Key] = new StatData(stat, true);
 		}
 
-		actions = new Dictionary<string, bool>();
+		// Populate actions
+		_actions = new Dictionary<string, bool>();
 		foreach(KeyValuePair<string, object> actn in (Dictionary<string, object>)unitData["Actions"]) {
-			actions[actn.Key] = (bool)actn.Value;
+			_actions[actn.Key] = Parse.Bool(actn.Value);
 		}
 		
 	}
 
-	public StatData GetStat(string nameKey) {
-		return stats.Find(x => x.name == nameKey);
-	}
-
-	public bool GetAction(string nameKey) {
-		if(nameKey == null){
-			return false;
-		}
-
+	// Returns if the unit can perform the specified action
+	public bool Can(string nameKey) {
 		bool canAct;
-		actions.TryGetValue(nameKey, out canAct);
-
+		_actions.TryGetValue(nameKey, out canAct);
 		return canAct;
 	}
 

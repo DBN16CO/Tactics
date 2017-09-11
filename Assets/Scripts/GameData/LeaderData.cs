@@ -1,39 +1,43 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each leader
+// Holds game data for each leader
 public class LeaderData {
 
-	public string name;
-	public string description;
-	public string spritePath;
+	private string _name;
+	private string _description;
+	private string _spritePath;
 
-	private List<StatData> stats;
-	private List<AbilityData> abilities;
+	private Dictionary<string, AbilityData> _abilities;
 
+#region // Public properties
+	public string Name {
+		get{return _name;}
+	}
+	public string Description {
+		get{return _description;}
+	}
+	public string SpritePath {
+		get{return _spritePath;}
+	}
+	public Dictionary<string, AbilityData> Abilities {
+		get{return _abilities;}
+	}
+#endregion
+
+
+	// Constructor when starting from IL Server call
 	public LeaderData(KeyValuePair<string, object> leader) {
 		Dictionary<string, object> leaderData = (Dictionary<string, object>)leader.Value;
-		name = leader.Key;
-		description = leaderData["Description"].ToString();
-		spritePath = "Sprites/Units/axeman"; // Testing
 
-		/*stats = new List<StatData>();
-		foreach(KeyValuePair<string, object> stat in (Dictionary<string, object>)leaderData["Stats"]) {
-			stats.Add(new StatData(stat, true));
-		}*/
+		_name = leader.Key;
+		_description = Parse.String(leaderData["Description"]);
+		_spritePath = "Sprites/Units/" + _name;
 
-		abilities = new List<AbilityData>();
-		foreach(string ability in Json.ToList(leaderData["Abilities"].ToString())) {
-			abilities.Add(new AbilityData(ability));
+		// Populate abilities
+		_abilities = new Dictionary<string, AbilityData>();
+		foreach(string ability in Json.ToList(Parse.String(leaderData["Abilities"]))) {
+			_abilities[ability] = new AbilityData(ability);
 		}
-	}
-
-	public StatData GetStat(string nameKey) {
-		return stats.Find(x => x.name == nameKey);
-	}
-
-	public List<AbilityData> Abilities {
-		get{return abilities;}
-		set{abilities = value;}
 	}
 
 }

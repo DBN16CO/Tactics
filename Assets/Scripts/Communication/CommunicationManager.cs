@@ -75,7 +75,8 @@ public class CommunicationManager
 
 					if (response != null){
 						//Add the response to the common dictionaries
-						if (response.ContainsKey("Request_ID")){
+						if (response.ContainsKey(
+							"Request_ID")){
 							string requestID = (string) response["Request_ID"];
 							Debug.Log("Obtained response for request " + requestID);
 							responseDict[requestID] = response;
@@ -403,15 +404,21 @@ public class CommunicationManager
 
 	private static string GetDictString(Dictionary<string, object> dict){
 		StringBuilder loggedDict = new StringBuilder("{\n");
-		foreach (KeyValuePair<string, object> kvp in dict)
-		{
-			string value = kvp.Value.ToString();
-			if(kvp.Value.GetType() == dict.GetType()){
-				value = GetDictString((Dictionary<string, object>)kvp.Value);
+		List<string> keys = new List<string>(dict.Keys);
+		for(int i = 0; i < keys.Count; i++) {
+			string value = dict[keys[i]].ToString();
+			if(dict[keys[i]].GetType() == dict.GetType()){
+				value = GetDictString((Dictionary<string, object>)dict[keys[i]]);
+				loggedDict.Append(string.Format("\"{0}\": {1}", keys[i], value));
 			}
-			loggedDict.Append(string.Format("\"{0}\": \"{1}\",\n", kvp.Key, value));
-			if (kvp.Value.GetType() == typeof(Dictionary<string, object>)){
-				LogDictionary((Dictionary<string, object>)kvp.Value);
+			else {
+				loggedDict.Append(string.Format("\"{0}\": \"{1}\"", keys[i], value));
+			}
+			if(i < dict.Count - 1) {
+				loggedDict.Append(",\n");
+			}
+			else {
+				loggedDict.Append("\n");
 			}
 		}
 		loggedDict.Append("}");

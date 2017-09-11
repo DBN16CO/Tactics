@@ -17,9 +17,9 @@ public class SpawnController : ParentController {
 	public void CreateMap(string mapKey) {
 		MapData map = GameData.GetMap(mapKey);
 		// Initialize Tokens jagged array
-		Token[][] tokens = new Token[map.width][];
+		Token[][] tokens = new Token[map.Width][];
 		for(int x = 0; x < tokens.Length; x++) {
-			tokens[x] = new Token[map.height];
+			tokens[x] = new Token[map.Height];
 		}
 		// Set scale factor based on orthographic camera settings
 		// Assumes PPU = resolution for each sprite
@@ -35,13 +35,13 @@ public class SpawnController : ParentController {
 				// Set scale to scale factor
 				token.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
 				// Assign terrain based on preset map
-				string terr = map.terrain[width][height];
+				string terr = map.Terrain[width][height];
 				token.SetTerrain(terr);
 				// Asign token variables
 				token.X = width;
 				token.Y = height;
 				// If placing units, grey out the tokens that can't be placed on
-				if(GameController.PlacingUnits && gameObject.GetComponent<GameController>().CurrentMap.teamPlaceUnit[width][height] != gameObject.GetComponent<GameController>().myTeam) {
+				if(GameController.PlacingUnits && gameObject.GetComponent<GameController>().CurrentMap.TeamPlaceUnit[width][height] != gameObject.GetComponent<GameController>().myTeam) {
 					token.SetActionProperties("disabled");
 				}
 				// Add token to token array
@@ -56,7 +56,7 @@ public class SpawnController : ParentController {
 	}
 
 	// Call this to create a unit for a token
-	public Unit CreateUnit(MatchUnit unit,int x, int y, bool myTeam) {
+	public Unit CreateUnit(UnitInfo unit,int x, int y, bool myTeam) {
 		// Initialize return unit as null in case it's dead
 		Unit ret = null;
 		// Instantiate the specified unit if not dead
@@ -68,15 +68,22 @@ public class SpawnController : ParentController {
 			// Add to GameController Units and Return final unit
 			if(unit.X == -1 || unit.Y == -1) {
 				// Set initial params if new unit
-				unit.X = x;
-				unit.Y = y;
-				unit.HP = GameData.GetUnit(unit.Name).GetStat("HP").Value;
+				unit.UpdateInfo(GameData.GetUnit(unit.Name).GetStat("HP").Value, x, y);
 			}
 			ret.Info = unit;
-			ret.TakenAction = (GameData.CurrentMatch.UserTurn)? 
-				((ret.MyTeam)? unit.Acted: false): unit.Acted;
 			ret.MyTeam = myTeam;
-			ret.PaintUnit((ret.TakenAction)? "disable": ((ret.MyTeam)? "ally": "enemy"));
+
+			// If the unit is on the opposite team of the user who's turn it is
+			if((GameData.CurrentMatch.UserTurn && !ret.MyTeam) || (!GameData.CurrentMatch.UserTurn && ret.MyTeam)) {
+				// Disabled doesn't apply if it's not the user's turn
+				ret.PaintUnit((ret.MyTeam)? "ally" : "enemy");
+			}
+			// If the unit is on the same team of the user who's turn it is
+			else {
+				// Disabled does apply if it's the user's turn
+				ret.PaintUnit((ret.Info.Acted)? "disable" : (ret.MyTeam)? "ally" : "enemy");
+			}
+
 			GameController.Tokens[x][y].CurrentUnit = ret;
 			GameController.Units.Add(ret);
 

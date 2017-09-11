@@ -6,11 +6,11 @@ using System.Threading;
 
 public static class Communication{
 
-	static WebSocketSharp.WebSocket m_Socket;
-	static Queue<byte[]> m_Messages = new Queue<byte[]>();
-	static bool m_IsConnected;
-	static string m_Error;
-	static int retry;
+	private static WebSocketSharp.WebSocket m_Socket;
+	private static Queue<byte[]> m_Messages = new Queue<byte[]>();
+	private static bool m_IsConnected;
+	private static string m_Error;
+	private static int retry;
 
 	private static Uri mUrl;
 
@@ -22,15 +22,11 @@ public static class Communication{
 	public static string RecvString()
 	{
 		byte[] retval = Recv();
-		if (retval == null){
-			return null;
-		}
-		return Encoding.UTF8.GetString(retval);
+		return (retval == null)? null : Encoding.UTF8.GetString(retval);
 	}
 
 	public static bool Connect(Uri url)
 	{
-
 		//Already connected, just return true
 		if (mUrl == url && m_IsConnected && m_Error == null){
 			return true;
@@ -46,7 +42,7 @@ public static class Communication{
 
 		//Logic to be done when we receive a message through the websocket
 		m_Socket.OnMessage += (sender, e) => {
-			m_Messages.Enqueue (e.RawData);
+			m_Messages.Enqueue(e.RawData);
 			lock(CommunicationManager.responseDictLock){
 				Monitor.Pulse(CommunicationManager.responseDictLock);
 			}
@@ -93,7 +89,7 @@ public static class Communication{
 		return m_IsConnected;
 	}
 
-	public static bool IsConnected(){
+	public static bool IsConnected() {
 		return m_Socket != null && m_Socket.IsAlive && m_IsConnected;
 	}
 
@@ -104,15 +100,12 @@ public static class Communication{
 
 	public static byte[] Recv()
 	{
-		if (m_Messages.Count <= 0) {
-			return null;
-		}
-		return m_Messages.Dequeue();
+		return (m_Messages.Count <= 0)? null : m_Messages.Dequeue();
 	}
 
 	public static void Close()
 	{
-		if (m_Socket != null){
+		if(m_Socket != null){
 			m_Socket.Close();
 			m_Socket = null;
 		}

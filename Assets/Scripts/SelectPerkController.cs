@@ -19,16 +19,16 @@ public class SelectPerkController : ParentController {
 	}
 	// Returns the index of the perk tier
 	public int ListTier {
-		get{return data.tier-1;}
+		get{return data.Tier-1;}
 	}
 
 	// Set specified game data on the selectable GameObject
 	public void AssignPerk(PerkData perkData) {
 		stc = GameObject.Find("SetTeamController").GetComponent<SetTeamController>();
 		data = perkData;
-		gameObject.name = data.name;
-		PerkIcon = Resources.Load<Sprite>(data.iconSpritePath);
-		Description = data.description;
+		gameObject.name = data.Name;
+		PerkIcon = Resources.Load<Sprite>(data.IconSpritePath);
+		Description = data.Description;
 	}
 
 	// Select and unselect this perk

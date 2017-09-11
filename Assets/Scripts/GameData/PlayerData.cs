@@ -1,24 +1,47 @@
 ﻿using System.Collections.Generic;		// For dictionaries
 
-// Class holding game data for each Player
+// Holds player data
 public class PlayerData {
 
-	public string username;
-	public string email;
-	public bool verified;
-	public uint level;
-	public uint experience;
+	private string 	_username;
+	private string 	_email;
+	private bool 	_verified;
+	private int 	_level;
+	private int 	_experience;
 
-	public PreferenceData Preferences;
+	private PreferenceData _preferences;
 
+#region // Public properties
+	public string Username {
+		get{return _username;}
+	}
+	public string Email {
+		get{return _email;}
+	}
+	public bool Verified {
+		get{return _verified;}
+	}
+	public int Level {
+		get{return _level;}
+	}
+	public int Experience {
+		get{return _experience;}
+	}
+	public PreferenceData Preferences {
+		get{return _preferences;}
+	}
+#endregion
+
+
+	// Constructor when starting from IL Server call
 	public PlayerData(Dictionary<string, object> player) {
-		username = player["Username"].ToString();
-		email = player["Email"].ToString();
-		verified = (bool)player["Verified"];
-		level = uint.Parse(player["Level"].ToString());
-		experience = uint.Parse(player["Experience"].ToString());
+		_username = Parse.String(player["Username"]);
+		_email = Parse.String(player["Email"]);
+		_verified = Parse.Bool(player["Verified"]);
+		_level = Parse.Int(player["Level"]);
+		_experience = Parse.Int(player["Experience"]);
 
-		Preferences = new PreferenceData((Dictionary<string, object>)player["Preferences"]);
+		_preferences = new PreferenceData((Dictionary<string, object>)player["Preferences"]);
 	}
 
 }
