@@ -1,5 +1,5 @@
 from Game.models import Action_History, Game_User, Game_Queue, Unit, Game
-from Static.models import Version, Ability, Class, Leader, Leader_Ability, Perk, Stat, Unit_Stat
+from Static.models import Version, Ability, Class, Leader, Leader_Ability, Perk, Stat, Unit_Stat, Action
 from User.models import Users
 from Communication.models import AsyncMessages
 from Communication.testhelper import *
@@ -802,6 +802,116 @@ class TestQueryGames(TestGame):
 		result = self.helper_execute_success(gqu_filter_cmd)
 		self.assertEquals(len(result['Games']), 1)
 		self.assertEquals(result['Games'][0]['ID'], game_id)
+
+	def test_qgu_06_filter_game_num_prev_turns(self):
+
+		# Place units for player one
+		self.helper_execute_success(self.pu_cmd)
+
+		# Place units for player two
+		self.pu_cmd2 = {
+			"Command" : "PU",
+			"Game"    : "vs. {0} #1".format(self.credentials["username"]),
+			"Units"   : self.place_valid_team_dict(self.st_cmd["Units"], 2)
+		}
+		self.helper_execute_success(self.pu_cmd2, 2)
+
+		result = self.helper_execute_success(self.qgu_cmd)
+
+		game_id = result['Games'][0]['ID']
+
+		gqu_filter_cmd = copy.deepcopy(self.qgu_cmd)
+		gqu_filter_cmd['Filters'] = {
+			"Game_ID": game_id
+		}
+
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games']), 1)
+		self.assertEquals(result['Games'][0]['ID'], game_id)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 0)
+
+		unit = Unit.objects.filter(game=self.games[0], owner=self.user).exclude(unit_class=self.heal_class).first()
+		action = Action.objects.filter(name='Attack').first()
+
+		game = Game.objects.filter(id=game_id).first()
+		game.game_round = 4
+		game.save()
+
+		history_turn1 = Action_History()
+		history_turn1.game = game
+		history_turn1.order = 2
+		history_turn1.turn_number = 2
+		history_turn1.old_x = 2
+		history_turn1.old_y = 2
+		history_turn1.new_x = 2
+		history_turn1.new_y = 2
+		history_turn1.old_hp = 2
+		history_turn1.acting_unit = unit
+		history_turn1.acting_user = self.user
+		history_turn1.action = action
+		history_turn1.save()
+
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 0)
+
+
+		history_turn2 = Action_History()
+		history_turn2.game = game
+		history_turn2.order = 3
+		history_turn2.turn_number = 3
+		history_turn2.old_x = 3
+		history_turn2.old_y = 3
+		history_turn2.new_x = 3
+		history_turn2.new_y = 3
+		history_turn2.old_hp = 3
+		history_turn2.acting_unit = unit
+		history_turn2.acting_user = self.user
+		history_turn2.action = action
+		history_turn2.save()
+
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 1)
+
+		history_turn3 = Action_History()
+		history_turn3.game = game
+		history_turn3.order = 4
+		history_turn3.turn_number = 4
+		history_turn3.old_x = 4
+		history_turn3.old_y = 4
+		history_turn3.new_x = 4
+		history_turn3.new_y = 4
+		history_turn3.old_hp = 4
+		history_turn3.acting_unit = unit
+		history_turn3.acting_user = self.user
+		history_turn3.action = action
+		history_turn3.save()
+
+		# Default is returning Action History for the past 2 turns
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 2)
+
+		history_turn4 = Action_History()
+		history_turn4.game = game
+		history_turn4.order = 0
+		history_turn4.turn_number = 4
+		history_turn4.old_x = 0
+		history_turn4.old_y = 0
+		history_turn4.new_x = 0
+		history_turn4.new_y = 0
+		history_turn4.old_hp = 0
+		history_turn4.acting_unit = unit
+		history_turn4.acting_user = self.user
+		history_turn4.action = action
+		history_turn4.save()
+
+		# Default is returning Action History for the past 2 turns
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 3)
+
+		gqu_filter_cmd['Filters']['Num_Prev_Turns'] = 3
+
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 4)
 		
 
 class TestTakeAction(TestGame):

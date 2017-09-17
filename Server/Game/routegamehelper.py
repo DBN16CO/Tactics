@@ -305,13 +305,18 @@ def queryGamesUser(data):
 					game_response["Enemy_Perks"].append({"Name": opp_game_user.perk_3.name, "Tier":3})
 
 				# Store all of the Actions from History for the game
-				turn_start = game.game_round - 2
+				turn_start = game.game_round - 1
 				turn_end = game.game_round
 
 				if filters and 'Num_Prev_Turns' in filters:
-					turn_start = game.game_round - filters['Num_Prev_Turns']
+					turn_start = game.game_round - (int(filters['Num_Prev_Turns']) - 1)
 
-				action_history = Action_History.objects.filter(game=game, turn_number__range=[turn_start, turn_end]).order_by("order")
+				if turn_start < 0:
+					turn_start = 0
+
+				logging.info("Fetching Action History for turns {0}-{1}".format(turn_start, turn_end))
+				action_history = Action_History.objects.filter(game=game, turn_number__range=(turn_start, turn_end)).order_by("order")
+				logging.info("Action History Length: {0}".format(len(action_history)))
 				game_response["Action_History"] = []
 				for actn in action_history:
 					this_action = {}
