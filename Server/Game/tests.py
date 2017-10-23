@@ -1,5 +1,5 @@
 from Game.models import Action_History, Game_User, Game_Queue, Unit, Game
-from Static.models import Version, Ability, Class, Leader, Leader_Ability, Perk, Stat, Unit_Stat
+from Static.models import Version, Ability, Class, Leader, Leader_Ability, Perk, Stat, Unit_Stat, Action
 from User.models import Users
 from Communication.models import AsyncMessages
 from Communication.testhelper import *
@@ -100,8 +100,12 @@ class TestGame(Communication.testhelper.CommonTestHelper):
 		self.helper_execute_success(self.fm_cmd)
 
 		# Create user 2 and put him into the queue
-		self.assertTrue(self.testHelper.createUserAndLogin(self.credentials2, 2))
-		self.user2 = Users.objects.filter(username=self.credentials2["username"]).first()
+		if not hasattr(self, 'user2'):
+			self.assertTrue(self.testHelper.createUserAndLogin(self.credentials2, 2))
+			self.user2 = Users.objects.filter(username=self.credentials2["username"]).first()
+		else:
+			self.assertTrue(self.testHelper.login(self.credentials2, 2))
+
 		self.helper_execute_success(self.st_cmd, 2)
 		self.helper_execute_success(self.fm_cmd, 2)
 
@@ -583,10 +587,17 @@ class TestQueryGames(TestGame):
 	def setUp(self):
 		super(TestQueryGames, self).setUp()
 
-		# setup game
+		self.games = []
+
+		# setup game1
 		self.get_both_users_in_queue()
 		processMatchmakingQueue()
-		self.game = Game.objects.latest('pk')
+		self.games.append(Game.objects.latest('pk'))
+
+		# setup game2
+		self.get_both_users_in_queue()
+		processMatchmakingQueue()
+		self.games.append(Game.objects.latest('pk'))
 
 		# QGU Command
 		self.qgu_cmd = {"Command":"QGU"}
@@ -594,72 +605,83 @@ class TestQueryGames(TestGame):
 		# If a target is needed
 		self.heal_class = Class.objects.filter(name="Cleric", version=self.version).first()
 
-	def helper_verify_result(self, result):
+	def helper_verify_result(self, user, result):
 		# Verify Game related information
-		self.assertTrue(len(result["Games"]) == 1)
-		self.assertEquals(result["Games"][0]["ID"],        Game.objects.filter().first().id)
-		self.assertEquals(result["Games"][0]["Name"],      Game_User.objects.filter(user=self.user).first().name)
-		self.assertEquals(result["Games"][0]["Round"],     Game.objects.filter().first().game_round)
-		self.assertEquals(result["Games"][0]["Your_Turn"], True)
-		self.assertEquals(result["Games"][0]["Map"],       Game.objects.filter().first().map_path.name)
-		self.assertEquals(result["Games"][0]["Finished"],  Game.objects.filter().first().finished)
+		self.assertTrue(len(result["Games"]) == len(self.games))
+		for i in range(len(self.games)):
+			curr_game = None
+			for game in self.games:
+				if game.id == result["Games"][i]["ID"]:
+					curr_game = game
+					break
+			self.assertIsNotNone(curr_game)
 
-		# Verify the ally unit information is correct
-		resultAllyUnits = result["Games"][0]["Your_Units"]
-		dbAllyUnits = Unit.objects.filter(game=self.game, owner=self.user)
-		self.assertEquals(len(resultAllyUnits), len(dbAllyUnits))
-		for unit in resultAllyUnits:
-			dbUnit = dbAllyUnits.filter(pk=unit["ID"]).first()
-			self.assertIsNotNone(dbUnit)
-			self.assertEquals(unit["Name"],  dbUnit.unit_class.name)
-			self.assertEquals(unit["HP"],    dbUnit.hp)
-			self.assertEquals(unit["X"],     dbUnit.x)
-			self.assertEquals(unit["Y"],     dbUnit.y)
-			self.assertEquals(unit["Acted"], dbUnit.acted)
+			self.assertEquals(result["Games"][i]["Name"],      Game_User.objects.filter(user=self.user, game_id=curr_game.id).first().name)
+			self.assertEquals(result["Games"][i]["Round"],     Game.objects.filter(id=curr_game.id).first().game_round)
+			self.assertEquals(result["Games"][i]["Your_Turn"], Game.objects.filter(id=curr_game.id).first().user_turn == user)
+			self.assertEquals(result["Games"][i]["Map"],       Game.objects.filter(id=curr_game.id).first().map_path.name)
+			self.assertEquals(result["Games"][i]["Finished"],  Game.objects.filter(id=curr_game.id).first().finished)
 
-		# Verify the enemy unit information is correct
-		resultEnemyUnits = result["Games"][0]["Enemy_Units"]
-		dbEnemyUnits = Unit.objects.filter(game=self.game).exclude(owner=self.user)
-		self.assertEquals(len(resultEnemyUnits), len(dbEnemyUnits))
-		for unit in resultEnemyUnits:
-			dbUnit = dbEnemyUnits.filter(pk=unit["ID"]).first()
-			self.assertIsNotNone(dbUnit)
-			self.assertEquals(unit["Name"],  dbUnit.unit_class.name)
-			self.assertEquals(unit["HP"],    dbUnit.hp)
-			self.assertEquals(unit["X"],     dbUnit.x)
-			self.assertEquals(unit["Y"],     dbUnit.y)
-			self.assertEquals(unit["Acted"], dbUnit.acted)
+			# Verify the ally unit information is correct
+			resultAllyUnits = result["Games"][i]["Your_Units"]
+			dbAllyUnits = Unit.objects.filter(game=curr_game, owner=user)
+			self.assertEquals(len(resultAllyUnits), len(dbAllyUnits))
+			for unit in resultAllyUnits:
+				dbUnit = dbAllyUnits.filter(pk=unit["ID"]).first()
+				self.assertIsNotNone(dbUnit)
+				self.assertEquals(unit["Name"],  dbUnit.unit_class.name)
+				self.assertEquals(unit["HP"],    dbUnit.hp)
+				self.assertEquals(unit["X"],     dbUnit.x)
+				self.assertEquals(unit["Y"],     dbUnit.y)
+				self.assertEquals(unit["Acted"], dbUnit.acted)
 
-		# Verify that the action history information is correct
-		action_history = Action_History.objects.latest('pk')
-		self.assertTrue("Action_History" in result["Games"][0])
-		self.assertEquals(len(result["Games"][0]["Action_History"]), 1)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Turn"],        action_history.turn_number)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Your_Action"], True)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Action"],      action_history.action.name)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Unit"],        action_history.acting_unit.id)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Old_X"],       action_history.old_x)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["New_X"],       action_history.new_x)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Old_Y"],       action_history.old_y)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["New_Y"],       action_history.new_y)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Old_HP"],      action_history.old_hp)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["New_HP"],      action_history.new_hp)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Crit"],        action_history.unit_crit)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Miss"],        action_history.unit_missed)
-		if action_history.target is None:
-			self.assertEquals(result["Games"][0]["Action_History"][0]["Target"],  None)
-		else:
-			self.assertEquals(result["Games"][0]["Action_History"][0]["Target"],  action_history.target.id)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Old_HP"],  action_history.tgt_old_hp)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_New_HP"],  action_history.tgt_new_hp)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Counter"], action_history.tgt_counter)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Crit"],    action_history.tgt_crit)
-		self.assertEquals(result["Games"][0]["Action_History"][0]["Tgt_Miss"],    action_history.tgt_missed)
+			# Verify the enemy unit information is correct
+			resultEnemyUnits = result["Games"][i]["Enemy_Units"]
+			dbEnemyUnits = Unit.objects.filter(game=curr_game).exclude(owner=user)
+			self.assertEquals(len(resultEnemyUnits), len(dbEnemyUnits))
+			for unit in resultEnemyUnits:
+				dbUnit = dbEnemyUnits.filter(pk=unit["ID"]).first()
+				self.assertIsNotNone(dbUnit)
+				self.assertEquals(unit["Name"],  dbUnit.unit_class.name)
+				self.assertEquals(unit["HP"],    dbUnit.hp)
+				self.assertEquals(unit["X"],     dbUnit.x)
+				self.assertEquals(unit["Y"],     dbUnit.y)
+				self.assertEquals(unit["Acted"], dbUnit.acted)
+
+			# Verify that the action history information is correct
+			action_history = Action_History.objects.filter(game=curr_game).first()
+			logging.info("Game Action History: {0}".format(action_history))
+			self.assertTrue("Action_History" in result["Games"][i])
+			if action_history:
+				self.assertEquals(len(result["Games"][i]["Action_History"]), 1)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Turn"],        action_history.turn_number)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Your_Action"], action_history.acting_user == user)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Action"],      action_history.action.name)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Unit"],        action_history.acting_unit.id)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Old_X"],       action_history.old_x)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["New_X"],       action_history.new_x)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Old_Y"],       action_history.old_y)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["New_Y"],       action_history.new_y)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Old_HP"],      action_history.old_hp)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["New_HP"],      action_history.new_hp)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Crit"],        action_history.unit_crit)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Miss"],        action_history.unit_missed)
+				if action_history.target is None:
+					self.assertEquals(result["Games"][i]["Action_History"][0]["Target"],  None)
+				else:
+					self.assertEquals(result["Games"][i]["Action_History"][0]["Target"],  action_history.target.id)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Tgt_Old_HP"],  action_history.tgt_old_hp)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Tgt_New_HP"],  action_history.tgt_new_hp)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Tgt_Counter"], action_history.tgt_counter)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Tgt_Crit"],    action_history.tgt_crit)
+				self.assertEquals(result["Games"][i]["Action_History"][0]["Tgt_Miss"],    action_history.tgt_missed)
+			else:
+				self.assertEquals(len(result["Games"][i]["Action_History"]), 0)
 
 	def test_qgu_01_one_game_one_opponent(self):
 		result = self.helper_execute_success(self.qgu_cmd)
 
-		self.assertTrue(len(result["Games"]) == 1)
+		self.assertTrue(len(result["Games"]) == 2)
 		self.assertEquals(result["Games"][0]["Name"], Game_User.objects.filter(user=self.user).first().name)
 		self.assertEquals(result["Games"][0]["Opponent"], self.credentials2["username"])
 		self.assertEquals(result["Games"][0]["Round"], Game.objects.filter().first().game_round)
@@ -671,7 +693,7 @@ class TestQueryGames(TestGame):
 
 		result = self.helper_execute_success(self.qgu_cmd)
 
-		self.assertTrue(len(result["Games"]) == 1)
+		self.assertTrue(len(result["Games"]) == 2)
 		self.assertEquals(result["Games"][0]["Name"], Game_User.objects.filter(user=self.user).first().name)
 		self.assertEquals(result["Games"][0]["Round"], Game.objects.filter().first().game_round)
 
@@ -689,13 +711,13 @@ class TestQueryGames(TestGame):
 		self.helper_execute_success(self.pu_cmd2, 2)
 
 		# Must be called after units are placed
-		self.attacker   = Unit.objects.filter(game=self.game, owner=self.user).exclude(unit_class=self.heal_class).first()
-		self.enemy_tgt  = Unit.objects.filter(game=self.game, owner=self.user2).exclude(unit_class=self.attacker.unit_class).first()
+		self.attacker   = Unit.objects.filter(game=self.games[0], owner=self.user).exclude(unit_class=self.heal_class).first()
+		self.enemy_tgt  = Unit.objects.filter(game=self.games[0], owner=self.user2).exclude(unit_class=self.attacker.unit_class).first()
 
 		# Take an action to be sent
 		# Ensure it is player one's turn
-		self.game.user_turn = self.user
-		self.game.save()
+		self.games[0].user_turn = self.user
+		self.games[0].save()
 
 		self.ta_cmd = {
 			"Command" : "TA",
@@ -710,7 +732,7 @@ class TestQueryGames(TestGame):
 		# Call QGU, ensure some Action History data was sent
 		result = self.helper_execute_success(self.qgu_cmd)
 
-		self.helper_verify_result(result)
+		self.helper_verify_result(self.user, result)
 
 	def test_qgu_04_action_history_correct_with_target(self):
 		
@@ -727,12 +749,12 @@ class TestQueryGames(TestGame):
 
 		# Take an action to be sent
 		# Ensure it is player one's turn
-		self.game.user_turn = self.user
-		self.game.save()
+		self.games[0].user_turn = self.user
+		self.games[0].save()
 
 		# Must be called after units are placed
-		self.attacker   = Unit.objects.filter(game=self.game, owner=self.user).exclude(unit_class=self.heal_class).first()
-		self.enemy_tgt  = Unit.objects.filter(game=self.game, owner=self.user2).exclude(unit_class=self.attacker.unit_class).first()
+		self.attacker   = Unit.objects.filter(game=self.games[0], owner=self.user).exclude(unit_class=self.heal_class).first()
+		self.enemy_tgt  = Unit.objects.filter(game=self.games[0], owner=self.user2).exclude(unit_class=self.attacker.unit_class).first()
 
 		# Move near the target
 		self.attacker.x = self.enemy_tgt.x
@@ -753,8 +775,143 @@ class TestQueryGames(TestGame):
 		# Call QGU, ensure some Action History data was sent
 		result = self.helper_execute_success(self.qgu_cmd)
 
-		self.helper_verify_result(result)
+		self.helper_verify_result(self.user, result)
 
+	def test_qgu_05_filter_game_id(self):
+
+		# Place units for player one
+		self.helper_execute_success(self.pu_cmd)
+
+		# Place units for player two
+		self.pu_cmd2 = {
+			"Command" : "PU",
+			"Game"    : "vs. {0} #1".format(self.credentials["username"]),
+			"Units"   : self.place_valid_team_dict(self.st_cmd["Units"], 2)
+		}
+		self.helper_execute_success(self.pu_cmd2, 2)
+
+		result = self.helper_execute_success(self.qgu_cmd)
+
+		game_id = result['Games'][0]['ID']
+
+		gqu_filter_cmd = copy.deepcopy(self.qgu_cmd)
+		gqu_filter_cmd['Filters'] = {
+			"Game_ID": game_id
+		}
+
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games']), 1)
+		self.assertEquals(result['Games'][0]['ID'], game_id)
+
+	def test_qgu_06_filter_game_num_prev_turns(self):
+
+		# Place units for player one
+		self.helper_execute_success(self.pu_cmd)
+
+		# Place units for player two
+		self.pu_cmd2 = {
+			"Command" : "PU",
+			"Game"    : "vs. {0} #1".format(self.credentials["username"]),
+			"Units"   : self.place_valid_team_dict(self.st_cmd["Units"], 2)
+		}
+		self.helper_execute_success(self.pu_cmd2, 2)
+
+		result = self.helper_execute_success(self.qgu_cmd)
+
+		game_id = result['Games'][0]['ID']
+
+		gqu_filter_cmd = copy.deepcopy(self.qgu_cmd)
+		gqu_filter_cmd['Filters'] = {
+			"Game_ID": game_id
+		}
+
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games']), 1)
+		self.assertEquals(result['Games'][0]['ID'], game_id)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 0)
+
+		unit = Unit.objects.filter(game=self.games[0], owner=self.user).exclude(unit_class=self.heal_class).first()
+		action = Action.objects.filter(name='Attack').first()
+
+		game = Game.objects.filter(id=game_id).first()
+		game.game_round = 4
+		game.save()
+
+		history_turn1 = Action_History()
+		history_turn1.game = game
+		history_turn1.order = 2
+		history_turn1.turn_number = 2
+		history_turn1.old_x = 2
+		history_turn1.old_y = 2
+		history_turn1.new_x = 2
+		history_turn1.new_y = 2
+		history_turn1.old_hp = 2
+		history_turn1.acting_unit = unit
+		history_turn1.acting_user = self.user
+		history_turn1.action = action
+		history_turn1.save()
+
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 0)
+
+
+		history_turn2 = Action_History()
+		history_turn2.game = game
+		history_turn2.order = 3
+		history_turn2.turn_number = 3
+		history_turn2.old_x = 3
+		history_turn2.old_y = 3
+		history_turn2.new_x = 3
+		history_turn2.new_y = 3
+		history_turn2.old_hp = 3
+		history_turn2.acting_unit = unit
+		history_turn2.acting_user = self.user
+		history_turn2.action = action
+		history_turn2.save()
+
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 1)
+
+		history_turn3 = Action_History()
+		history_turn3.game = game
+		history_turn3.order = 4
+		history_turn3.turn_number = 4
+		history_turn3.old_x = 4
+		history_turn3.old_y = 4
+		history_turn3.new_x = 4
+		history_turn3.new_y = 4
+		history_turn3.old_hp = 4
+		history_turn3.acting_unit = unit
+		history_turn3.acting_user = self.user
+		history_turn3.action = action
+		history_turn3.save()
+
+		# Default is returning Action History for the past 2 turns
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 2)
+
+		history_turn4 = Action_History()
+		history_turn4.game = game
+		history_turn4.order = 0
+		history_turn4.turn_number = 4
+		history_turn4.old_x = 0
+		history_turn4.old_y = 0
+		history_turn4.new_x = 0
+		history_turn4.new_y = 0
+		history_turn4.old_hp = 0
+		history_turn4.acting_unit = unit
+		history_turn4.acting_user = self.user
+		history_turn4.action = action
+		history_turn4.save()
+
+		# Default is returning Action History for the past 2 turns
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 3)
+
+		gqu_filter_cmd['Filters']['Num_Prev_Turns'] = 3
+
+		result = self.helper_execute_success(gqu_filter_cmd)
+		self.assertEquals(len(result['Games'][0]['Action_History']), 4)
 		
 
 class TestTakeAction(TestGame):
