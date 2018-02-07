@@ -27,7 +27,8 @@ public class SpawnController : ParentController {
 		ScaleFactor = (2f * orthoSize) / (float)tokens.Length; 		// This will have to change if we want non-square maps
 //		Camera.main.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
 		// Loop through each token
-		GameObject GameMap = new GameObject(); GameMap.name = "MapTokens";
+		GameObject GameMap = new GameObject();
+		GameMap.name = "MapTokens";
 		for(int width = 0; width < tokens.Length; width++) {
 			for(int height = 0; height < tokens[width].Length; height++) {
 				// Instantiate token at each grid position
@@ -112,4 +113,3 @@ public class SpawnController : ParentController {
 	}
 
 }
-

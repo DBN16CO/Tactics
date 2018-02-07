@@ -99,7 +99,15 @@ public class GameController : ParentController {
 		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
 		SC.CreateMap(GameData.CurrentMatch.MapName);
 		InitializeUI();
+		
 		if(PlacingUnits) {
+			foreach(UnitInfo unit in GameData.CurrentMatch.AlliedUnits.Values){
+	            Unit newUnit = new Unit();
+	            newUnit.Info = unit;
+	            newUnit.MyTeam = true;
+	            myUnits[unit.ID] = newUnit;
+	        }
+
 			PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();
 		}else{
 			InitializeMap();
@@ -169,7 +177,7 @@ public class GameController : ParentController {
 		if((currToken.CanAttack && currToken.HasEnemy) || (currToken.CanHeal && currToken.HasAlly)) {
 			int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - currToken.X) : Mathf.Abs(SelectedToken.X - currToken.X);
 			int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - currToken.Y) : Mathf.Abs(SelectedToken.Y - currToken.Y);
-			int range = GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value; 
+			int range = GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value;
 			return range >= _deltaX + _deltaY;
 		}
 		return false;
@@ -178,7 +186,7 @@ public class GameController : ParentController {
 	public bool CanTargetCounter() {
 		int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - IntendedTarget.X) : Mathf.Abs(SelectedToken.X - IntendedTarget.X);
 		int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - IntendedTarget.Y) : Mathf.Abs(SelectedToken.Y - IntendedTarget.Y);
-		int range = GameData.GetUnit(IntendedTarget.CurrentUnit.Info.Name).GetStat("Attack Range").Value; 
+		int range = GameData.GetUnit(IntendedTarget.CurrentUnit.Info.Name).GetStat("Attack Range").Value;
 		return range >= _deltaX + _deltaY;
 	}
 
@@ -426,7 +434,7 @@ public class GameController : ParentController {
 								}
 							}
 						}
-					}	
+					}
 				}
 				// Out of moves, switch to attacking
 				else if(phase == (int)UnitAction.move && canAttack){
