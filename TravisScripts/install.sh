@@ -3,10 +3,10 @@
 # This link changes from time to time. I haven't found a reliable hosted installer package for doing regular
 # installs like this. You will probably need to grab a current link from: http://unity3d.com/get-unity/download/archive
 echo 'Downloading Pre-reqs: '
-brew install python
-curl https://bootstrap.pypa.io/get-pip.py | sudo python
-sudo pip install pathlib
-sudo pip install celery
+#curl https://bootstrap.pypa.io/get-pip.py | sudo python
+sudo easy_install pip
+#sudo pip install pathlib
+#sudo pip install celery
 sudo pip install -r ./Server/requirements.txt
 
 # Setup PSQL and REDIS
