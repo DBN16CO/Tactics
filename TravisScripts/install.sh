@@ -4,7 +4,8 @@
 # installs like this. You will probably need to grab a current link from: http://unity3d.com/get-unity/download/archive
 echo 'Downloading Pre-reqs: '
 curl https://bootstrap.pypa.io/get-pip.py | sudo python
-pip install -r ./Server/requirements.txt
+sudo pip install pathlib
+sudo pip install -r ./Server/requirements.txt
 
 # Setup PSQL and REDIS
 export PG_DATA=$(brew --prefix)/var/postgres
