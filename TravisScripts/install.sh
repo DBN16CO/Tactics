@@ -5,6 +5,7 @@
 echo 'Downloading Pre-reqs: '
 curl https://bootstrap.pypa.io/get-pip.py | sudo python
 sudo pip install pathlib
+sudo pip install celery
 sudo pip install -r ./Server/requirements.txt
 
 # Setup PSQL and REDIS
