@@ -6,6 +6,7 @@ Psycopg2==2.6.2
 coverage==4.3.4
 django-nose==1.4.4
 passlib==1.7.1
+pathlib>=1.0.1
 bcrypt==3.1.2
 sphinx==1.5.2
 celery==4.0.2
