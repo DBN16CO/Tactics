@@ -35,8 +35,8 @@ public class PlaceUnitsController : MonoBehaviour {
 
 	// Init the place units UI
 	private void InitPlaceUnits() {
-		for(int i = 0; i < _gc.myUnits.Count; i ++) {
-			AddUnit(_gc.myUnits[i].Info);
+		foreach(Unit unit in _gc.myUnits.Values) {
+			AddUnit(unit.Info);
 		}
 	}
 
