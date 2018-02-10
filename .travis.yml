@@ -4,7 +4,7 @@ services:
 - docker
 install:
 - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-- docker akkowal2/tactics-server-tests:latest
+- docker $DOCKER_USERNAME/tactics-server-tests:latest
 script:
 - docker run -i -v `pwd`:/Tactics --rm tactics-server-tests
 notifications:
