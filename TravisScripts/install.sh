@@ -6,7 +6,7 @@ echo 'Downloading Pre-reqs: '
 sudo easy_install pip
 sudo virtualenv env
 source ./env/bin/activate
-pip install -r ./Server/requirements.txt
+sudo pip install -r ./Server/requirements.txt
 
 # Setup PSQL and REDIS
 export PG_DATA=$(brew --prefix)/var/postgres
