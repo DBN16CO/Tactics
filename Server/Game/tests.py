@@ -2052,7 +2052,7 @@ class TestTakeAction(TestGame):
 		self.assertEquals(opp_user_message.data["GameOver"], -1, "Opponent User's message:\n%s" % opp_user_message)
 
 	def test_ta_28_game_over_user_suicide(self):
-		# Kill every enemy unit except the one we are killing
+		# Kill every current user unit except the one we are killing
 		for unit in self.user_units:
 			if unit == self.attacker:
 				continue
