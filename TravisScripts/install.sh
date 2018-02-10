@@ -4,8 +4,8 @@
 # installs like this. You will probably need to grab a current link from: http://unity3d.com/get-unity/download/archive
 echo 'Downloading Pre-reqs: '
 sudo easy_install pip
-pip install -r ./Server/requirements.txt
-coverage
+sudo pip install -r ./Server/requirements.txt
+sudo coverage
 
 # Setup PSQL and REDIS
 export PG_DATA=$(brew --prefix)/var/postgres
