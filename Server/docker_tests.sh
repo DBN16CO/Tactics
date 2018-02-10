@@ -24,5 +24,5 @@ echo "ALTER USER postgres WITH PASSWORD 'abc12345'" | sudo -u postgres psql
 coverage run ./manage.py test
 rc=$?
 
-#cat trace.log
+cat trace.log
 exit $rc

@@ -1,14 +1,23 @@
-language: python
-sudo: required
-services:
-- docker
+matrix:
+  include:
+    - language: python
+      sudo: required
+      env: TO_TEST=BACKEND
+      services: docker
+    - language: objective-c
+      sudo: required
+      env: TO_TEST=FRONTEND
+      osx_image: xcode61
+      rvm: 2.1.2
+
 install:
-- docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-- docker pull $DOCKER_USERNAME/tactics-server-tests:latest
-- ls
-- pwd
+- if [ "$TO_TEST" = "BACKEND" ]; then docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"; fi
+- if [ "$TO_TEST" = "BACKEND" ]; then docker pull $DOCKER_USERNAME/tactics-server-tests:latest; fi
+- if [ "$TO_TEST" = "FRONTEND" ]; then ./TravisScripts/install.sh; fi
 script:
-- docker run -i -v `pwd`/Server:/Tactics --rm $DOCKER_USERNAME/tactics-server-tests
+- if [ "$TO_TEST" = "BACKEND" ]; then docker run -i -v `pwd`/Server:/Tactics --rm $DOCKER_USERNAME/tactics-server-tests; fi
+- if [ "$TO_TEST" = "FRONTEND" ]; then ./TravisScripts/run_unity_tests.sh; fi
+
 notifications:
   slack: dbn16:jT35x7zWh66YQfk4MMFZ0KvD
 env:
