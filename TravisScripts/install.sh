@@ -5,6 +5,7 @@
 echo 'Downloading Pre-reqs: '
 sudo easy_install pip
 pip install -r ./Server/requirements.txt
+coverage
 
 # Setup PSQL and REDIS
 export PG_DATA=$(brew --prefix)/var/postgres
