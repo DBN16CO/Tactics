@@ -1,5 +1,5 @@
 FROM ubuntu
-MAINTAINER Drew Kowalski
+MAINTAINER DBN
 
 RUN mkdir -p ./Tactics
 
