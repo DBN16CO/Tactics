@@ -5,7 +5,7 @@ services:
 - docker
 
 install:
-- docker pull akkowal2/tactics-server-tests:latest
+- docker pull https://registry.hub.docker.com/u/akkowal2/tactics-server-tests:latest
 
 script:
 - docker run -i -v `pwd`:/Tactics --rm tactics-server-tests
