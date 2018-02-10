@@ -6,9 +6,9 @@ install:
 - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 - docker pull $DOCKER_USERNAME/tactics-server-tests:latest
 - ls
-- pwd
+- `pwd`/Server
 script:
-- docker run -i -v `pwd`:/Tactics --rm $DOCKER_USERNAME/tactics-server-tests
+- docker run -i -v `pwd`/Server:/Tactics --rm $DOCKER_USERNAME/tactics-server-tests
 notifications:
   slack: dbn16:jT35x7zWh66YQfk4MMFZ0KvD
 env:
