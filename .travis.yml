@@ -1,21 +1,14 @@
-language: objective-c
+language: python
 sudo: required
 
-osx_image: xcode61
-rvm:
-- 2.1.2
+services:
+- docker
 
 install:
-- ./TravisScripts/install.sh
+- docker pull akkowal2/tactics-server-tests:latest
 
 script:
-- ./TravisScripts/run_tests.sh
-- ./TravisScripts/run_unity_tests.sh
-
-after_script:
-- cat ./unity_tests.log
-- cat ./EditorTestResults.xml
-- cat ./Server/trace.log
+- docker run -i -v `pwd`:/Tactics --rm tactics-server-tests
 
 notifications:
   slack: dbn16:jT35x7zWh66YQfk4MMFZ0KvD

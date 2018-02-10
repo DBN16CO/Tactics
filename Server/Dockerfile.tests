@@ -1,0 +1,15 @@
+FROM ubuntu
+MAINTAINER Drew Kowalski
+
+RUN mkdir -p ./Tactics
+
+COPY ./requirements.txt /tmp/requirements.txt
+
+RUN apt-get update
+RUN apt-get install -y sudo python-pip libpq-dev postgresql postgresql-contrib redis-server
+
+WORKDIR ./Tactics
+
+RUN pip install -r /tmp/requirements.txt
+
+CMD "./docker_tests.sh"
