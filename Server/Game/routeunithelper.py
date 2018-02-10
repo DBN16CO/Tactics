@@ -152,6 +152,7 @@ def takeAction(data):
 				 If Successful:\n
 				 {\n
 					"Success":True\n
+					"GameOver":-1(You lost)/0(Game in-progress)/1(You won)\n
 					"Unit"{\n
 						"ID":1,\n
 						"HP":10,\n
@@ -265,12 +266,26 @@ def takeAction(data):
 		target_unit = action_result["Target"]
 		response["Target"] = target_unit
 
+	# Determine whether to indicate the game is over or not
+	response["GameOver"] = 0
+	if game.finished:
+		curr_game_user = Game_User.objects.get(game=game, user=user)
+		if curr_game_user.victorious:
+			# The attacking user won the game!
+			response["GameOver"] = 1
+		else:
+			# The attacking user got countered and lost!
+			response["GameOver"] = -1
 
 	try:
 		notify_message_key = "ACTION_TAKEN"
 
 		# Prepare data for other player
 		async_data = copy.deepcopy(response)
+
+		# Flip the other user's GameOver flag
+		async_data["GameOver"] *= -1
+
 		async_data["Action"]  = data["Action"]
 		async_data["Game_ID"] = game.id
 		del async_data["Success"]
