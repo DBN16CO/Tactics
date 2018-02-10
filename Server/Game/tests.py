@@ -965,6 +965,8 @@ class TestTakeAction(TestGame):
 	- A miss or a crit is properly noted in the Take Action response\n
 	- The proper Action History update has been made for the action\n
 	- A unit can move onto a dead ally or enemy unit (Tests 25 and 26)\n
+	- A user kills the last enemy unit and triggers game over (Test 27)\n
+	- A user's last unit attacks and dies from counter attack and triggers game over (Test 28)\n
 	"""
 	def setUp(self):
 		super(TestTakeAction, self).setUp()
@@ -1001,12 +1003,14 @@ class TestTakeAction(TestGame):
 
 		# Commonly used units
 		# Note: By default 'attacker' will be ranged
+		self.user_units = Unit.objects.filter(game=self.game, owner=self.user)
 		self.melee_units = Unit_Stat.objects.filter(stat__name="Attack Range", value=1).values('unit')
 		self.heal_class = Class.objects.filter(name="Cleric", version=self.version).first()
 		self.attacker  = Unit.objects.filter(game=self.game, owner=self.user).exclude(
 			unit_class=self.heal_class).exclude(unit_class__in=self.melee_units).first()
 		self.healer  = Unit.objects.filter(game=self.game, owner=self.user,
 			unit_class=self.heal_class).first()
+		self.enemy_units = Unit.objects.filter(game=self.game, owner=self.user2)
 		self.enemy_tgt = Unit.objects.filter(game=self.game, owner=self.user2, unit_class__in=self.melee_units).exclude(
 			unit_class=self.attacker.unit_class).exclude(unit_class=self.healer.unit_class).first()
 
@@ -1129,7 +1133,7 @@ class TestTakeAction(TestGame):
 
 		return [result, unit, tgt, attack_data, pre_action, tgt_old_hp, action_history]
 
-	def helper_execute_attack_success(self, command):
+	def helper_execute_attack_success(self, command, game_over=0):
 		"""
 		Helper class which issues the provided (attack) command and then verifies
 		each unit's max HP and IDs in the JSON.
@@ -1142,6 +1146,8 @@ class TestTakeAction(TestGame):
 
 		self.assertEqual(result["Target"]["HP"],    attack_data["Tgt"]["Max"])
 		self.assertEqual(action_history.tgt_old_hp, attack_data["Tgt"]["Max"])
+
+		self.assertEqual(result["GameOver"], game_over)
 
 		return [result, unit, tgt, attack_data, action_history]
 
@@ -1334,6 +1340,19 @@ class TestTakeAction(TestGame):
 			version=self.version).first()
 		unit_agil.value = agil_val
 		unit_agil.save()
+
+	def set_strength(self, unit_class, strength_val):
+		"""
+		Takes in the class object of a unit whose strength value is to be
+		updated to the value provided
+		"""
+		Static.statichelper.static_data = {}
+
+		strength = Stat.objects.filter(name="Strength", version=self.version).first()
+		unit_strength = Unit_Stat.objects.filter(stat=strength, unit=unit_class,
+			version=self.version).first()
+		unit_strength.value = strength_val
+		unit_strength.save()
 
 	def move_unit_near_target(self, cmd, unit, target, distance=2):
 		"""
@@ -2009,6 +2028,54 @@ class TestTakeAction(TestGame):
 		self.no_tgt_cmd["Y"] = self.enemy_tgt.y
 
 		self.helper_execute_move_success(self.no_tgt_cmd)
+
+	def test_ta_27_game_over_user_win(self):
+		# Kill every enemy unit except the one we are killing
+		for enemy_unit in self.enemy_units:
+			if enemy_unit == self.enemy_tgt:
+				continue
+
+			enemy_unit.hp = 0
+			enemy_unit.save()
+
+		# Ensure the attacker crits and hits
+		self.set_luck_and_agil(self.attacker.unit_class, 100, 100)
+
+		# Move unit near target
+		self.atk_cmd = self.move_unit_near_target(self.atk_cmd, self.attacker, self.enemy_tgt)
+
+		# Call command, ensure attack was successful and that the user won the game
+		result, unit, tgt, attack_data, action_history = self.helper_execute_attack_success(self.atk_cmd, game_over=1)
+
+		# Ensure that the opponent user was told that they lost the game
+		opp_user_message = AsyncMessages.objects.get(user=self.user2, message_key="ACTION_TAKEN")
+		self.assertEquals(opp_user_message.data["GameOver"], -1, "Opponent User's message:\n%s" % opp_user_message)
+
+	def test_ta_28_game_over_user_suicide(self):
+		# Kill every enemy unit except the one we are killing
+		for unit in self.user_units:
+			if unit == self.attacker:
+				continue
+
+			unit.hp = 0
+			unit.save()
+
+		# Ensure the attacker cannot hit or crit
+		self.set_luck_and_agil(self.attacker.unit_class, 0, 0)
+
+		# Ensure the enemy counters and crits
+		self.set_strength(self.enemy_tgt.unit_class, 100)
+		self.set_luck_and_agil(self.enemy_tgt.unit_class, 100, 100)
+
+		# Move unit near target
+		self.atk_cmd = self.move_unit_near_target(self.atk_cmd, self.attacker, self.enemy_tgt)
+
+		# Call command, ensure attack was successful and that the user lost the game
+		result, unit, tgt, attack_data, action_history = self.helper_execute_attack_success(self.atk_cmd, game_over=-1)
+
+		# Ensure that the opponent user was told that they won the game
+		opp_user_message = AsyncMessages.objects.get(user=self.user2, message_key="ACTION_TAKEN")
+		self.assertEquals(opp_user_message.data["GameOver"], 1, "Opponent User's message:\n%s" % opp_user_message)
 
 class TestEndTurn(TestGame):
 	"""
