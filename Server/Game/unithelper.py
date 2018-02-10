@@ -614,7 +614,7 @@ def check_win_conditions(curr_user, opp_user, game):
 	:type game: Dictionary
 	:param game: The game instance to use for fetching units
 
-	:rtype: Boolean
+	:rtype: Boolean, Dictionary (User)
 	:return: Indicates if the game is over and who won
 	"""
 
