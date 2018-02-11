@@ -1,5 +1,33 @@
 {% block classes-block %}
 <div class="container" id="classes-container" style="padding-top: 70px">
 	<h1>Classes</h1>
+
+	<form name="balancing-form" method="post">
+		<input type="hidden" name="form-type" value="balancing" />
+		<table id="class-table" class="stripe cell-border">
+			<tr>
+				<th></th>
+				{% for class in classes %}
+					<th scope="col">{{ class }}</th>
+				{% endfor %}
+			</tr>
+				{% for class in class_stat_mapping %}
+					{% if forloop.counter0 != 0 %}
+						<tr>
+						{% for stat in class %}
+						    {% if forloop.counter0 == 0 %}
+						    	<th scope="row">{{ stat }}</th>
+						    {% else %}
+						    	<td><input type="text" class="form-control" value="{{ stat.0 }}" name="{{ stat.1 }}_{{ stat.2 }}" ></input></td>
+						    {% endif %}
+						{% endfor %}
+						</tr>
+					{% endif %}
+					
+				{% endfor %}
+
+		</table>
+		<input type="submit" class="btn btn-primary" value="Update" />
+	</form>
 </div>
 {% endblock %}
