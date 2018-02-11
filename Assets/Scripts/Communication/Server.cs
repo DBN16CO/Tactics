@@ -106,10 +106,10 @@ public static class Server {
 		List<Dictionary<string, object>> unitsDict = new List<Dictionary<string, object>>();
 		foreach(Unit unit in GameController.Units) {
 			var unitDict = new Dictionary<string, object>();
-			unitDict["ID"] 		= unit.Info.ID;
-			unitDict["Name"] 	= unit.Info.Name;
-			unitDict["X"]		= unit.Info.X;
-			unitDict["Y"]		= unit.Info.Y;
+			unitDict["ID"] 		= unit.ID;
+			unitDict["Name"] 	= unit.UnitName;
+			unitDict["X"]		= unit.X;
+			unitDict["Y"]		= unit.Y;
 			unitsDict.Add(unitDict);
 		}
 		request["Units"] = unitsDict;
@@ -141,11 +141,11 @@ public static class Server {
 		request["Command"] = "TA";
 		request["Game"] = GameData.CurrentMatch.Name;
 		request["Action"] = action;
-		request["Unit"] = unit.Info.ID;
+		request["Unit"] = unit.ID;
 
 		// Wait at current position if optional params not passed in
-		request["X"] = (X == -1)? unit.Info.X : X;
-		request["Y"] = (Y == -1)? unit.Info.Y : Y;
+		request["X"] = (X == -1)? unit.X : X;
+		request["Y"] = (Y == -1)? unit.Y : Y;
 		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
 		if(response == null) {
@@ -161,11 +161,11 @@ public static class Server {
 		request["Command"] = "TA";
 		request["Game"] = GameData.CurrentMatch.Name;
 		request["Action"] = action;
-		request["Unit"] = unit.Info.ID;
+		request["Unit"] = unit.ID;
 
 		// Wait at current position if optional params not passed in
-		request["X"] = (X == -1)? unit.Info.X : X;
-		request["Y"] = (Y == -1)? unit.Info.Y : Y;
+		request["X"] = (X == -1)? unit.X : X;
+		request["Y"] = (Y == -1)? unit.Y : Y;
 		request["Target"] = targetID;
 		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 

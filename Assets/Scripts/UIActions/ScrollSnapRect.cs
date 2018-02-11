@@ -46,7 +46,7 @@ public class ScrollSnapRect : MonoBehaviour, IBeginDragHandler, IEndDragHandler,
     // whether lerping is in progress and target lerp position
     private bool _lerp;
     private Vector2 _lerpTo;
-    private Vector2 _lerpTabTo;
+    //private Vector2 _lerpTabTo;
 
     // target position of every page
     private List<Vector2> _pagePositions = new List<Vector2>();
@@ -190,7 +190,7 @@ public class ScrollSnapRect : MonoBehaviour, IBeginDragHandler, IEndDragHandler,
     private void LerpToPage(int aPageIndex) {
         aPageIndex = Mathf.Clamp(aPageIndex, 0, _pageCount - 1);
         _lerpTo = _pagePositions[aPageIndex];
-        _lerpTabTo = _tabPositions[aPageIndex];
+        //_lerpTabTo = _tabPositions[aPageIndex];
         _lerp = true;
         _currentPage = aPageIndex;
     }

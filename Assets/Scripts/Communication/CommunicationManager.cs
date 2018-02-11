@@ -62,7 +62,7 @@ public class CommunicationManager
 		try{
 			while (_responseThreadRunning){
 				response = null;
-				
+
 				lock (responseDictLock){
 					//Suspend the thread until the websocket receives a message
 					Monitor.Wait(responseDictLock);
@@ -80,9 +80,11 @@ public class CommunicationManager
 							string requestID = (string) response["Request_ID"];
 							Debug.Log("Obtained response for request " + requestID);
 							responseDict[requestID] = response;
+							LogDictionary(response);
 						}
 						else{
 							Debug.Log("Obtained async message from server");
+							LogDictionary(response);
 
 							string _asyncKey = response["Key"].ToString();
 
@@ -95,12 +97,12 @@ public class CommunicationManager
 						}
 					}
 				}
-				
+
 			}
 		} catch (Exception e){
 			Debug.Log("Response Manager Thread crashed: " + e);
 		}
-		
+
 	}
 
 	static void ProcessRequests(){
@@ -380,7 +382,7 @@ public class CommunicationManager
 		// Wait for the response
 		string strResponse = null;
 		Dictionary<string, object> response = null;
-		
+
 		strResponse = Communication.RecvString();
 		if (strResponse != null)
 		{
