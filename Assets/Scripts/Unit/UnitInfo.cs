@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;		// For dictionaries
+﻿using System.Collections.Generic;		// Dictionary
 
 // Holds unit information mapped from database
 public class UnitInfo {
@@ -54,5 +54,5 @@ public class UnitInfo {
 	public void SetActed(bool acted) {
 		_acted = acted;
 	}
-	
+
 }

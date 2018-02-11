@@ -3,9 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// This class controls the UI place units tab
-public class PlaceUnitsController : MonoBehaviour {
+public class PlaceUnitsController : ParentController {
 
-	private GameController _gc;
 	private List<PUUnit> _units;
 
 	private RectTransform unitsRect;
@@ -15,7 +14,6 @@ public class PlaceUnitsController : MonoBehaviour {
 	void Start() {
 		// Init game object vars
 		name = name.Substring(0, name.Length-7);
-		_gc = GameObject.Find("GameController").GetComponent<GameController>();
 		unitsRect = gameObject.GetComponent<ScrollRect>().content;
 
 		// Init submit button vars
@@ -35,22 +33,21 @@ public class PlaceUnitsController : MonoBehaviour {
 
 	// Init the place units UI
 	private void InitPlaceUnits() {
-		foreach(Unit unit in _gc.myUnits.Values) {
-			AddUnit(unit.Info);
+		foreach(Unit unit in GameData.CurrentMatch.AlliedUnits.Values) {
+			AddUnit(unit);
 		}
 	}
 
 	// Adds unit to place units tab and adjusts scroll rect
-	public void AddUnit(UnitInfo unit) {
+	public void AddUnit(Unit unit) {
 		if(_submit.gameObject.activeSelf) {
 			_submit.gameObject.SetActive(false);
 		}
 
 		// Instantiate the specified unit
 		unitsRect.sizeDelta += new Vector2(70, 0);
-		PUUnit _u = (Instantiate(Resources.Load("Prefabs/PUUnit"),unitsRect) as GameObject).GetComponent<PUUnit>();
-		_u.gameObject.GetComponent<RectTransform>().anchoredPosition3D = new Vector3(10 + 70 * _units.Count,0,0);
-		_u.SetInfo(unit);
+		PUUnit _u = PUUnit.Create(unit.ID, unit.UnitName, unitsRect);
+		_u.gameObject.GetComponent<RectTransform>().anchoredPosition3D = new Vector3(10 + 70 * _units.Count, 0, 0);
 
 		_units.Add(_u);
 	}

@@ -2,51 +2,106 @@
 using System.Collections.Generic;
 
 // Class governing unit options
-public class Unit : MonoBehaviour {
+public class Unit {
+	public static bool ALLY_TEAM  = true;
+	public static bool ENEMY_TEAM = false;
 
-	private UnitInfo _info;
-	private Dictionary<string, Stat> _stats;
-	// Situational stats
-	private int  _remainingMoveRange;
+	private string ALLY_HEX_COLOR     = "3A64FFFF";
+	private string DISABLED_HEX_COLOR = "1D233CFF";
+	private string ENEMY_HEX_COLOR    = "FF9C9CFF";
 
-	private bool _selected;
-	private bool _myTeam;
+	private int 	_id;
+	private string 	_unitName;
+	private int 	_hp;
+	private int 	_x;
+	private int 	_y;
+	private bool 	_acted;
 
+	private bool 	_myTeam;
+	private bool 	_selected;
+
+	private GameObject _unitObject;
+	private Transform  _transform;
 
 #region Setters and Getters
-	// Returns unit information
-	public UnitInfo Info {
-		get{return _info;}
-		set{_info = value;}
+	public int ID {
+		get{return _id;}
 	}
-	// Returns _myTeam;
+	public string UnitName {
+		get{return _unitName;}
+	}
+	public int HP {
+		get{return _hp;}
+	}
+	public int X {
+		get{return _x;}
+	}
+	public int Y {
+		get{return _y;}
+	}
+	public bool Acted {
+		get{return _acted;}
+	}
 	public bool MyTeam {
 		get{return _myTeam;}
-		set{_myTeam = value;}
 	}
-	// Returns _stats
-	public Dictionary<string, Stat> Stats {
-		get{return _stats;}
-		set{_stats = value;}
+	public bool Selected {
+		get{return _selected;}
 	}
-	// Returns specific stat
-	public Stat GetStat(string statName) {
-		return _stats[statName];
+
+	public Transform transform {
+		get{return _transform;}
 	}
-	// Returns the remaining move range for this turn
-	public int RemainingMoveRange {
-		get{return _remainingMoveRange;}
-		set{_remainingMoveRange = value;}
-	}
+
 #endregion
 
-	// Runs on unit instantiation
-	public virtual void Awake() {
-		// Initialize vars
-		_selected = false;
-		Stats = new Dictionary<string, Stat>();
-		name = name.Substring(0, name.Length-7);
+	// Constructor called when users places thier units during the PU phase
+	public Unit(int id, string unitName, int x, int y) {
+		_id 		= id;
+		_unitName 	= unitName;
+		_hp 		= GameData.GetUnit(_unitName).GetStat("HP").Value;
+		_x 			= x;
+		_y 			= y;
+		_acted 		= false;
+
+		_myTeam 	= true;
+		_selected 	= false;
+
+		_unitObject = null;
 	}
+
+	// Constructor called when initializing a map after the PU phase
+	public Unit(Dictionary<string, object> unit, bool myTeam) {
+		_id 		= Parse.Int(unit["ID"]);
+		_unitName 	= Parse.String(unit["Name"]);
+		_hp 		= Parse.Int(unit["HP"]);
+		_x 			= Parse.Int(unit["X"]);
+		_y 			= Parse.Int(unit["Y"]);
+		_acted  	= Parse.Bool(unit["Acted"]);
+
+		_myTeam		= myTeam;
+		_selected 	= false;
+
+		_unitObject = null;
+	}
+
+	public void Spawn(float scale) {
+		_unitObject = GameObject.Instantiate(Resources.Load("Units/" + _unitName),Vector3.zero,Quaternion.identity) as GameObject;
+
+		_unitObject.transform.position = GameController.Tokens[_x][_y].transform.position;
+		_unitObject.gameObject.transform.localScale = new Vector3(scale, scale, 1);
+		_unitObject.gameObject.name = _unitName + "_" + _id;
+
+		_transform = _unitObject.transform;
+	}
+
+	// Runs on unit instantiation
+	// public virtual void Awake() {
+	// 	// Initialize vars
+	// 	_selected = false;
+	// 	_stats = new Dictionary<string, Stat>();
+	// 	name = name.Substring(0, name.Length-7);
+	// }
 
 	// Called from the clicked token - deselect if already selected
 	public void Clicked(Token token) {
@@ -63,41 +118,55 @@ public class Unit : MonoBehaviour {
 	public void UnselectUnit() {
 		_selected = false;
 		if(GameController.SelectedToken != null) {
-			gameObject.transform.position = GameController.SelectedToken.gameObject.transform.position;
+			_unitObject.gameObject.transform.position = GameController.SelectedToken.gameObject.transform.position;
 		}
 		GameController.Main.UnselectUnit();
 	}
 
+	// Updates info, defaulting each parameter to itself
+	// Pass in optional paramters via declaration: UpdateInfo(X: 5, Y: 7) to keep HP constant
+	public void UpdateInfo(int newHP = -1, int newX = -1, int newY = -1) {
+		_hp = (newHP == -1)? _hp : newHP;
+		_x 	= (newX == -1)?  _x  : newX;
+		_y 	= (newY == -1)?  _y  : newY;
+	}
+
 	public void ConfirmMove() {
 		_selected = false;
-		_info.UpdateInfo(newX: GameController.IntendedMove.X, newY: GameController.IntendedMove.Y);
-		_info.SetActed(true);
+		//_info.UpdateInfo(newX: GameController.IntendedMove.X, newY: GameController.IntendedMove.Y);
+		//_info.SetActed(true);
 		PaintUnit("disable");
 		GameController.Main.UnselectUnit();
 	}
 
-	public void DestroyUnit() {
-		Destroy(gameObject);
+	public void Destroy() {
+		GameObject.Destroy(_unitObject.gameObject);
+		_unitObject = null;
 	}
 
 	public void PaintUnit(string type) {
 		switch(type) {
-			case "enemy":
-				gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor("FF9C9CFF");
-				break;
 			case "ally":
-				gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor("3A64FFFF");
+				_unitObject.gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor(ALLY_HEX_COLOR);
 				break;
 			case "disable":
-				gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor("1D233CFF");
+				_unitObject.gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor(DISABLED_HEX_COLOR);
+				break;
+			case "enemy":
+				_unitObject.gameObject.GetComponent<SpriteRenderer>().color = GameController.HexToColor(ENEMY_HEX_COLOR);
 				break;
 		}
 	}
 
 	// Resets unit at start of turn
 	public void Reset() {
-		_info.SetActed(false);
-		PaintUnit((_myTeam)?"ally":"enemy");
+		_acted = false;
+		PaintUnit((_myTeam)? "ally": "enemy");
+	}
+
+	// Sets whether the unit has acted this turn yet
+	public void SetActed(bool acted) {
+		_acted = acted;
 	}
 
 }

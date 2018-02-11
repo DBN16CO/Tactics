@@ -59,7 +59,7 @@ public class ActiveCustomGameController : ParentController {
 		}
 	}
 
-	// Handles any button presses to the 
+	// Handles any button presses to the
 	void SelectGame() {
 		GameData.CurrentMatch = GameData.GetMatch(_matchID);
 		SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
