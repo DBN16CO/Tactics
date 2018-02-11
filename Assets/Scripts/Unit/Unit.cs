@@ -95,14 +95,6 @@ public class Unit {
 		_transform = _unitObject.transform;
 	}
 
-	// Runs on unit instantiation
-	// public virtual void Awake() {
-	// 	// Initialize vars
-	// 	_selected = false;
-	// 	_stats = new Dictionary<string, Stat>();
-	// 	name = name.Substring(0, name.Length-7);
-	// }
-
 	// Called from the clicked token - deselect if already selected
 	public void Clicked(Token token) {
 		if(_selected) {
@@ -132,9 +124,11 @@ public class Unit {
 	}
 
 	public void ConfirmMove() {
+		_x = GameController.IntendedMove.X;
+		_y = GameController.IntendedMove.Y;
+		_acted = true;
 		_selected = false;
-		//_info.UpdateInfo(newX: GameController.IntendedMove.X, newY: GameController.IntendedMove.Y);
-		//_info.SetActed(true);
+
 		PaintUnit("disable");
 		GameController.Main.UnselectUnit();
 	}

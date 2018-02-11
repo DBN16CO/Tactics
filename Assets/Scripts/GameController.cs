@@ -78,8 +78,8 @@ public class GameController : ParentController {
 		Actions = new Dictionary<Twople<int, int>, int>();
 		Units = new List<Unit>();
 		SC = gameObject.AddComponent<SpawnController>();
-		_unitInfoController = new UnitInfoController();
-		_targetInfoController = new UnitInfoController();
+		_unitInfoController = GameObject.Find("UnitInfo").GetComponent<UnitInfoController>();
+		_targetInfoController = GameObject.Find("TargetInfo").GetComponent<UnitInfoController>();
 		Main = this;
 		// Map game vars from QGU match data and determine if place units is necessary
 		myTeam = GameData.CurrentMatch.UserTeam;
@@ -91,7 +91,7 @@ public class GameController : ParentController {
 		InitializeUI();
 
 		if(PlacingUnits) {
-			Object puObj = Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform);
+			Object puObj = Instantiate(Resources.Load("Prefabs/PlaceUnits"), GameObject.Find("Canvas").GetComponent<Canvas>().transform);
 			PU = (puObj as GameObject).GetComponent<PlaceUnitsController>();
 		}else{
 			InitializeMap();
@@ -180,13 +180,13 @@ public class GameController : ParentController {
 	// Runs when a unit is selected. Take action if possible, otherwise show unit info
 	public void SelectUnit(Token token) {
 		SelectedToken = token;
-		Debug.Log(token.CurrentUnit);
 		Unit unit = token.CurrentUnit;
 
 		if(unit != null) {
 			ShowUnitInfo(unit);
 
 			SelectedToken.CurrentUnit = unit;
+			Debug.Log(unit.UnitName + " " + unit.MyTeam + " " + unit.Acted + " " + GameData.CurrentMatch.UserTurn);
 			if(unit.MyTeam && !unit.Acted && GameData.CurrentMatch.UserTurn) {
 				SetValidActions(token);
 			}
@@ -255,8 +255,11 @@ public class GameController : ParentController {
 	}
 	// All the actions when moving a unit
 	public void MoveUnit() {
+		bool coordChanged = (IntendedMove.X != SelectedToken.CurrentUnit.X) || (IntendedMove.Y != SelectedToken.CurrentUnit.Y);
 		IntendedMove.CurrentUnit = SelectedToken.CurrentUnit;
-		SelectedToken.CurrentUnit = null;
+		if(coordChanged) {
+			SelectedToken.CurrentUnit = null;
+		}
 		IntendedMove.CurrentUnit.ConfirmMove();
 	}
 	// When your unit is already selected and you choose a target
@@ -283,16 +286,19 @@ public class GameController : ParentController {
 		Dictionary<string, object> targetDict;
 		// Below confirms whether the target token is red or green (attack or heal)
 		string action = (IntendedTarget.CanAttack)? "Attack" : "Heal";
-		if(Server.TakeTargetAction(SelectedToken.CurrentUnit, action, targetUnit.ID, out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y)) {
-
+		bool success = Server.TakeTargetAction(SelectedToken.CurrentUnit, action, targetUnit.ID,
+			out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y);
+		if(success) {
 			// Update unit info
 			SelectedToken.CurrentUnit.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
 			targetUnit.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
 			if(SelectedToken.CurrentUnit.HP <= 0) {
 				SelectedToken.CurrentUnit.Destroy();
+				SelectedToken.CurrentUnit = null;
 				UnselectUnit();
 			}
 			if(targetUnit.HP <= 0) {
+				GameController.Tokens[targetUnit.X][targetUnit.Y].CurrentUnit = null;
 				targetUnit.Destroy();
 			}
 			MoveUnit();
