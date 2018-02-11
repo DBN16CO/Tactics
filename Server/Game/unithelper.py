@@ -404,6 +404,18 @@ def saveActionResults(action, game, unit_dict, target_dict=None):
 	# Reload the units and ensure the data was saved
 	#TODO
 
+	curr_user = unit.owner
+	opp_user = target.owner
+
+	is_game_over, winning_user = check_win_conditions(curr_user, opp_user, game)
+	if is_game_over:
+		game_user = Game_User.objects.get(game=game, user=winning_user)
+		game_user.victorious = True
+		game_user.save()
+
+		game.finished = True
+		game.save()
+
 	return True
 
 def validateMove(unit, game, user, newX, newY):
@@ -588,3 +600,42 @@ def validateGameStarted(data):
 		"Game":game,
 		"Version":version
 	}
+
+def check_win_conditions(curr_user, opp_user, game):
+	"""
+	Validates the win conditions after an action is taken.
+
+	:type curr_user: Dictionary
+	:param curr_user: The user that is attacking
+
+	:type opp_user: Dictionary
+	:param opp_user: The user that was attacked
+
+	:type game: Dictionary
+	:param game: The game instance to use for fetching units
+
+	:rtype: Boolean, Dictionary (User)
+	:return: Indicates if the game is over and who won
+	"""
+
+	# Check if the opponent's units are all dead
+	units = Unit.objects.filter(owner=opp_user, game=game)
+	all_dead = True
+	for unit in units:
+		if unit.hp > 0:
+			all_dead = False
+			break
+
+	if all_dead:
+		return all_dead, curr_user
+
+	# Check if the current user's units are all dead
+	units = Unit.objects.filter(owner=curr_user, game=game)
+	all_dead = True
+	for unit in units:
+		if unit.hp > 0:
+			all_dead = False
+			break
+
+	return all_dead, opp_user
+
