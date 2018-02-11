@@ -186,7 +186,6 @@ public class GameController : ParentController {
 			ShowUnitInfo(unit);
 
 			SelectedToken.CurrentUnit = unit;
-			Debug.Log(unit.UnitName + " " + unit.MyTeam + " " + unit.Acted + " " + GameData.CurrentMatch.UserTurn);
 			if(unit.MyTeam && !unit.Acted && GameData.CurrentMatch.UserTurn) {
 				SetValidActions(token);
 			}
