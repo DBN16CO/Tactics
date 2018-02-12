@@ -153,8 +153,7 @@ public static class Server {
 	}
 
 	// Called to have a unit take an attack/heal action on the game map
-	public static Dictionary<string, object> TakeTargetAction(Unit unit, string action, int targetID,
-															  int X = -1, int Y = -1){
+	public static Dictionary<string, object> TakeTargetAction(Unit unit, string action, int targetID, int X = -1, int Y = -1){
 		var request = new Dictionary<string, object>();
 		request["Command"] = "TA";
 		request["Game"] = GameData.CurrentMatch.Name;
