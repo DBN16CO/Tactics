@@ -86,7 +86,7 @@ class AdminView(TemplateView):
 				split = identifier.find('_')
 				clazz = identifier[0:split]
 				stat = identifier[split + 1:]
-				
+
 				if clazz not in mapping:
 					mapping[clazz] = {}
 
