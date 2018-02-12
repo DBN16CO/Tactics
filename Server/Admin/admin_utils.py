@@ -10,6 +10,7 @@ from User.models import Users
 from Static.models import Class, Stat, Unit_Stat
 from Server.config import START_DATETIME
 
+CLASS_STAT_MAPPING = {}
 
 def login(username, password):
 	"""
@@ -33,21 +34,6 @@ def send_keepalive_ping():
 def get_all_users():
 	return Users.objects.filter()
 
-def get_all_classes():
-	classes_qs = Class.objects.filter()
-	classes = []
-	for clazz in classes_qs:
-		classes.append(clazz.name)
-	return classes
-
-def get_all_stats():
-	stats_qs = Stat.objects.filter()
-	stats = []
-	for stat in stats_qs:
-		stats.append(stat.name)
-
-	return stats
-
 def get_class_stat_mapping():
 	mapping = [[]]
 
@@ -65,6 +51,11 @@ def get_class_stat_mapping():
 			unit_stat = Unit_Stat.objects.get(stat=stat, unit=clazz)
 			mapping[i].append([unit_stat.value, clazz.name, stat.name])
 
+			if stat.name not in CLASS_STAT_MAPPING:
+				CLASS_STAT_MAPPING[stat.name] = {}
+
+			CLASS_STAT_MAPPING[stat.name][clazz.name] = unit_stat.value
+
 		i += 1
 
 	return mapping
@@ -72,10 +63,10 @@ def get_class_stat_mapping():
 def update_class_stats(mapping):
 	for clazz in mapping:
 		for stat in mapping[clazz]:
-			unit_stat = Unit_Stat.objects.get(unit__name=clazz, stat__name=stat)
-			unit_stat.value = int(mapping[clazz][stat])
-			unit_stat.save()
-
+			if int(CLASS_STAT_MAPPING[stat][clazz]) != int(mapping[clazz][stat]):
+				unit_stat = Unit_Stat.objects.get(unit__name=clazz, stat__name=stat)
+				unit_stat.value = int(mapping[clazz][stat])
+				unit_stat.save()
 
 def get_num_new_users(users):
 	num_new_users = 0

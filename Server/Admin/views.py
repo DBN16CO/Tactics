@@ -4,7 +4,6 @@ from django.template.context_processors import csrf
 from admin_utils import *
 from User.models import Users
 
-
 class AdminView(TemplateView):
 	template_name = 'admin.html'
 
@@ -25,8 +24,6 @@ class AdminView(TemplateView):
 			ram_usage, total_ram, ram_percent = get_local_ram_usage()
 			commands, average, fastest, slowest = get_all_command_perf_data()
 			users = get_all_users()
-			classes = get_all_classes()
-			stats = get_all_stats()
 
 			context['num_users_connected'] = get_num_active_users()
 			context['uptime'] = str(get_server_uptime())
@@ -45,10 +42,7 @@ class AdminView(TemplateView):
 			context['fast_time'] = str(fastest["value"]) + " ms"
 			context['commands'] = commands
 			context['users'] = users
-			context['classes'] = classes
-			context['stats'] = stats
 			context['class_stat_mapping'] = get_class_stat_mapping()
-			print(str(context['class_stat_mapping']))
 			context['total_registered_users'] = len(users)
 			context['num_new_users'] = get_num_new_users(users)
 
