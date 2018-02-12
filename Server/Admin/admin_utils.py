@@ -7,8 +7,10 @@ from channels import Group, channel_layers
 from django.db import connection
 from User.userhelper import verifyPassword
 from User.models import Users
+from Static.models import Class, Stat, Unit_Stat
 from Server.config import START_DATETIME
 
+CLASS_STAT_MAPPING = {}
 
 def login(username, password):
 	"""
@@ -31,6 +33,40 @@ def send_keepalive_ping():
 
 def get_all_users():
 	return Users.objects.filter()
+
+def get_class_stat_mapping():
+	mapping = [[]]
+
+	classes = Class.objects.filter()
+
+	for clazz in classes:
+		mapping[0].append(clazz.name)
+
+	stats = Stat.objects.filter()
+
+	i = 1
+	for stat in stats:
+		mapping.append([stat.name])
+		for clazz in classes:
+			unit_stat = Unit_Stat.objects.get(stat=stat, unit=clazz)
+			mapping[i].append([unit_stat.value, clazz.name, stat.name])
+
+			if stat.name not in CLASS_STAT_MAPPING:
+				CLASS_STAT_MAPPING[stat.name] = {}
+
+			CLASS_STAT_MAPPING[stat.name][clazz.name] = unit_stat.value
+
+		i += 1
+
+	return mapping
+
+def update_class_stats(mapping):
+	for clazz in mapping:
+		for stat in mapping[clazz]:
+			if int(CLASS_STAT_MAPPING[stat][clazz]) != int(mapping[clazz][stat]):
+				unit_stat = Unit_Stat.objects.get(unit__name=clazz, stat__name=stat)
+				unit_stat.value = int(mapping[clazz][stat])
+				unit_stat.save()
 
 def get_num_new_users(users):
 	num_new_users = 0
@@ -64,6 +100,34 @@ def get_local_disk_usage():
 	used_disk_amount = subprocess.check_output("df -h / | tail -1 | awk '{print $3}'", shell=True)
 
 	return used_disk_amount, total_disk_size
+
+def get_local_cpu_usage():
+	"""
+	Obtains the local cpu usage for the server
+	"""
+	usage = subprocess.check_output("ps -A -o %cpu | awk '{s+=$1} END {print s \"%\"}'", shell=True)
+
+	return usage
+
+def get_local_ram_usage():
+	"""
+	Obtains the local ram usage for the server
+	"""
+	used = subprocess.check_output("free -m | awk '/Mem:/ { printf(\"%d\", $3 )}'", shell=True)
+	total = subprocess.check_output("free -m | awk '/Mem:/ { printf(\"%d\", $2 )}'", shell=True)
+
+	try:
+		used = float(used)
+		total = float(total)
+		percent = str((used / total) * 100) + "%"
+		used = str(used) + " MB"
+		total = str(total) + " MB"
+	except Exception:
+		used = "???"
+		total = "???"
+		percent = "???"
+
+	return used, total, percent
 
 def get_total_db_rows():
 	"""
