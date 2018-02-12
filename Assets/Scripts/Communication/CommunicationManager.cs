@@ -68,7 +68,7 @@ public class CommunicationManager
 					try{
 						Monitor.Wait(responseDictLock);
 					}
-					catch(Exception e){
+					catch(Exception){
 						// Do nothing, the wait might have been interrupted
 					}
 

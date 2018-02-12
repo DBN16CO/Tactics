@@ -97,7 +97,7 @@ public static class Server {
 	}
 
 	// Called to send placed unit info to database
-	public static bool PlaceUnits(MatchData match) {
+	public static Dictionary<string, object> PlaceUnits(MatchData match) {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "PU";
 		request["Game"] = match.Name;
@@ -115,10 +115,9 @@ public static class Server {
 		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
 		if (response == null){
-			return false;
+			response = CommunicationManager.CreateInternalErrorResponse();
 		}
-		bool success = (bool)response["Success"];
-		return success;
+		return response;
 	}
 
 	// Called to cancel ranked match queue
