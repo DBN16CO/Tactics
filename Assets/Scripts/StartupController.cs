@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
@@ -14,6 +15,11 @@ public class StartupController : ParentController {
 	private RectTransform _emailRT;
 	private RectTransform _passwordRT;
 	private RectTransform _confirmPasswordRT;
+	private InputField _usernameText;
+	private InputField _passwordText;
+	private InputField _confirmPasswordText;
+	private InputField _emailText;
+	private Text _errorText;
 
 
 	// Runs on app startup - start server connection, login, load game data
@@ -59,6 +65,8 @@ public class StartupController : ParentController {
 
 	// Sets vars when login or register is clicked. Public so that it can be called from the scene
 	public void ToggleLoginRegister(string buttonText) {
+		_errorText.text = "";
+
 		if(selectedButton == "Login" && buttonText == "Register") {
 			selectedButton = "Register";
 			_t = 0f;
@@ -83,26 +91,50 @@ public class StartupController : ParentController {
 		_emailRT = (RectTransform)GameObject.Find("Email").transform;
 		_passwordRT = (RectTransform)GameObject.Find("Password").transform;
 		_confirmPasswordRT =(RectTransform)GameObject.Find("ConfirmPassword").transform;
+		_usernameText = GameObject.Find("Username").GetComponent<InputField>();
+		_passwordText = GameObject.Find("Password").GetComponent<InputField>();
+		_confirmPasswordText = GameObject.Find("ConfirmPassword").GetComponent<InputField>();
+		_emailText = GameObject.Find("Email").GetComponent<InputField>();
+		_errorText = GameObject.Find("LoginErrorText").GetComponent<UnityEngine.UI.Text>();
 	}
 
 	// Attempt to register or login. If successful, go to game. Public so can be called from scene
 	public void Login() {
-		string username = GameObject.Find("Username").GetComponent<InputField>().text;
-		string password = GameObject.Find("Password").GetComponent<InputField>().text;
+		_errorText.text = "";
 
+		string username = _usernameText.text;
+		string password = _passwordText.text;
+		Dictionary<string, object> response;
+
+		// If the user is registering
 		if(selectedButton == "Register") {
-			string email = GameObject.Find("Email").GetComponent<InputField>().text;
-			string confirmpw = GameObject.Find("ConfirmPassword").GetComponent<InputField>().text;
+			string email = _emailText.text;
+			string confirmpw = _confirmPasswordText.text;
 			if(string.Equals(password, confirmpw)) {
-				if(!Server.CreateUser(username, password, email)) {
+				response = Server.CreateUser(username, password, email);
+
+				if(!(bool)response["Success"]) {
+					_passwordText.text = "";
+					_confirmPasswordText.text = "";
+					_errorText.text = Parse.String(response["Error"]);
 					return;
 				}
 			}else{
+				_errorText.text = "The password fields do not match.";
+				_passwordText.text = "";
+				_confirmPasswordText.text = "";
 				return;
 			}
 		}
-		if(Server.Login(username, password)) {
+
+		// If the user is logging into Tactics
+		response = Server.Login(username, password);
+		if((bool)response["Success"]){
 			GoToMain();
+		}
+		else{
+			_passwordText.text = "";
+			_errorText.text = Parse.String(response["Error"]);
 		}
 	}
 

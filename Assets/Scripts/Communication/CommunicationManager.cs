@@ -451,4 +451,13 @@ public class CommunicationManager
 		}
 		return sOutput.ToString();
 	}
+
+	// Called to create a dictionary if any of the above results in a null response
+	public static Dictionary<string, object> CreateInternalErrorResponse(){
+		Dictionary<string, object> dict = new Dictionary<string, object>();
+		dict["Success"] = false;
+		dict["Error"] = "Internal Server Error.";
+
+		return dict;
+	}
 }
