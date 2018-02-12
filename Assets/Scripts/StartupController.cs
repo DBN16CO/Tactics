@@ -114,11 +114,15 @@ public class StartupController : ParentController {
 				response = Server.CreateUser(username, password, email);
 
 				if(!(bool)response["Success"]) {
+					_passwordText.text = "";
+					_confirmPasswordText.text = "";
 					_errorText.text = Parse.String(response["Error"]);
 					return;
 				}
 			}else{
 				_errorText.text = "The password fields do not match.";
+				_passwordText.text = "";
+				_confirmPasswordText.text = "";
 				return;
 			}
 		}
@@ -129,6 +133,7 @@ public class StartupController : ParentController {
 			GoToMain();
 		}
 		else{
+			_passwordText.text = "";
 			_errorText.text = Parse.String(response["Error"]);
 		}
 	}
