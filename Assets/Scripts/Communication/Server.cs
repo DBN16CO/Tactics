@@ -41,20 +41,19 @@ public static class Server {
 	}
 
 	// Used to create a user in the database
-	public static bool CreateUser(string username, string pw, string email) {
+	public static Dictionary<string, object> CreateUser(string username, string pw, string email) {
 		var request = new Dictionary<string, object>();
 		request["Command"] 	= "CU";
 		request["username"]	= username;
 		request["pw"]		= pw;
 		request["email"]	= email;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if (response == null){
-			return false;
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
+		if(response == null){
+			response = CommunicationManager.CreateInternalErrorResponse();
 		}
 
-		bool success = (bool)response["Success"];
-		return success;
+		return response;
 	}
 
 	// Used to query active games for user
@@ -215,15 +214,15 @@ public static class Server {
 	}
 
 	// Used to login to server with username and password
-	public static bool Login(string username, string pw) {
+	public static Dictionary<string, object> Login(string username, string pw) {
 		var request = new Dictionary<string, object>();
 		request["Command"] 	= "LGN";
 		request["username"]	= username;
 		request["pw"]		= pw;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if (response == null){
-			return false;
+		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
+		if(response == null){
+			return CommunicationManager.CreateInternalErrorResponse();
 		}
 
 		bool success = (bool)response["Success"];
@@ -233,6 +232,6 @@ public static class Server {
 			PlayerPrefs.SetString("session", _encryptedToken);
 			PlayerPrefs.Save();
 		}
-		return success;
+		return response;
 	}
 }
