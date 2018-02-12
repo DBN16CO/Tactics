@@ -65,7 +65,12 @@ public class CommunicationManager
 
 				lock (responseDictLock){
 					//Suspend the thread until the websocket receives a message
-					Monitor.Wait(responseDictLock);
+					try{
+						Monitor.Wait(responseDictLock);
+					}
+					catch(Exception e){
+						// Do nothing, the wait might have been interrupted
+					}
 
 					try{
 						response = GetNextResponse();

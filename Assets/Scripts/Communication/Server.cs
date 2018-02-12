@@ -135,7 +135,7 @@ public static class Server {
 	}
 
 	// Called to have a unit take a move action on the game map
-	public static bool TakeNonTargetAction(Unit unit, string action, int X = -1, int Y = -1) {
+	public static Dictionary<string, object> TakeNonTargetAction(Unit unit, string action, int X = -1, int Y = -1) {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "TA";
 		request["Game"] = GameData.CurrentMatch.Name;
@@ -148,14 +148,14 @@ public static class Server {
 		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
 		if(response == null) {
-			return false;
+			response = CommunicationManager.CreateInternalErrorResponse();
 		}
-		bool success = (bool)response["Success"];
-		return success;
+		return response;
 	}
 
 	// Called to have a unit take an attack/heal action on the game map
-	public static bool TakeTargetAction(Unit unit, string action, int targetID, out Dictionary<string, object> unitDict, out Dictionary<string, object> targetDict, int X = -1, int Y = -1) {
+	public static Dictionary<string, object> TakeTargetAction(Unit unit, string action, int targetID,
+															  int X = -1, int Y = -1){
 		var request = new Dictionary<string, object>();
 		request["Command"] = "TA";
 		request["Game"] = GameData.CurrentMatch.Name;
@@ -168,32 +168,23 @@ public static class Server {
 		request["Target"] = targetID;
 		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		unitDict = null;
-		targetDict = null;
 		if(response == null) {
-			return false;
+			response = CommunicationManager.CreateInternalErrorResponse();
 		}
-		bool success = (bool)response["Success"];
-		if(success) {
-			// Set out params
-			unitDict = (Dictionary<string, object>)response["Unit"];
-			targetDict = (Dictionary<string, object>)response["Target"];
-		}
-		return success;
+		return response;
 	}
 
 	// Called to end a player's turn
-	public static bool EndTurn() {
+	public static Dictionary<string, object> EndTurn() {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "ET";
 		request["Game"] = GameData.CurrentMatch.Name;
 		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
 		if(response == null) {
-			return false;
+			response = CommunicationManager.CreateInternalErrorResponse();
 		}
-		bool success = (bool)response["Success"];
-		return success;
+		return response;
 	}
 
 	// Loads static game data on login
