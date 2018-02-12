@@ -16,7 +16,7 @@ public static class GameData {
 	private static Dictionary<string, LeaderData> 	_leaders;	// List of static leader data
 	private static Dictionary<string, AbilityData> 	_abilities;	// List of static ability data
 	private static Dictionary<string, PerkData> 	_perks;		// List of static perk data
-	
+
 	private static Dictionary<string, Dictionary<string, int>> _terrainWeight;	// Terrain weight of movement for each unit
 
 #region // Public properties
@@ -25,11 +25,11 @@ public static class GameData {
 		set{_player = value;}
 	}
 	public static MatchData CurrentMatch {
-		get{return _currentMatch;} 
+		get{return _currentMatch;}
 		set{_currentMatch = value;}
 	}
 	public static VersionData Version {
-		get{return _version;} 
+		get{return _version;}
 		set{_version = value;}
 	}
 #endregion
@@ -46,7 +46,7 @@ public static class GameData {
 		_leaders 	= new Dictionary<string, LeaderData>();
 		_abilities 	= new Dictionary<string, AbilityData>();
 		_perks 		= new Dictionary<string, PerkData>();
-		
+
 		// Map IL Data to temp dictionaries
 		Dictionary<string, object> mapData 		= (Dictionary<string, object>)gameData["Maps"];
 		Dictionary<string, object> terrainData 	= (Dictionary<string, object>)gameData["Terrain"];
@@ -229,13 +229,13 @@ public static class GameData {
 		_terrainWeight = new Dictionary<string, Dictionary<string, int>>();
 		Dictionary<string, object> unitDict;
 		Dictionary<string, object> unitTerrainDict;
-		
+
 		// Loop through units
 		foreach(KeyValuePair<string, object> unit in unitsDict) {
 			unitDict = (Dictionary<string, object>)unit.Value;
 			unitTerrainDict = (Dictionary<string, object>)unitDict["Terrain"];
 			_terrainWeight[unit.Key] = new Dictionary<string, int>();
-			
+
 			// Loop through terrain weights for current unit
 			foreach(KeyValuePair<string, object> terrain in unitTerrainDict) {
 				int unitTerrainWeight = Parse.Int(terrain.Value);
@@ -256,14 +256,14 @@ public static class GameData {
 	public static void UpdateTAGameData(int matchID, Dictionary<string, object> unit, Dictionary<string, object> target){
 		// The 'Unit' from user 2's perspective is the enemy
 		int enemy_id = Parse.Int(unit["ID"]);
-		UnitInfo enemy = _matches[matchID].EnemyUnits[enemy_id];
+		Unit enemy = _matches[matchID].EnemyUnits[enemy_id];
 		int enemyX  = Parse.Int(unit["NewX"]);
 		int enemyY  = Parse.Int(unit["NewY"]);
 
 		// The 'Target' from user 2's perspective is his/her unit
 		if(target != null){
 			int allied_id = Parse.Int(target["ID"]);
-			UnitInfo ally = _matches[matchID].AlliedUnits[allied_id];
+			Unit ally = _matches[matchID].AlliedUnits[allied_id];
 			int allyHP = Parse.Int(target["NewHP"]);
 
 			// HP can only change for actions that involved a target

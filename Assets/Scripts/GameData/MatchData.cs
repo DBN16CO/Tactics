@@ -14,13 +14,13 @@ public class MatchData {
 	private int 	_userTeam;
 	private int 	_enemyTeam;
 
-	private Dictionary<int, UnitInfo>	_alliedUnits;
-	private MatchLeader       			_alliedLeader;
-	private List<MatchPerk>   			_alliedPerks;
-	private Dictionary<int, UnitInfo>	_enemyUnits;
-	private MatchLeader       			_enemyLeader;
-	private List<MatchPerk>   			_enemyPerks;
-	private List<MatchAction> 			_gameActions;
+	private Dictionary<int, Unit>	_alliedUnits;
+	private MatchLeader       		_alliedLeader;
+	private List<MatchPerk>   		_alliedPerks;
+	private Dictionary<int, Unit>	_enemyUnits;
+	private MatchLeader       		_enemyLeader;
+	private List<MatchPerk>   		_enemyPerks;
+	private List<MatchAction> 		_gameActions;
 
 #region // Public properties
 	public int ID {
@@ -50,7 +50,7 @@ public class MatchData {
 	public int EnemyTeam {
 		get{return _enemyTeam;}
 	}
-	public Dictionary<int, UnitInfo> AlliedUnits{
+	public Dictionary<int, Unit> AlliedUnits{
 		get{return _alliedUnits;}
 	}
 	public MatchLeader AlliedLeader {
@@ -59,7 +59,7 @@ public class MatchData {
 	public List<MatchPerk> AlliedPerks {
 		get{return _alliedPerks;}
 	}
-	public Dictionary<int, UnitInfo> EnemyUnits {
+	public Dictionary<int, Unit> EnemyUnits {
 		get{return _enemyUnits;}
 	}
 	public MatchLeader EnemyLeader {
@@ -89,10 +89,10 @@ public class MatchData {
 		_enemyTeam   = Parse.Int(matchData["Enemy_Team"]);
 
 		// Get all the allied units
-		_alliedUnits = new Dictionary<int, UnitInfo>();
+		_alliedUnits = new Dictionary<int, Unit>();
 		foreach(object unitData in Json.ToList(Parse.String(matchData["Your_Units"]))){
-			Dictionary<string, object> unit = Json.ToDict(Parse.String(unitData));
-			UnitInfo alliedUnit = new UnitInfo(unit);
+			Dictionary<string, object> unitInfo = Json.ToDict(Parse.String(unitData));
+			Unit alliedUnit = new Unit(unitInfo, Unit.ALLY_TEAM);
 			_alliedUnits[alliedUnit.ID] = alliedUnit;
 		}
 
@@ -114,10 +114,10 @@ public class MatchData {
 		}
 
 		// Get all the enemy units
-		_enemyUnits = new Dictionary<int, UnitInfo>();
+		_enemyUnits = new Dictionary<int, Unit>();
 		foreach(object unitData in Json.ToList(Parse.String(matchData["Enemy_Units"]))){
-			Dictionary<string, object> unit = Json.ToDict(Parse.String(unitData));
-			UnitInfo enemyUnit = new UnitInfo(unit);
+			Dictionary<string, object> unitInfo = Json.ToDict(Parse.String(unitData));
+			Unit enemyUnit = new Unit(unitInfo, Unit.ENEMY_TEAM);
 			_enemyUnits[enemyUnit.ID] = enemyUnit;
 		}
 
@@ -213,4 +213,3 @@ public struct MatchPerk {
 	public string Name;
 	public int    Tier;
 }
-

@@ -4,15 +4,6 @@ public class SpawnController : ParentController {
 
 	private float _scaleFactor;		// What to scale each 1x1 unit by to fit on the screen
 
-
-#region Setters and Getters
-	// Returns the scale factor for each sprite
-	public float ScaleFactor {
-		get{return _scaleFactor;}
-		set{_scaleFactor = value;}
-	}
-#endregion
-
 	// Call this to instantiate a new game grid
 	public void CreateMap(string mapKey) {
 		MapData map = GameData.GetMap(mapKey);
@@ -21,95 +12,91 @@ public class SpawnController : ParentController {
 		for(int x = 0; x < tokens.Length; x++) {
 			tokens[x] = new Token[map.Height];
 		}
-		// Set scale factor based on orthographic camera settings
-		// Assumes PPU = resolution for each sprite
+
+		// Set scale factor based on orthographic camera settings, assumes PPU = resolution for each sprite
 		float orthoSize = Camera.main.orthographicSize;
-		ScaleFactor = (2f * orthoSize) / (float)tokens.Length; 		// This will have to change if we want non-square maps
-//		Camera.main.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
-		// Loop through each token
+		_scaleFactor = (2f * orthoSize) / (float)tokens.Length;
+
+		// Create a map GameObject to hold all token objects
 		GameObject GameMap = new GameObject();
 		GameMap.name = "MapTokens";
-		for(int width = 0; width < tokens.Length; width++) {
-			for(int height = 0; height < tokens[width].Length; height++) {
-				// Instantiate token at each grid position
-				Token token = (Instantiate(Resources.Load("Prefabs/Token"),new Vector2(((float)width*ScaleFactor)-orthoSize,-((float)height*ScaleFactor)+orthoSize) + new Vector2(ScaleFactor/2f,-ScaleFactor/2f),Quaternion.identity, GameMap.transform) as GameObject).GetComponent<Token>();
-				// Set scale to scale factor
-				token.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
+
+		int myTeam = gameObject.GetComponent<GameController>().myTeam;
+		MapData currentMap = gameObject.GetComponent<GameController>().CurrentMap;
+
+		// Loop through each token
+		for(int x = 0; x < tokens.Length; x++) {
+			for(int y = 0; y < tokens[x].Length; y++) {
 				// Assign terrain based on preset map
-				string terr = map.Terrain[width][height];
-				token.SetTerrain(terr);
-				// Asign token variables
-				token.X = width;
-				token.Y = height;
+				string terr = map.Terrain[x][y];
+
+				Token token = Token.Create(x, y, terr, _scaleFactor, orthoSize, GameMap.transform);
+
 				// If placing units, grey out the tokens that can't be placed on
-				if(GameController.PlacingUnits && gameObject.GetComponent<GameController>().CurrentMap.TeamPlaceUnit[width][height] != gameObject.GetComponent<GameController>().myTeam) {
+				if(GameController.PlacingUnits && currentMap.TeamPlaceUnit[x][y] != myTeam) {
 					token.SetActionProperties("disabled");
 				}
+
 				// Add token to token array
-				tokens[width][height] = token;
+				tokens[x][y] = token;
 			}
 		}
+
+		// Flip the map if this user is not user 1
 		GameMap.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
+
 		// Set game vars
 		GameController.GridLength = tokens.Length;
 		GameController.GridHeight = tokens[0].Length;
 		GameController.Tokens = tokens;
 	}
 
-	// Call this to create a unit for a token
-	public Unit CreateUnit(UnitInfo unit,int x, int y, bool myTeam) {
-		// Initialize return unit as null in case it's dead
-		Unit ret = null;
-		// Instantiate the specified unit if not dead
-		if(unit.HP > 0 || GameController.PlacingUnits) {
-			ret = (Instantiate(Resources.Load("Units/" + unit.Name),Vector3.zero,Quaternion.identity) as GameObject).GetComponent<Unit>();
-			// Set the position to the token's position
-			ret.transform.position = GameController.Tokens[x][y].transform.position;
-			ret.gameObject.transform.localScale = new Vector3(ScaleFactor,ScaleFactor,1);
-			// Add to GameController Units and Return final unit
-			if(unit.X == -1 || unit.Y == -1) {
-				// Set initial params if new unit
-				unit.UpdateInfo(GameData.GetUnit(unit.Name).GetStat("HP").Value, x, y);
-			}
-			ret.Info = unit;
-			ret.MyTeam = myTeam;
+	// Call this to create a unit object on a token
+	public void SpawnUnit(Unit unit) {
+		if(unit.HP <= 0 && ! GameController.PlacingUnits){
+			return;
+		}
 
-			// If the unit is on the opposite team of the user who's turn it is
-			if((GameData.CurrentMatch.UserTurn && !ret.MyTeam) || (!GameData.CurrentMatch.UserTurn && ret.MyTeam)) {
-				// Disabled doesn't apply if it's not the user's turn
-				ret.PaintUnit((ret.MyTeam)? "ally" : "enemy");
-			}
-			// If the unit is on the same team of the user who's turn it is
-			else {
-				// Disabled does apply if it's the user's turn
-				ret.PaintUnit((ret.Info.Acted)? "disable" : (ret.MyTeam)? "ally" : "enemy");
-			}
+		unit.Spawn(_scaleFactor);
 
-			GameController.Tokens[x][y].CurrentUnit = ret;
-			GameController.Units.Add(ret);
-
-			if(myTeam){
-				GameController.Main.myUnits[unit.ID] = ret;
-			}
-			else{
-				GameController.Main.enemyUnits[unit.ID] = ret;
-			}
-
-			if(GameController.PlacingUnits) {
-				GameController.UnitBeingPlaced.RemoveUnit();
+		// Paint the unit appropriately
+		string paintColor = (unit.MyTeam)? "ally" : "enemy";
+		// If it is the owner of the unit's turn
+		if((GameData.CurrentMatch.UserTurn && unit.MyTeam) || (!GameData.CurrentMatch.UserTurn && !unit.MyTeam)) {
+			// Disabled applies if it's the user's turn
+			if(unit.Acted){
+				paintColor = "disable";
 			}
 		}
-		return ret;
+		unit.PaintUnit(paintColor);
+
+		// Add the unit to the appropriate GameObject lists
+		GameController.Tokens[unit.X][unit.Y].CurrentUnit = unit;
+		GameController.Units.Add(unit);
+		if(unit.MyTeam){
+			GameController.Main.myUnits[unit.ID] = unit;
+		}
+		else{
+			GameController.Main.enemyUnits[unit.ID] = unit;
+		}
+
+		// Remove unit from place units list
+		if(GameController.PlacingUnits){
+			GameController.UnitBeingPlaced.RemoveUnit();
+		}
 	}
 
+	// Returns the placed unit back into the list of placable units
 	public static void ReturnPlacedUnit(Unit unit) {
-		GameController.PU.AddUnit(unit.Info);
+		GameController.Tokens[unit.X][unit.Y].CurrentUnit = null;
+		GameController.PU.AddUnit(unit);
 		DestroyUnit(unit);
 	}
 
+	// Destroys the Unit's GameObject
 	public static void DestroyUnit(Unit unit) {
 		GameController.Units.Remove(unit);
-		Destroy(unit.gameObject);
+		unit.Destroy();
 	}
 
 }

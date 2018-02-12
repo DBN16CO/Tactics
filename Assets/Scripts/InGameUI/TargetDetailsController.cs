@@ -10,9 +10,8 @@ public class TargetDetailsController : MonoBehaviour {
 	private const float LERP_THRESHOLD 			= 1f;
 	private const float TARGET_Y				= -220f;
 
-	private float _timer;			// Measure of time
 	private RectTransform _rt;		// Reference to RectTransform to speed up processing
-	
+
 	// Object references
 	public Text myDmgText;
 	public Text myCritText;
@@ -26,10 +25,9 @@ public class TargetDetailsController : MonoBehaviour {
 	void Start () {
 		Main = this;
 
-		_timer = 0;
 		_rt = gameObject.GetComponent<RectTransform>();
 	}
-	
+
 	void Update () {
 		if(ToLerp) {
 			// Lerp from current position to target position
@@ -42,8 +40,8 @@ public class TargetDetailsController : MonoBehaviour {
 		// Update dmg or heal text
 		DmgOrHeal.text = (IsAttack)? "DMG" : "HEAL";
 		// Set unit stats
-		UnitData myUnit 	= GameData.GetUnit(GameController.SelectedToken.CurrentUnit.Info.Name);
-		UnitData targUnit 	= GameData.GetUnit(GameController.IntendedTarget.CurrentUnit.Info.Name);
+		UnitData myUnit 	= GameData.GetUnit(GameController.SelectedToken.CurrentUnit.UnitName);
+		UnitData targUnit 	= GameData.GetUnit(GameController.IntendedTarget.CurrentUnit.UnitName);
 		// DEVELOPMENT UNTIL BETTER WAY TO DETERMINE PHYSICAL VS MAGICAL
 		bool myPhysical 	= myUnit.GetStat("Strength").Value > myUnit.GetStat("Intelligence").Value;
 
@@ -64,7 +62,7 @@ public class TargetDetailsController : MonoBehaviour {
 			bool targPhysical	= targUnit.GetStat("Strength").Value > targUnit.GetStat("Intelligence").Value;
 			int myDef	= (targPhysical)? myUnit.GetStat("Defense").Value : myUnit.GetStat("Resistance").Value;
 			int targPower 	= (targPhysical)? targUnit.GetStat("Strength").Value : targUnit.GetStat("Intelligence").Value;
-			
+
 			targDmg 	= Mathf.Max(0, targPower - myDef);
 			targHit 	= 100 - Mathf.Max(0, ((myAgil - targAgil) * 5) + 5);
 			targCrit 	= Mathf.Max(0, ((targLuck - myLuck) * 5) + 5);

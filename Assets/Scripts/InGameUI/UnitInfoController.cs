@@ -12,12 +12,14 @@ public class UnitInfoController : MonoBehaviour {
 	void Start () {
 		hpWidth = gameObject.transform.Find("UnitHP").GetComponent<RectTransform>().rect.width;
 	}
-	
+
 	// Sets necessary info
-	public void SetUnitInfo(UnitInfo unit) {
-		NameText.text = unit.Name;
-		HPText.text = unit.HP + "/" + GameData.GetUnit(unit.Name).GetStat("HP").Value;
-		HPBar.offsetMax = new Vector2(-(hpWidth - (hpWidth * ((float)unit.HP/(float)GameData.GetUnit(unit.Name).GetStat("HP").Value))),0);
+	public void SetUnitInfo(Unit unit) {
+		NameText.text = unit.UnitName;
+
+		int maxHP = GameData.GetUnit(unit.UnitName).GetStat("HP").Value;
+		HPText.text = unit.HP + "/" + maxHP;
+		HPBar.offsetMax = new Vector2( -(hpWidth - (hpWidth * ((float)unit.HP / (float)maxHP))), 0);
 	}
 
 	// Clears info

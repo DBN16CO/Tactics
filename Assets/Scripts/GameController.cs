@@ -32,8 +32,8 @@ public class GameController : ParentController {
 	// UI variables
 	public GameObject EndTurnGO;
 	public GameObject BackToMenuGO;
-	public UnitInfoController UnitInfo;
-	public UnitInfoController TargetInfo;
+	public UnitInfoController _unitInfoController;
+	public UnitInfoController _targetInfoController;
 
 	private bool _endTurn;
 	private bool _backToMenu;
@@ -68,18 +68,6 @@ public class GameController : ParentController {
 		set{_currentMap = value;}
 	}
 
-	// When Conditions
-	private bool UnitsArePlaced {
-		get{
-			foreach(UnitInfo unit in GameData.CurrentMatch.AlliedUnits.Values) {
-				if(unit.X == -1) {
-					return false;
-				}
-			}
-			return true;
-		}
-	}
-
 #endregion
 
 
@@ -90,35 +78,88 @@ public class GameController : ParentController {
 		Actions = new Dictionary<Twople<int, int>, int>();
 		Units = new List<Unit>();
 		SC = gameObject.AddComponent<SpawnController>();
+		_unitInfoController = GameObject.Find("UnitInfo").GetComponent<UnitInfoController>();
+		_targetInfoController = GameObject.Find("TargetInfo").GetComponent<UnitInfoController>();
 		Main = this;
 		// Map game vars from QGU match data and determine if place units is necessary
 		myTeam = GameData.CurrentMatch.UserTeam;
 		myUnits = new Dictionary<int, Unit>();
 		enemyUnits = new Dictionary<int, Unit>();
-		PlacingUnits = !UnitsArePlaced;
+		PlacingUnits = !UnitsArePlaced();
 		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
 		SC.CreateMap(GameData.CurrentMatch.MapName);
 		InitializeUI();
-		
-		if(PlacingUnits) {
-			foreach(UnitInfo unit in GameData.CurrentMatch.AlliedUnits.Values){
-	            Unit newUnit = new Unit();
-	            newUnit.Info = unit;
-	            newUnit.MyTeam = true;
-	            myUnits[unit.ID] = newUnit;
-	        }
 
-			PU = (Instantiate(Resources.Load("Prefabs/PlaceUnits"),GameObject.Find("Canvas").GetComponent<Canvas>().transform) as GameObject).GetComponent<PlaceUnitsController>();
+		if(PlacingUnits) {
+			Object puObj = Instantiate(Resources.Load("Prefabs/PlaceUnits"), GameObject.Find("Canvas").GetComponent<Canvas>().transform);
+			PU = (puObj as GameObject).GetComponent<PlaceUnitsController>();
 		}else{
 			InitializeMap();
 		}
+	}
 
+	// Called when Token's OnMouseDown is triggered
+	public void HandleTokenClick(Token token){
+		// During the Place Units phase
+		if(PlacingUnits) {
+			if(!token.IsDisabled() && token.CurrentUnit == null && UnitBeingPlaced != null) {
+				PlaceUnit(token);
+			}
+			else if(token.CurrentUnit != null && UnitBeingPlaced == null) {
+				SpawnController.ReturnPlacedUnit(token.CurrentUnit);
+			}
+			return;
+		}
 
+		/*
+		 * Normal actions if not placing units
+		 */
+		// Performing actions for an already-selected unit
+		if(token.CurrentUnit != null) {
+			// Targeting
+			if(token.CanAttack || token.CanHeal) {
+				if(IntendedTarget != token) {
+					if(CanTargetFromToken(token)) {
+						SetIntendedTarget(token);
+					}
+				}else{
+					ConfirmTargetAction(token.CurrentUnit);
+				}
+			// Selecting
+			}
+			else {
+				if(SelectedToken != null) {
+					if(token != SelectedToken) {
+						SelectedToken.CurrentUnit.UnselectUnit();
+					}
+				}
+				token.CurrentUnit.Clicked(token);
+			}
+		}
+		// Moving
+		else if(token.CanMove) {
+			if(IntendedMove != token) {
+				SetIntendedMove(token);
+			}else {
+				ConfirmMove();
+			}
+		}
+		// Unselecting
+		else {
+			if(SelectedToken != null) {
+				SelectedToken.CurrentUnit.UnselectUnit();
+			}
+		}
+	}
 
-		// Block for testing -------------------------------------------
-		// For any gameplay vars and functions
-//		TestGamePlay();
-		// End testing block -------------------------------------------
+	// When Conditions
+	private bool UnitsArePlaced() {
+		foreach(Unit unit in GameData.CurrentMatch.AlliedUnits.Values) {
+			if(unit.X == -1) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	// Run when turn someone ends their turn
@@ -130,33 +171,41 @@ public class GameController : ParentController {
 
 	// Token actions when unit is placed
 	public void PlaceUnit(Token token) {
-		token.CurrentUnit = SC.CreateUnit(UnitBeingPlaced.matchUnit,token.X,token.Y, true);
+		Unit placedUnit = new Unit(UnitBeingPlaced.ID, UnitBeingPlaced.UnitName, token.X, token.Y);
+
+		SC.SpawnUnit(placedUnit);
+		token.CurrentUnit = placedUnit;
 	}
 
 	// Runs when a unit is selected. Take action if possible, otherwise show unit info
 	public void SelectUnit(Token token) {
-		Unit unit = token.CurrentUnit;
-		ShowUnitInfo(unit);
 		SelectedToken = token;
-		if(unit.MyTeam && !unit.Info.Acted && GameData.CurrentMatch.UserTurn) {
-			SetValidActions(token);
+		Unit unit = token.CurrentUnit;
+
+		if(unit != null) {
+			ShowUnitInfo(unit);
+
+			SelectedToken.CurrentUnit = unit;
+			if(unit.MyTeam && !unit.Acted && GameData.CurrentMatch.UserTurn) {
+				SetValidActions(token);
+			}
 		}
 	}
 
 	// Shows unit info on UI
 	public void ShowUnitInfo(Unit unit) {
-		UnitInfo.SetUnitInfo(unit.Info);
+		_unitInfoController.SetUnitInfo(unit);
 	}
 	// Shows target info on UI
 	public void ShowTargetInfo(Unit unit) {
-		TargetInfo.SetUnitInfo(unit.Info);
+		_targetInfoController.SetUnitInfo(unit);
 		TargetDetailsController.Main.SetDetails();
 	}
 
 	// Runs when a unit is unselected (i.e. user clicks other unit, or unit takes turn)
 	public void UnselectUnit() {
-		UnitInfo.RemoveUnitInfo();
-		SelectedToken = null;
+		_unitInfoController.RemoveUnitInfo();
+		_selectedToken = null;
 		IntendedMove = null;
 		UnselectTarget();
 		ClearValidActions();
@@ -174,10 +223,10 @@ public class GameController : ParentController {
 	}
 	// Checks whether the unit can target from IntendedMove
 	public bool CanTargetFromToken(Token currToken) {
-		if((currToken.CanAttack && currToken.HasEnemy) || (currToken.CanHeal && currToken.HasAlly)) {
+		if((currToken.CanAttack && currToken.HasEnemy()) || (currToken.CanHeal && currToken.HasAlly())) {
 			int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - currToken.X) : Mathf.Abs(SelectedToken.X - currToken.X);
 			int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - currToken.Y) : Mathf.Abs(SelectedToken.Y - currToken.Y);
-			int range = GameData.GetUnit(SelectedToken.CurrentUnit.Info.Name).GetStat("Attack Range").Value;
+			int range = GameData.GetUnit(SelectedToken.CurrentUnit.UnitName).GetStat("Attack Range").Value;
 			return range >= _deltaX + _deltaY;
 		}
 		return false;
@@ -186,7 +235,7 @@ public class GameController : ParentController {
 	public bool CanTargetCounter() {
 		int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - IntendedTarget.X) : Mathf.Abs(SelectedToken.X - IntendedTarget.X);
 		int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - IntendedTarget.Y) : Mathf.Abs(SelectedToken.Y - IntendedTarget.Y);
-		int range = GameData.GetUnit(IntendedTarget.CurrentUnit.Info.Name).GetStat("Attack Range").Value;
+		int range = GameData.GetUnit(IntendedTarget.CurrentUnit.UnitName).GetStat("Attack Range").Value;
 		return range >= _deltaX + _deltaY;
 	}
 
@@ -194,7 +243,7 @@ public class GameController : ParentController {
 	public void SetIntendedMove(Token token) {
 		UnselectTarget();
 		IntendedMove = token;
-		SelectedToken.CurrentUnit.transform.position = token.gameObject.transform.position;
+		_selectedToken.CurrentUnit.transform.position = token.gameObject.transform.position;
 		PaintIntendedMoveActions();
 	}
 	// Confirm move unit to new token and unselect after
@@ -205,8 +254,11 @@ public class GameController : ParentController {
 	}
 	// All the actions when moving a unit
 	public void MoveUnit() {
+		bool coordChanged = (IntendedMove.X != SelectedToken.CurrentUnit.X) || (IntendedMove.Y != SelectedToken.CurrentUnit.Y);
 		IntendedMove.CurrentUnit = SelectedToken.CurrentUnit;
-		SelectedToken.CurrentUnit = null;
+		if(coordChanged) {
+			SelectedToken.CurrentUnit = null;
+		}
 		IntendedMove.CurrentUnit.ConfirmMove();
 	}
 	// When your unit is already selected and you choose a target
@@ -223,7 +275,7 @@ public class GameController : ParentController {
 	public void UnselectTarget() {
 		if(IntendedTarget != null) {
 			IntendedTarget.gameObject.GetComponent<SpriteRenderer>().color = HexToColor("FFFFFFFF");
-			TargetInfo.RemoveUnitInfo();
+			_targetInfoController.RemoveUnitInfo();
 			IntendedTarget = null;
 		}
 	}
@@ -233,17 +285,20 @@ public class GameController : ParentController {
 		Dictionary<string, object> targetDict;
 		// Below confirms whether the target token is red or green (attack or heal)
 		string action = (IntendedTarget.CanAttack)? "Attack" : "Heal";
-		if(Server.TakeTargetAction(SelectedToken.CurrentUnit, action, targetUnit.Info.ID, out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y)) {
-
+		bool success = Server.TakeTargetAction(SelectedToken.CurrentUnit, action, targetUnit.ID,
+			out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y);
+		if(success) {
 			// Update unit info
-			SelectedToken.CurrentUnit.Info.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
-			targetUnit.Info.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
-			if(SelectedToken.CurrentUnit.Info.HP <= 0) {
-				SelectedToken.CurrentUnit.DestroyUnit();
+			SelectedToken.CurrentUnit.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
+			targetUnit.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
+			if(SelectedToken.CurrentUnit.HP <= 0) {
+				SelectedToken.CurrentUnit.Destroy();
+				SelectedToken.CurrentUnit = null;
 				UnselectUnit();
 			}
-			if(targetUnit.Info.HP <= 0) {
-				targetUnit.DestroyUnit();
+			if(targetUnit.HP <= 0) {
+				GameController.Tokens[targetUnit.X][targetUnit.Y].CurrentUnit = null;
+				targetUnit.Destroy();
 			}
 			MoveUnit();
 		}
@@ -258,7 +313,7 @@ public class GameController : ParentController {
 
 		// Info about the unit being checked
 		Unit movingUnit = token.CurrentUnit;
-		string unitName = movingUnit.name;
+		string unitName = movingUnit.UnitName;
 		int movementRemaining = GameData.GetUnit(unitName).GetStat("Move").Value;
 
 		// Attack range if the unit can attack or heal
@@ -341,14 +396,14 @@ public class GameController : ParentController {
 
 					// During movement phase, can move onto self or unoccupied locations
 					if(currElement.Item1.CurrentUnit == null ||
-							currElement.Item1.CurrentUnit.Info.ID == movingUnit.Info.ID)
+							currElement.Item1.CurrentUnit.ID == movingUnit.ID)
 					{
 						Actions.Add(coord, phase);
 						currElement.Item1.SetActionProperties(((UnitAction)phase).ToString());
 					}
 					// Logic to handle a token with a unit:
 					else if(currElement.Item1.CurrentUnit != null &&
-							currElement.Item1.CurrentUnit.Info.ID != movingUnit.Info.ID)
+							currElement.Item1.CurrentUnit.ID != movingUnit.ID)
 					{
 						// Logic for when the token is occupied by an ally
 						if(currElement.Item1.CurrentUnit.MyTeam){
@@ -497,15 +552,11 @@ public class GameController : ParentController {
 
 	// Initializes the game map when opening after place units has already been completed
 	private void InitializeMap() {
-		foreach(UnitInfo unit in GameData.CurrentMatch.AlliedUnits.Values) {
-			if(unit.X != -1 && unit.HP > 0) {
-				SC.CreateUnit(unit, unit.X, unit.Y, true);
-			}
+		foreach(Unit unit in GameData.CurrentMatch.AlliedUnits.Values) {
+			SC.SpawnUnit(unit);
 		}
-		foreach(UnitInfo unit in GameData.CurrentMatch.EnemyUnits.Values) {
-			if(unit.X != -1 && unit.HP > 0) {
-				SC.CreateUnit(unit, unit.X, unit.Y, false);
-			}
+		foreach(Unit unit in GameData.CurrentMatch.EnemyUnits.Values) {
+			SC.SpawnUnit(unit);
 		}
 	}
 
