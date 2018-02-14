@@ -33,6 +33,8 @@ public class SelectPerkController : ParentController {
 
 	// Select and unselect this perk
 	public void TogglePerk() {
+		SetTeamController.ErrorMessageText.text = "";
+		
 		if(stc.perks[ListTier] != gameObject) {
 			if(stc.perks[ListTier] != null) {
 				stc.perks[ListTier].GetComponent<SelectPerkController>().TogglePerk();

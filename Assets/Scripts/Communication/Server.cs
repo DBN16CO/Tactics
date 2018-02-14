@@ -70,7 +70,7 @@ public static class Server {
 	}
 
 	// Used to set selected team in database
-	public static bool SetTeam(string leader, string ability, List<string> units, List<string> perks) {
+	public static Dictionary<string, object> SetTeam(string leader, string ability, List<string> units, List<string> perks) {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "ST";
 		request["Leader"] = leader;
@@ -80,20 +80,21 @@ public static class Server {
 		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
 		if (response == null){
-			return false;
+			response = CommunicationManager.CreateInternalErrorResponse();
 		}
-		bool success = (bool)response["Success"];
-		return success;
+		return response;
 	}
 
 	// Called to find ranked match after team is set
-	public static bool FindMatch() {
+	public static Dictionary<string, object> FindMatch() {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "FM";
 		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		bool success = (bool)response["Success"];
-		return success;
+		if (response == null){
+			response = CommunicationManager.CreateInternalErrorResponse();
+		}
+		return response;
 	}
 
 	// Called to send placed unit info to database
