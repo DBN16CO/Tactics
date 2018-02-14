@@ -69,7 +69,7 @@ public class PlaceUnitsController : ParentController {
 	// Action when submit button is pressed
 	void PlaceUnits(){
 		Dictionary<string, object> response = Server.PlaceUnits(GameData.CurrentMatch);
-		if((bool)response["Success"]){
+		if(Parse.Bool(response["Success"])){
 			GameController.PlacingUnits = false;
 			for(int x = 0; x < GameController.Tokens.Length; x++) {
 				for(int y = 0; y < GameController.Tokens[x].Length; y++) {

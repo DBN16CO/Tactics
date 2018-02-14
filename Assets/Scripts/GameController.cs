@@ -253,7 +253,7 @@ public class GameController : ParentController {
 	public void ConfirmMove() {
 		Dictionary<string, object> response = Server.TakeNonTargetAction(SelectedToken.CurrentUnit,
 			"Wait", IntendedMove.X, IntendedMove.Y);
-		if((bool)response["Success"]){
+		if(Parse.Bool(response["Success"])){
 			MoveUnit();
 		}
 		else{
@@ -296,13 +296,13 @@ public class GameController : ParentController {
 		Dictionary<string, object> response = Server.TakeTargetAction(SelectedToken.CurrentUnit, action,
 			targetUnit.ID, IntendedMove.X, IntendedMove.Y);
 
-		if((bool)response["Success"]) {
+		if(Parse.Bool(response["Success"])) {
 			Dictionary<string, object> unitDict   = (Dictionary<string, object>)response["Unit"];
 			Dictionary<string, object> targetDict = (Dictionary<string, object>)response["Target"];
 
 			// Update unit info
-			SelectedToken.CurrentUnit.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
-			targetUnit.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
+			SelectedToken.CurrentUnit.UpdateInfo(Parse.Int(unitDict["NewHP"]));
+			targetUnit.UpdateInfo(Parse.Int(targetDict["NewHP"]));
 			if(SelectedToken.CurrentUnit.HP <= 0) {
 				SelectedToken.CurrentUnit.Destroy();
 				SelectedToken.CurrentUnit = null;
@@ -542,7 +542,7 @@ public class GameController : ParentController {
 	}
 	public void EndTurn() {
 		Dictionary<string, object> response = Server.EndTurn();
-		if((bool)response["Success"]) {
+		if(Parse.Bool(response["Success"])){
 			_endTurn = false;
 			GameData.CurrentMatch.EndTurn();
 			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
