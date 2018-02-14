@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using System.Collections.Generic;
 
 public class GameController : ParentController {
@@ -30,6 +31,8 @@ public class GameController : ParentController {
 	public static GameController Main;
 
 	// UI variables
+	public static RectTransform ErrorMessagePopup;
+	public static int ERR_TEXT_IDX = 1;
 	public GameObject EndTurnGO;
 	public GameObject BackToMenuGO;
 	public UnitInfoController _unitInfoController;
@@ -248,8 +251,13 @@ public class GameController : ParentController {
 	}
 	// Confirm move unit to new token and unselect after
 	public void ConfirmMove() {
-		if(Server.TakeNonTargetAction(SelectedToken.CurrentUnit,"Wait", IntendedMove.X, IntendedMove.Y)) {
+		Dictionary<string, object> response = Server.TakeNonTargetAction(SelectedToken.CurrentUnit,
+			"Wait", IntendedMove.X, IntendedMove.Y);
+		if(Parse.Bool(response["Success"])){
 			MoveUnit();
+		}
+		else{
+			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
 		}
 	}
 	// All the actions when moving a unit
@@ -281,16 +289,20 @@ public class GameController : ParentController {
 	}
 	// Confirms attack target and moves to intended token if applicable
 	public void ConfirmTargetAction(Unit targetUnit) {
-		Dictionary<string, object> unitDict;
-		Dictionary<string, object> targetDict;
-		// Below confirms whether the target token is red or green (attack or heal)
+		// Confirm whether the target token is red or green (attack or heal)
 		string action = (IntendedTarget.CanAttack)? "Attack" : "Heal";
-		bool success = Server.TakeTargetAction(SelectedToken.CurrentUnit, action, targetUnit.ID,
-			out unitDict, out targetDict, IntendedMove.X, IntendedMove.Y);
-		if(success) {
+
+		// Take the targeted action
+		Dictionary<string, object> response = Server.TakeTargetAction(SelectedToken.CurrentUnit, action,
+			targetUnit.ID, IntendedMove.X, IntendedMove.Y);
+
+		if(Parse.Bool(response["Success"])) {
+			Dictionary<string, object> unitDict   = (Dictionary<string, object>)response["Unit"];
+			Dictionary<string, object> targetDict = (Dictionary<string, object>)response["Target"];
+
 			// Update unit info
-			SelectedToken.CurrentUnit.UpdateInfo(int.Parse(unitDict["NewHP"].ToString()));
-			targetUnit.UpdateInfo(int.Parse(targetDict["NewHP"].ToString()));
+			SelectedToken.CurrentUnit.UpdateInfo(Parse.Int(unitDict["NewHP"]));
+			targetUnit.UpdateInfo(Parse.Int(targetDict["NewHP"]));
 			if(SelectedToken.CurrentUnit.HP <= 0) {
 				SelectedToken.CurrentUnit.Destroy();
 				SelectedToken.CurrentUnit = null;
@@ -301,6 +313,9 @@ public class GameController : ParentController {
 				targetUnit.Destroy();
 			}
 			MoveUnit();
+		}
+		else{
+			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
 		}
 	}
 
@@ -526,12 +541,16 @@ public class GameController : ParentController {
 		}
 	}
 	public void EndTurn() {
-		if(Server.EndTurn()) {
+		Dictionary<string, object> response = Server.EndTurn();
+		if(Parse.Bool(response["Success"])){
 			_endTurn = false;
 			GameData.CurrentMatch.EndTurn();
 			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
 			EndTurnGO.SetActive(false);
 			ChangeTurn();
+		}
+		else{
+			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
 		}
 	}
 	public void CancelEndTurn() {
@@ -539,8 +558,21 @@ public class GameController : ParentController {
 		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
 	}
 
+	// Activates the error message popup and sets its display text to the provided value
+	public static void DisplayGameErrorMessage(string errorText){
+		Text[] errorChildren = GameController.ErrorMessagePopup.GetComponentsInChildren<Text>();
+		errorChildren[GameController.ERR_TEXT_IDX].text = errorText;
+		GameController.ErrorMessagePopup.gameObject.SetActive(true);
+	}
+
+	public void CloseErrorMessage() {
+		GameController.ErrorMessagePopup.gameObject.SetActive(false);
+	}
+
 	// Initializes the game UI when opening after place units has already been completed
 	private void InitializeUI() {
+		GameController.ErrorMessagePopup = GameObject.Find("GameErrorMessage").GetComponent<RectTransform>();
+		CloseErrorMessage();
 		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
 		BackToMenuGO.SetActive(false);
 		_endTurn = false;
