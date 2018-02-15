@@ -15,6 +15,8 @@ public class SetTeamController : ParentController {
 	private int _fundsRemaining;
 	private int _maxFunds;
 
+	public static Text ErrorMessageText;
+
 	// Either sets the text value on the screen or gets the int remaining funds
 	public int FundsRemaining {
 		get{return _fundsRemaining;}
@@ -49,6 +51,7 @@ public class SetTeamController : ParentController {
 		perks = new List<GameObject>(3) {null,null,null};
 		_maxFunds = GameData.Version.MaxFunds;
 		FundsRemaining = _maxFunds;
+		ErrorMessageText = GameObject.Find("SetTeamErrorMessage").GetComponent<Text>();
 	}
 
 	// Adds a leader to the screen
@@ -83,6 +86,8 @@ public class SetTeamController : ParentController {
 
 	// Passes selected team to the database
 	public void SetTeam() {
+		ErrorMessageText.text = "";
+
 		// Testing ------------
 		if(leader != null) {
 			LeaderData data = leader.GetComponent<SelectLeaderController>().data;
@@ -102,18 +107,29 @@ public class SetTeamController : ParentController {
 					strPerks.Add(obj.name);
 				}
 			}
-			if(Server.SetTeam(strLeader, ability, units, strPerks)) {
-				if(!Server.FindMatch()) {
+
+			Dictionary<string, object> response = Server.SetTeam(strLeader, ability, units, strPerks);
+			if(Parse.Bool(response["Success"])){
+				Dictionary<string, object> fmResponse = Server.FindMatch();
+				if(! Parse.Bool(fmResponse["Success"])) {
+					ErrorMessageText.text = Parse.String(fmResponse["Error"]);
 					Debug.Log("Couldn't add to game queue - are you already in queue?");
 				}
 				Debug.Log("Team set successfully");
 				SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
-			}else {
+			}
+			else{
+				ErrorMessageText.text = Parse.String(response["Error"]);
 				Debug.Log("Server error setting team");
 			}
 		}else{
 			Debug.Log("Invalid team");
 		}
+	}
+
+	public void BackToMainMenu(){
+		ErrorMessageText.text = "";
+		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 	}
 
 }

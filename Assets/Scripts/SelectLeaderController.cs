@@ -29,6 +29,8 @@ public class SelectLeaderController : ParentController {
 
 	// Select and unselect this leader
 	public void ToggleLeader() {
+		SetTeamController.ErrorMessageText.text = "";
+
 		if(stc.leader != gameObject) {
 			if(stc.leader != null) {
 				stc.leader.GetComponent<SelectLeaderController>().ToggleLeader();

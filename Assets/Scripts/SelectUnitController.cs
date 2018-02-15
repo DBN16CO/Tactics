@@ -42,6 +42,8 @@ public class SelectUnitController : ParentController {
 
 	// Adds this unit to the unit list
 	public void AddUnit() {
+		SetTeamController.ErrorMessageText.text = "";
+
 		if(stc.FundsRemaining >= Price) {
 			Amount++;
 			stc.FundsRemaining -= Price;
@@ -50,6 +52,8 @@ public class SelectUnitController : ParentController {
 	}
 	// Removes this unit from the unit list
 	public void RemoveUnit() {
+		SetTeamController.ErrorMessageText.text = "";
+
 		if(Amount > 0) {
 			Amount--;
 			stc.FundsRemaining += Price;
