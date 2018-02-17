@@ -48,7 +48,7 @@ public class MainMenuController : ParentController {
 			int deltaH = deltaT / 3600;
 			int deltaM = (deltaT % 3600) / 60;
 			int deltaS = (deltaT % 3600) % 60;
-			_cancelRankedText.text = String.Format("Searching for match: {0:D2}:{1:D2}:{2:D2}\nCancel.",
+			_cancelRankedText.text = String.Format("Searching for match: {0:D}:{1:D2}:{2:D2}\nCancel.",
 				deltaH, deltaM, deltaS);
 		}
 	}
