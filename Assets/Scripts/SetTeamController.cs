@@ -6,28 +6,28 @@ using System.Collections.Generic;
 // This class controls the SetTeamController GameObject in the SetTeam scene
 public class SetTeamController : ParentController {
 
-	// The team selected
-	public GameObject leader;
-	public string ability;
-	public List<string> units;
-	public List<GameObject> perks;
+	/* Constant vars */
+	public GameObject leader;					// The leader selected
+	public string ability;						// The ability associated with that leader
+	public List<string> units;					// A list of units, the element is the name of the unit
+	public List<GameObject> perks;				// A list of perks, the index is the perk tier
 
-	private int _fundsRemaining;
-	private int _maxFunds;
+	private int _fundsRemaining;				// The amount of $$$ left to spend
+	private int _maxFunds;						// The total $$$ to spend
 
-	public static Text ErrorMessageText;
+	/* Dynamic vars */
+	public static Text ErrorMessageText;		// Text to be set on screen when an error is encountered
 
+	/* Getters/Setters */
 	// Either sets the text value on the screen or gets the int remaining funds
 	public int FundsRemaining {
 		get{return _fundsRemaining;}
 		set{_fundsRemaining = value;
 			GameObject.Find("Funds").transform.Find("Amount").GetComponent<Text>().text = "$" + _fundsRemaining + " / " + _maxFunds;}
 	}
-	// Returns whether selected team is valid or not
-	public bool IsValidTeam {
-		get{return (leader != null && ability != null && units.Count > 0 && perks.Count > 0);}
-	}
 
+/// -----------------------------------------------------------------------------------------------
+/// Unity methods ---------------------------------------------------------------------------------
 	void Start () {
 		// Populate LeaderTab
 		List<string> strLeaders = new List<string>(GameData.Leaders.Keys);
@@ -52,6 +52,109 @@ public class SetTeamController : ParentController {
 		_maxFunds = GameData.Version.MaxFunds;
 		FundsRemaining = _maxFunds;
 		ErrorMessageText = GameObject.Find("SetTeamErrorMessage").GetComponent<Text>();
+	}
+
+/// -----------------------------------------------------------------------------------------------
+/// Public methods --------------------------------------------------------------------------------
+	// Passes selected team to the database
+	public void SetTeam() {
+		ErrorMessageText.text = "";
+
+		// Testing ------------
+		if(leader != null) {
+			LeaderData data = leader.GetComponent<SelectLeaderController>().data;
+			List<string> strAbilities = new List<string>(data.Abilities.Keys);
+			ability = data.Abilities[strAbilities[0]].Name;
+		}else{
+			ErrorMessageText.text = "Select a leader.";
+			return;
+		}
+		// End Testing --------
+
+		if(IsValidTeam()) {
+			string strLeader = leader.name;
+			List<string> strPerks = new List<string>();
+			foreach(GameObject obj in perks) {
+				if(obj != null) {
+					strPerks.Add(obj.name);
+				}
+			}
+
+			Dictionary<string, object> response = Server.SetTeam(strLeader, ability, units, strPerks);
+			if(Parse.Bool(response["Success"])){
+				Dictionary<string, object> fmResponse = Server.FindMatch();
+				if(! Parse.Bool(fmResponse["Success"])) {
+					ErrorMessageText.text = Parse.String(fmResponse["Error"]);
+				}
+				SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
+			}
+			else{
+				ErrorMessageText.text = Parse.String(response["Error"]);
+			}
+		}else{
+			Debug.Log("Invalid team");
+		}
+	}
+
+	// Returns the user to the main menu
+	public void BackToMainMenu(){
+		ErrorMessageText.text = "";
+		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
+	}
+
+/// -----------------------------------------------------------------------------------------------
+/// Private methods -------------------------------------------------------------------------------
+	// Returns whether selected team is valid or not
+	private bool IsValidTeam() {
+		// Ensure a leader has been selected
+		if(leader == null){
+			ErrorMessageText.text = "Please select a leader.";
+			return false;
+		}
+		if(ability == null){
+			ErrorMessageText.text = "Please select your leader's associated ability.";
+			return false;
+		}
+
+		// Ensure the units selected are valid
+		int minUnits = GameData.Version.MinUnits;
+		if(units.Count < minUnits){
+			ErrorMessageText.text = "You must select at least " + minUnits + " unit.";
+			return false;
+		}
+		int maxUnits = GameData.Version.MaxUnits;
+		if(units.Count > maxUnits){
+			ErrorMessageText.text = "You cannot select more than " + maxUnits + " units.";
+			return false;
+		}
+
+		// Ensure the user did not pick a team full of healers!
+		bool noAttackerInTeam = true;
+		for(int i = 0; i < units.Count; i++){
+			if(string.Compare(units[i], "Cleric") != 0){
+				noAttackerInTeam = false;
+				break;
+			}
+		}
+		if(noAttackerInTeam){
+			ErrorMessageText.text = "Your team must have at least 1 unit that can attack.";
+			return false;
+		}
+
+		// Ensure at least one perk has been selected
+		bool noPerkSelected = true;
+		for(int i = 0; i < perks.Count; i++){
+			if(perks[i] != null){
+				noPerkSelected = false;
+				break;
+			}
+		}
+		if(noPerkSelected){
+			ErrorMessageText.text = "Please select at least 1 perk.";
+			return false;
+		}
+
+		return true;
 	}
 
 	// Adds a leader to the screen
@@ -83,53 +186,4 @@ public class SetTeamController : ParentController {
 		_perk.GetComponent<SelectPerkController>().AssignPerk(perkData);
 		GameObject.Find("PerkTabContent").GetComponent<RectTransform>().sizeDelta = new Vector3(0,((i/2)+1) * _rt.sizeDelta.y * _rt.localScale.y);
 	}
-
-	// Passes selected team to the database
-	public void SetTeam() {
-		ErrorMessageText.text = "";
-
-		// Testing ------------
-		if(leader != null) {
-			LeaderData data = leader.GetComponent<SelectLeaderController>().data;
-			List<string> strAbilities = new List<string>(data.Abilities.Keys);
-			ability = data.Abilities[strAbilities[0]].Name;
-		}else{
-			Debug.Log("Select a leader.");
-			return;
-		}
-		// End Testing --------
-
-		if(IsValidTeam) {
-			string strLeader = leader.name;
-			List<string> strPerks = new List<string>();
-			foreach(GameObject obj in perks) {
-				if(obj != null) {
-					strPerks.Add(obj.name);
-				}
-			}
-
-			Dictionary<string, object> response = Server.SetTeam(strLeader, ability, units, strPerks);
-			if(Parse.Bool(response["Success"])){
-				Dictionary<string, object> fmResponse = Server.FindMatch();
-				if(! Parse.Bool(fmResponse["Success"])) {
-					ErrorMessageText.text = Parse.String(fmResponse["Error"]);
-					Debug.Log("Couldn't add to game queue - are you already in queue?");
-				}
-				Debug.Log("Team set successfully");
-				SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
-			}
-			else{
-				ErrorMessageText.text = Parse.String(response["Error"]);
-				Debug.Log("Server error setting team");
-			}
-		}else{
-			Debug.Log("Invalid team");
-		}
-	}
-
-	public void BackToMainMenu(){
-		ErrorMessageText.text = "";
-		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
-	}
-
 }

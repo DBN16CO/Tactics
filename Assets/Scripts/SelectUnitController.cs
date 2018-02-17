@@ -50,6 +50,7 @@ public class SelectUnitController : ParentController {
 			stc.units.Add(DisplayName);
 		}
 	}
+
 	// Removes this unit from the unit list
 	public void RemoveUnit() {
 		SetTeamController.ErrorMessageText.text = "";
@@ -60,5 +61,4 @@ public class SelectUnitController : ParentController {
 			stc.units.Remove(DisplayName);
 		}
 	}
-
 }
