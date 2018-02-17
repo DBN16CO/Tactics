@@ -2,7 +2,8 @@ from testhelper import *
 from router import *
 import json
 from Game.tests import TestGame
-import Game.maphelper
+from Game.models import Game
+from Game import maphelper
 from Static.models import Version
 from tasks import process_message_queue
 from models import AsyncMessages
@@ -44,7 +45,7 @@ class TestCommunication(CommonTestHelper):
 		self.helper_execute_failure({"Command":"AAA"}, "User is not authenticated, please login.")
 
 	def test_cm_06_reload_static_maps(self):
-		Game.maphelper.maps = {}
+		maphelper.maps = {}
 
 		self.assertTrue(self.testHelper.createUserAndLogin(
 			{"username":"bad_cmd_usr","password":self.testHelper.generateValidPassword(),"email":"bcu@email.com"}))
@@ -53,9 +54,9 @@ class TestCommunication(CommonTestHelper):
 		self.helper_execute_failure({"Command":"TA"}, "Internal Error: Game Key missing.")
 
 		version = Version.objects.latest('pk')
- 
+
 		# Ensure that the map object was reloaded
-		self.assertTrue(version.name in Game.maphelper.maps)
+		self.assertTrue(version.name in maphelper.maps)
 
 class TestReceivedMessage(TestGame):
 	"""
@@ -86,15 +87,22 @@ class TestReceivedMessage(TestGame):
 
 		return async_first, async_second
 
+	def verify_basic_data_response(self, async_first, async_second):
+		game = Game.objects.filter().first()
+
+		expected_first = {"Key": "MATCH_FOUND", "Data": {"Game_ID": game.id}}
+		expected_second = {"Key": "MATCH_FOUND", "Data": {"Game_ID": game.id}}
+
+		self.assertDictContainsSubset(expected_first, async_first,
+			"Received: {} Expected: {}".format(async_first, expected_first))
+		self.assertDictContainsSubset(expected_second, async_second,
+			"Received: {} Expected: {}".format(async_second, expected_second))
+
 	def test_rm_01_received_message_success(self):
 		async_messages = AsyncMessages.objects
 		async_first, async_second = self.match_players_get_async_messages()
-		
-		expected_first = {"Key": "MATCH_FOUND", "Data": {}}
-		expected_second = {"Key": "MATCH_FOUND", "Data": {}}
 
-		self.assertDictContainsSubset(expected_first, async_first, "Received: {} Expected: {}".format(async_first, expected_first))
-		self.assertDictContainsSubset(expected_second, async_second, "Received: {} Expected: {}".format(async_second, expected_second))
+		self.verify_basic_data_response(async_first, async_second)
 
 		self.testHelper.send(json.dumps({"Command": "RM", "message_id": async_first['ID']}))
 		success = json.loads(self.testHelper.receive())
@@ -115,11 +123,7 @@ class TestReceivedMessage(TestGame):
 		async_messages = AsyncMessages.objects
 		async_first, async_second = self.match_players_get_async_messages()
 
-		expected_first = {"Key": "MATCH_FOUND", "Data": {}}
-		expected_second = {"Key": "MATCH_FOUND", "Data": {}}
-
-		self.assertDictContainsSubset(expected_first, async_first, "Received: {} Expected: {}".format(async_first, expected_first))
-		self.assertDictContainsSubset(expected_second, async_second, "Received: {} Expected: {}".format(async_second, expected_second))
+		self.verify_basic_data_response(async_first, async_second)
 
 		self.testHelper.send(json.dumps({"Command": "RM", "message_id": -1}))
 		success = json.loads(self.testHelper.receive())
@@ -148,7 +152,3 @@ class TestReceivedMessage(TestGame):
 		self.assertTrue(async_messages.count() == 2, "Async Message Count: {}".format(async_messages.count()))
 		process_message_queue()
 		self.assertTrue(async_messages.count() == 0, "Async Message Count: {}".format(async_messages.count()))
-
-
-
-
