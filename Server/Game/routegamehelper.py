@@ -17,7 +17,8 @@ from User.models import Users
 
 def findMatch(data):
 	"""
-	Called when the user is ready to start a game with their set team and find a game which will find a map and an opponent.
+	Called when the user is ready to start a game with their set team and find a game,\n
+	which will find a map and an opponent.
 	Command: FM (Find Match)
 
 	:type  data: Dictionary
@@ -51,7 +52,8 @@ def findMatch(data):
 	# Ensure that the user has set a team
 	unitCount = Unit.objects.filter(owner=user, version=version, game=None).count()
 	if unitCount < version.unit_min or unitCount > version.unit_max:
-		logging.error("{0}'s unit count is {1} when it should be between {2} and {3}.".format(data["session_username"], unitCount, version.unit_min, version.unit_max))
+		logging.error("{0}'s unit count is {1} when it should be between {2} and {3}."
+			.format(data["session_username"], unitCount, version.unit_min, version.unit_max))
 		error = "You must set a team before starting a match."
 	else:
 		# Add the user to the game queue
@@ -200,6 +202,7 @@ def queryGamesUser(data):
 					       }\n
 					],\n
 					"In_Game_Queue": "True/False"\n
+					"In_Queue_Since": <Timestamp>\n
 				}\n
 
 	"""
@@ -210,8 +213,12 @@ def queryGamesUser(data):
 		logging.info("QGU Filters: {}".format(filters))
 
 	user = Users.objects.filter(username=username).first()
-	in_game_queue = Game_Queue.objects.filter(user=user).first() != None
+	game_queue_row = Game_Queue.objects.filter(user=user).first()
+	in_game_queue = game_queue_row != None
 	response = {"Success": True, "Games": [], "In_Game_Queue": in_game_queue}
+	if in_game_queue:
+		in_queue_since = game_queue_row.created
+		response["In_Queue_Since"] = in_queue_since.strftime("%s")
 
 	try:
 
@@ -315,7 +322,8 @@ def queryGamesUser(data):
 					turn_start = 0
 
 				logging.info("Fetching Action History for turns {0}-{1}".format(turn_start, turn_end))
-				action_history = Action_History.objects.filter(game=game, turn_number__range=(turn_start, turn_end)).order_by("order")
+				action_history = Action_History.objects.filter(game=game,
+					turn_number__range=(turn_start, turn_end)).order_by("order")
 				logging.info("Action History Length: {0}".format(len(action_history)))
 				game_response["Action_History"] = []
 				for actn in action_history:

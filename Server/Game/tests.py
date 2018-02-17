@@ -4,7 +4,7 @@ from User.models import Users
 from Communication.models import AsyncMessages
 from Communication.testhelper import *
 from Game.tasks import processMatchmakingQueue
-import copy, json, math
+import copy, json, math, time
 import Static.statichelper
 
 class TestGame(Communication.testhelper.CommonTestHelper):
@@ -52,7 +52,7 @@ class TestGame(Communication.testhelper.CommonTestHelper):
 		"""
 		Creates a list of units to test with.
 		The list will consist of one of each unit in the database.
-		It will stop once the maximum 
+		It will stop once the maximum
 		number needed for the specific version is reached.
 		If there are less than the min number of units, it will then repeat the first unit
 		"""
@@ -93,7 +93,7 @@ class TestGame(Communication.testhelper.CommonTestHelper):
 
 	def get_both_users_in_queue(self):
 		"""
-		Puts both users into the game queue 
+		Puts both users into the game queue
 		"""
 		# Finish putting user 1 into the queue
 		self.helper_execute_success(self.st_cmd)
@@ -143,7 +143,7 @@ class TestSetTeam(TestGame):
 		# Test missing leader
 		no_leader_cmd = copy.deepcopy(self.st_cmd)
 		no_leader_cmd.pop("Leader", None)
-		self.helper_execute_failure(no_leader_cmd, "The leader information is incomplete.")	
+		self.helper_execute_failure(no_leader_cmd, "The leader information is incomplete.")
 
 		# Test missing perks
 		no_perks_cmd = copy.deepcopy(self.st_cmd)
@@ -171,14 +171,14 @@ class TestSetTeam(TestGame):
 		fake_perk_cmd["Perks"] = ["fake_perk"]
 		self.helper_execute_failure(fake_perk_cmd,
 			"The following are not valid perk selections: fake_perk")
-		
+
 		# Test invaild unit name
 		fake_units_cmd = copy.deepcopy(self.st_cmd)
 		fake_units_cmd["Units"][0] = "fake_unit0"
 		fake_units_cmd["Units"][1] = "fake_unit1"
 		self.helper_execute_failure(fake_units_cmd,
 			"The following are not valid unit selections: fake_unit0,fake_unit1")
-		
+
 		# Test invalid ability-leader pair
 		bad_ldr_abil_cmd = copy.deepcopy(self.st_cmd)
 		bad_ldr_abil_cmd["Ability"] = "Steal"
@@ -688,8 +688,11 @@ class TestQueryGames(TestGame):
 
 	def test_qgu_02_set_team_not_matched(self):
 
+		now = int(time.time())
+
 		# Also set team for player 1 but don't pair with an opponent
 		self.helper_execute_success(self.st_cmd)
+		self.helper_execute_success(self.fm_cmd)
 
 		result = self.helper_execute_success(self.qgu_cmd)
 
@@ -697,8 +700,12 @@ class TestQueryGames(TestGame):
 		self.assertEquals(result["Games"][0]["Name"], Game_User.objects.filter(user=self.user).first().name)
 		self.assertEquals(result["Games"][0]["Round"], Game.objects.filter().first().game_round)
 
+		self.assertTrue(result["In_Game_Queue"])
+		self.assertTrue(int(now) <= int(result["In_Queue_Since"]), "Now time: {0}, in_game_queue: {1}"
+			.format(now, result["In_Queue_Since"]))
+
 	def test_qgu_03_action_history_correct(self):
-		
+
 		# Place units for player one
 		self.helper_execute_success(self.pu_cmd)
 
@@ -735,7 +742,7 @@ class TestQueryGames(TestGame):
 		self.helper_verify_result(self.user, result)
 
 	def test_qgu_04_action_history_correct_with_target(self):
-		
+
 		# Place units for player one
 		self.helper_execute_success(self.pu_cmd)
 
@@ -912,7 +919,6 @@ class TestQueryGames(TestGame):
 
 		result = self.helper_execute_success(gqu_filter_cmd)
 		self.assertEquals(len(result['Games'][0]['Action_History']), 4)
-		
 
 class TestTakeAction(TestGame):
 	"""
@@ -991,7 +997,7 @@ class TestTakeAction(TestGame):
 		for unit in Unit.objects.filter(game=self.game):
 			logging.debug("Unit: X: %d\t Y: %d\t ID: %d\t Name: %s\t Owner: %s", unit.x, unit.y,
 				unit.pk, unit.unit_class.name, unit.owner.username)
-			
+
 		# Ensure it is player one's turn
 		self.game.user_turn = self.user
 		self.game.save()
@@ -1053,9 +1059,9 @@ class TestTakeAction(TestGame):
 		Helper class used to verify a successful movement
 		Issues the provided (Take action) command and then verifies
 		that the unit actually moved to the new location in the DB
-		The result of the action is then returned to allow for 
+		The result of the action is then returned to allow for
 		verifying other parts of the test
-		"""		
+		"""
 		newX = command["X"]
 		newY = command["Y"]
 
@@ -1166,7 +1172,7 @@ class TestTakeAction(TestGame):
 		# Healer's HP should remain constant at max HP
 		self.assertEqual(result["Unit"]["NewHP"], heal_data["Unit"]["Max"])
 		self.assertEqual(action_history.new_hp, heal_data["Unit"]["Max"])
-		
+
 		return [result, unit, tgt, heal_data, action_history]
 
 	def helper_verify_crit_miss(self, result, unit, tgt, attack_data, action_history, crit_miss):
@@ -1380,7 +1386,7 @@ class TestTakeAction(TestGame):
 		fake_game_command = copy.deepcopy(self.no_tgt_cmd)
 		fake_game_command["Game"] = "fake_game_name"
 		self.helper_execute_failure(fake_game_command, "No match for game of name fake_game_name.")
-		
+
 		# Existing, but bad name
 		inval_game_command = copy.deepcopy(self.no_tgt_cmd)
 		inval_game_command["Game"] = "vs. {0} #1".format(self.credentials["username"])
@@ -1565,22 +1571,22 @@ class TestTakeAction(TestGame):
 
 		# Verify unit's HP after target's counter attack
 		self.assertTrue(
-			unit.hp == attack_data["Unit"]["Normal"] or 
-			unit.hp == attack_data["Unit"]["Crit"] or 
+			unit.hp == attack_data["Unit"]["Normal"] or
+			unit.hp == attack_data["Unit"]["Crit"] or
 			unit.hp == attack_data["Unit"]["Miss"],
 			msg="unit.hp={0}, attack_data={1}".format(unit.hp, attack_data["Unit"])
 		)
 
 		# Verify returned JSON
-		self.assertTrue(result["Unit"]["NewHP"] == attack_data["Unit"]["Normal"] or 
-						result["Unit"]["NewHP"] == attack_data["Unit"]["Crit"] or 
+		self.assertTrue(result["Unit"]["NewHP"] == attack_data["Unit"]["Normal"] or
+						result["Unit"]["NewHP"] == attack_data["Unit"]["Crit"] or
 						result["Unit"]["NewHP"] == attack_data["Unit"]["Miss"],
 						msg="unit.hp={0}, attack_data={1}".format(unit.hp, attack_data["Unit"]))
 		self.assertEqual(result["Target"]["NewHP"], attack_data["Tgt"]["Normal"])
 
 		# Ensure the Action History table was updated properly
-		self.assertTrue(action_history.new_hp == attack_data["Unit"]["Normal"] or 
-						action_history.new_hp == attack_data["Unit"]["Crit"] or 
+		self.assertTrue(action_history.new_hp == attack_data["Unit"]["Normal"] or
+						action_history.new_hp == attack_data["Unit"]["Crit"] or
 						action_history.new_hp == attack_data["Unit"]["Miss"],
 						msg="unit.hp={0}, attack_data={1}".format(unit.hp, attack_data["Unit"]))
 		self.assertTrue(action_history.tgt_new_hp == attack_data["Tgt"]["Normal"])
@@ -1617,7 +1623,7 @@ class TestTakeAction(TestGame):
 		heal_far_command["X"] = self.healer.x
 		heal_far_command["Y"] = self.healer.y
 		heal_far_command["Target"] = self.nearest_heal_ally.id
-		self.helper_execute_failure(heal_dead_command, 
+		self.helper_execute_failure(heal_dead_command,
 			"Must be within 2 range.  Target is {0} away.".format(distance))
 
 		# Trying to heal the enemy
@@ -1690,7 +1696,7 @@ class TestTakeAction(TestGame):
 
 	def test_ta_13_attack_no_counter_success(self):
 		atk_rng = Stat.objects.filter(name="Attack Range", version=self.version).first()
-		
+
 		# Get a ranged unit as the attacker
 		ranged_objs = Unit_Stat.objects.filter(stat=atk_rng, value=2, version=self.version)
 		for rngd_obj in ranged_objs:
@@ -1915,7 +1921,7 @@ class TestTakeAction(TestGame):
 		game_user = Game_User.objects.filter(name=self.atk_cmd["Game"]).first()
 		action_history = Action_History.objects.filter(
 			game=game_user.game).order_by('-order').first()
-		
+
 		crit_miss = {
 			"Miss":        True,
 			"Crit":        False,
