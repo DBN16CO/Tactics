@@ -65,6 +65,7 @@ public static class Server {
 		bool success = (bool)response["Success"];
 		if(success) {
 			GameData.SetMatchData(response);
+			GameData.SetMatchQueueData(response);
 		}
 		return response;
 	}

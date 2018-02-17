@@ -17,6 +17,9 @@ public static class GameData {
 	private static Dictionary<string, AbilityData> 	_abilities;	// List of static ability data
 	private static Dictionary<string, PerkData> 	_perks;		// List of static perk data
 
+	private static bool	_inGameQueue;							// If the user is currently waiting for a match
+	private static int _inGameQueueStart;						// The start time at which the user was in the queue
+
 	private static Dictionary<string, Dictionary<string, int>> _terrainWeight;	// Terrain weight of movement for each unit
 
 #region // Public properties
@@ -31,6 +34,12 @@ public static class GameData {
 	public static VersionData Version {
 		get{return _version;}
 		set{_version = value;}
+	}
+	public static bool InGameQueue {
+		get{return _inGameQueue;}
+	}
+	public static int FMStartTime {
+		get{return _inGameQueueStart;}
 	}
 #endregion
 
@@ -77,6 +86,18 @@ public static class GameData {
 	// Sets player data
 	public static void SetPlayerData(Dictionary<string, object> playerData) {
 		_player = (playerData != null)? new PlayerData(playerData) : null;
+	}
+
+	// Captures any info about waiting for a ranked match
+	public static void SetMatchQueueData(Dictionary<string, object> queueDict){
+		_inGameQueue = Parse.Bool(queueDict["In_Game_Queue"]);
+
+		if(_inGameQueue){
+			_inGameQueueStart = Parse.Int(queueDict["In_Queue_Since"]);
+		}
+		else{
+			_inGameQueueStart = -1;
+		}
 	}
 
 	// Populates match data and creates callable list
