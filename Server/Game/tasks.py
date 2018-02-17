@@ -138,7 +138,9 @@ def processMatchmakingQueue():
 
             # Create the async messages to notify the user's that a match has been found
             notify_message_key = "MATCH_FOUND"
-            data = {}
+            data = {
+				"Game_ID": game.id
+			}
             first_player_message = AsyncMessages(user=first_player.user, message_key=notify_message_key, data=data)
             first_player_message.save()
 
