@@ -68,7 +68,6 @@ public class MainMenuController : ParentController {
 					// Adjust the size of the scrollable area
 					activeGames.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.width,
 						300 * (float)GameData.Matches.Count);
-
 				}
 			}
 		}
@@ -116,23 +115,26 @@ public class MainMenuController : ParentController {
 		currGame.GetComponent<ActiveCustomGameController>().SetDetailedProperties(pair);
 		currGame.GetComponent<RectTransform>().anchoredPosition3D = new Vector3(0,-300 * idx);
 		currGame.transform.SetAsFirstSibling();
-
 	}
 
 	// Determine which button to show for ranked games
 	private void DisplayRankedGameButton(){
 		RectTransform rt = null;
 		if(GameData.InGameQueue){
+			// Move cancel button into view
 			rt = _cancelRankedButton.GetComponent<RectTransform>();
 			rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, 0);
 
+			// Hide start ranked game button
 			rt = _startRankedGame.GetComponent<RectTransform>();
 			rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, rt.anchoredPosition.y + MOVE_BUTTON_DISTANCE);
 		}
 		else{
+			// Move start ranked game button into view
 			rt = _startRankedGame.GetComponent<RectTransform>();
 			rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, 0);
 
+			// Hide cancel button
 			rt = _cancelRankedButton.GetComponent<RectTransform>();
 			rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, rt.anchoredPosition.y + MOVE_BUTTON_DISTANCE);
 		}
