@@ -64,6 +64,11 @@ public class MainMenuController : ParentController {
 					Transform activeGames = GameObject.Find("ActiveCustomGamesContent").transform;
 					KeyValuePair<int, MatchData> pair = new KeyValuePair<int, MatchData>(gameId, GameData.Matches[gameId]);
 					LoadCustomGame(activeGames, pair, GameData.Matches.Count - 1);
+
+					// Adjust the size of the scrollable area
+					activeGames.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.width,
+						300 * (float)GameData.Matches.Count);
+
 				}
 			}
 		}
@@ -112,8 +117,6 @@ public class MainMenuController : ParentController {
 		currGame.GetComponent<RectTransform>().anchoredPosition3D = new Vector3(0,-300 * idx);
 		currGame.transform.SetAsFirstSibling();
 
-		// Adjust the size of the scrollable area
-		activeGames.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.width, 300 * (float)GameData.Matches.Count);
 	}
 
 	// Determine which button to show for ranked games
