@@ -3,6 +3,8 @@ using System.Collections.Generic;		// For dictionaries
 // Starting reference point for all static game data
 public static class GameData {
 
+	private static bool			_matchesNotInitialized = true;	// Prevent clearing matches once setup
+
 	private static PlayerData 	_player;						// Reference to the logged in user
 	private static MatchData 	_currentMatch;					// Reference to the actively open match
 	private static VersionData 	_version;						// Reference to version specific data
@@ -46,6 +48,7 @@ public static class GameData {
 
 	// Sets static game data
 	public static void SetGameData(Dictionary<string, object> gameData) {
+
 		// Initiate dictionaries
 		_maps 		= new Dictionary<string, MapData>();
 		_terrains 	= new Dictionary<string, TerrainData>();
@@ -107,7 +110,9 @@ public static class GameData {
 			return;
 		}
 
-		_matches = new Dictionary<int, MatchData>();
+		if(_matchesNotInitialized){
+			_matches = new Dictionary<int, MatchData>();
+		}
 		int key;
 		List<object> matchData = Json.ToList(Parse.String(matchDict["Games"]));
 		Dictionary<string, object> matchDataAsDict;
@@ -118,6 +123,8 @@ public static class GameData {
 			key = Parse.Int(matchDataAsDict["ID"]);
 			_matches[key] = new MatchData(matchDataAsDict);
 		}
+
+		_matchesNotInitialized = false;
 	}
 
 	// Populate map data into static list

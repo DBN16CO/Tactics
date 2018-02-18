@@ -57,9 +57,16 @@ public static class Server {
 	}
 
 	// Used to query active games for user
-	public static Dictionary<string, object> QueryGames() {
+	public static Dictionary<string, object> QueryGames(int filterGameID = -1) {
 		var request = new Dictionary<string, object>();
 		request["Command"] = "QGU";
+
+		if(filterGameID != -1){
+			Dictionary<string, object> filtDict = new Dictionary<string, object>();
+			filtDict.Add("Game_ID", filterGameID);
+			request["Filters"] = filtDict;
+		}
+
 		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
 		bool success = (bool)response["Success"];
