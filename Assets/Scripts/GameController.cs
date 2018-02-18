@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 public class GameController : ParentController {
 
+	private static bool GC_ALLY_TEAM = true;
+	private static bool GC_ENEMY_TEAM = false;
+
 	private static Token[][] _tokens;
 	private static int _gridHeight;
 	private static int _gridLength;
@@ -88,7 +91,7 @@ public class GameController : ParentController {
 		myTeam = GameData.CurrentMatch.UserTeam;
 		myUnits = new Dictionary<int, Unit>();
 		enemyUnits = new Dictionary<int, Unit>();
-		PlacingUnits = !UnitsArePlaced();
+		PlacingUnits = !UnitsArePlaced(GC_ALLY_TEAM);
 		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
 		SC.CreateMap(GameData.CurrentMatch.MapName);
 		InitializeUI();
@@ -96,7 +99,8 @@ public class GameController : ParentController {
 		if(PlacingUnits) {
 			Object puObj = Instantiate(Resources.Load("Prefabs/PlaceUnits"), GameObject.Find("Canvas").GetComponent<Canvas>().transform);
 			PU = (puObj as GameObject).GetComponent<PlaceUnitsController>();
-		}else{
+		}
+		else{
 			InitializeMap();
 		}
 	}
@@ -156,8 +160,15 @@ public class GameController : ParentController {
 	}
 
 	// When Conditions
-	private bool UnitsArePlaced() {
-		foreach(Unit unit in GameData.CurrentMatch.AlliedUnits.Values) {
+	private bool UnitsArePlaced(bool alliedTeam) {
+		Dictionary<int, Unit> unitList = null;
+ 		if(alliedTeam){
+			unitList = GameData.CurrentMatch.AlliedUnits;
+		}
+		else{
+			unitList = GameData.CurrentMatch.EnemyUnits;
+		}
+		foreach(Unit unit in unitList.Values) {
 			if(unit.X == -1) {
 				return false;
 			}
@@ -577,7 +588,7 @@ public class GameController : ParentController {
 		BackToMenuGO.SetActive(false);
 		_endTurn = false;
 		_backToMenu = false;
-		if(!GameData.CurrentMatch.UserTurn || PlacingUnits) {
+		if(!GameData.CurrentMatch.UserTurn || PlacingUnits || !UnitsArePlaced(GC_ENEMY_TEAM)) {
 			EndTurnGO.SetActive(false);
 		}
 	}
