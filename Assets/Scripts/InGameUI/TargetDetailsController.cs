@@ -58,7 +58,7 @@ public class TargetDetailsController : MonoBehaviour {
 		int myCrit 	= (IsAttack)? Mathf.Max(0, ((myLuck - targLuck) * 5) + 5) : 0;
 
 		int targDmg; int targHit; int targCrit;
-		if(GameController.Main.CanTargetCounter() && IsAttack) {
+		if(GameController.CanTargetCounter() && IsAttack) {
 			bool targPhysical	= targUnit.GetStat("Strength").Value > targUnit.GetStat("Intelligence").Value;
 			int myDef	= (targPhysical)? myUnit.GetStat("Defense").Value : myUnit.GetStat("Resistance").Value;
 			int targPower 	= (targPhysical)? targUnit.GetStat("Strength").Value : targUnit.GetStat("Intelligence").Value;

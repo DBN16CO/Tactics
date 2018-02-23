@@ -74,10 +74,10 @@ public class SpawnController : ParentController {
 		GameController.Tokens[unit.X][unit.Y].CurrentUnit = unit;
 		GameController.Units.Add(unit);
 		if(unit.MyTeam){
-			GameController.Main.myUnits[unit.ID] = unit;
+			GameController.AlliedUnits[unit.ID] = unit;
 		}
 		else{
-			GameController.Main.enemyUnits[unit.ID] = unit;
+			GameController.EnemyUnits[unit.ID] = unit;
 		}
 
 		// Remove unit from place units list
