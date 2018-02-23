@@ -564,8 +564,6 @@ public class GameController : ParentController {
 	 * <param name="token">The token selected which has a movable unit on it</param>
 	 */
 	private void SetValidActions(Token token) {
-		var watch = System.Diagnostics.Stopwatch.StartNew();
-
 		// Reset valid actions and queue of remaining tokens to check
 		ClearValidActions();
 
@@ -771,11 +769,6 @@ public class GameController : ParentController {
 				Tokens[key1.Key][key2.Key].PaintAction(((UnitAction)key2.Value).ToString());
 			}
 		}
-
-		// the code that you want to measure comes here
-		watch.Stop();
-		var elapsedMs = watch.ElapsedMilliseconds;
-		Debug.Log("Time taken: " + elapsedMs);
 	}
 
 	/**
