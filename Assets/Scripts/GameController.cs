@@ -2,72 +2,79 @@
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System;
 
 public class GameController : ParentController {
 
-	private static bool GC_ALLY_TEAM = true;
-	private static bool GC_ENEMY_TEAM = false;
+	/* Public Constant Game Variables */
+	// None
 
-	private static Token[][] _tokens;
-	private static int _gridHeight;
-	private static int _gridLength;
+	/* Private Constant Game Variables */
+	private const bool GC_ALLY_TEAM = true;					// Constant for allied team
+	private const bool GC_ENEMY_TEAM = false;				// Constant for enemy team
 
-	private static List<Unit> _units;
-	private static Token _selectedToken;
-
-	// Collection of valid moves - Key is (x,y) coordinate, Value is UnitAction Enum Index
-	private Dictionary<Twople<int, int>, int> _actions;
-
-	// Game vars
-	private MapData _currentMap;
-	public Dictionary<int, Unit> myUnits;
-	public Dictionary<int, Unit> enemyUnits;
-	public int myTeam;
-
-	// Static Game vars
-	public static SpawnController SC;
-	public static PlaceUnitsController PU;
-	public static bool PlacingUnits;
-	public static PUUnit UnitBeingPlaced;
-	public static Token IntendedMove;		// If the player has selected a token to move to but hasn't confirmed the move yet
-	public static Token IntendedTarget;
-	public static GameController Main;
+	/* Public Static Game Variables */
+	public static SpawnController SC;						// Reference to SpawnController
+	public static PlaceUnitsController PU;					// Reference to PlaceUnitsController
+	public static bool PlacingUnits;						// True if still in the Place Units phase
+	public static PUUnit UnitBeingPlaced;					// Unit selected in PU tab, will be placed on clicked token
+	public static Token IntendedMove;						// Selected a token to move to before actually moving
+	public static Token IntendedTarget;						// Target selected by a targeted action
 
 	// UI variables
-	public static RectTransform ErrorMessagePopup;
-	public static int ERR_TEXT_IDX = 1;
+	public static RectTransform ErrorMessagePopup;			// Popup which displays error messages received from server
+	public static int ERR_TEXT_IDX = 1;						// Child index of ErrorMessagePopup that is Text component
 	public GameObject EndTurnGO;
 	public GameObject BackToMenuGO;
-	public UnitInfoController _unitInfoController;
-	public UnitInfoController _targetInfoController;
+	public static UnitInfoController _unitInfoController;	// Displays info of acting unit
+	public static UnitInfoController _targetInfoController;	// Displays info if targeted unit
 
-	private bool _endTurn;
-	private bool _backToMenu;
+	public static GameController Main;						// Set to GameController instance
+
+	/* Private Static Game Variables */
+	// Grid data
+	private static Token[][] _tokens;						// The grid of clickable tokens
+	private static int _gridLength;							// The width (x-value) of the grid
+	private static int _gridHeight;							// The height (y-value) of the grid
+	private static Token _selectedToken;					// The last token touched by a user
+	private static MapData _currentMap;						// Info on the map used for this game
+	private Dictionary<int, Dictionary<int, int>> _actions;	// Collection of valid moves X --> (Y --> UnitAction enum)
+
+	// Unit data
+	private static List<Unit> _units;						// All units in the game (ally and enemy)
+	private static Dictionary<int, Unit> _alliedUnits;		// All allied units Unit ID --> Unit object
+	private static Dictionary<int, Unit> _enemyUnits;		// All enemy units Unit ID --> Unit object
+	public int myTeam;
+
+	// Game vars
+	private bool _displayEndTurn;							// If true, "End Turn" button is displayed
+	private bool _displayBackToMenu;						// If true, "Back to Menu" button is displayed
 
 #region Setters and Getters
 	public static Token[][] Tokens {
 		get{return _tokens;}
 		set{_tokens = value;}
 	}
-	public static int GridHeight {
-		get{return _gridHeight;}
-		set{_gridHeight = value;}
-	}
 	public static int GridLength {
 		get{return _gridLength;}
 		set{_gridLength = value;}
 	}
+	public static int GridHeight {
+		get{return _gridHeight;}
+		set{_gridHeight = value;}
+	}
 	public static List<Unit> Units {
 		get{return _units;}
-		set{_units = value;}
+	}
+	public static Dictionary<int, Unit> AlliedUnits{
+		get{return _alliedUnits;}
+	}
+	public static Dictionary<int, Unit> EnemyUnits{
+		get{return _enemyUnits;}
 	}
 	public static Token SelectedToken {
 		get{return _selectedToken;}
 		set{_selectedToken = value;}
-	}
-	public Dictionary<Twople<int, int>, int> Actions {
-		get{return _actions;}
-		set{_actions = value;}
 	}
 	public MapData CurrentMap {
 		get{return _currentMap;}
@@ -76,28 +83,28 @@ public class GameController : ParentController {
 
 #endregion
 
-
-	// Ultimately, this will run on match generation
-	// Development - place anything we need to initialize for dev/test here
+// ---------------------------------------------------------------------------------------------------------------------
+// Unity Functions -----------------------------------------------------------------------------------------------------
+	// Runs on match generation
 	void Start() {
 		// Initialize match variables
-		Actions = new Dictionary<Twople<int, int>, int>();
-		Units = new List<Unit>();
+		_actions = new Dictionary<int, Dictionary<int, int>>();
+		_units = new List<Unit>();
 		SC = gameObject.AddComponent<SpawnController>();
 		_unitInfoController = GameObject.Find("UnitInfo").GetComponent<UnitInfoController>();
 		_targetInfoController = GameObject.Find("TargetInfo").GetComponent<UnitInfoController>();
 		Main = this;
 		// Map game vars from QGU match data and determine if place units is necessary
 		myTeam = GameData.CurrentMatch.UserTeam;
-		myUnits = new Dictionary<int, Unit>();
-		enemyUnits = new Dictionary<int, Unit>();
+		_alliedUnits = new Dictionary<int, Unit>();
+		_enemyUnits = new Dictionary<int, Unit>();
 		PlacingUnits = !UnitsArePlaced(GC_ALLY_TEAM);
 		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
 		SC.CreateMap(GameData.CurrentMatch.MapName);
 		InitializeUI();
 
 		if(PlacingUnits) {
-			Object puObj = Instantiate(Resources.Load("Prefabs/PlaceUnits"), GameObject.Find("Canvas").GetComponent<Canvas>().transform);
+			UnityEngine.Object puObj = Instantiate(Resources.Load("Prefabs/PlaceUnits"), GameObject.Find("Canvas").GetComponent<Canvas>().transform);
 			PU = (puObj as GameObject).GetComponent<PlaceUnitsController>();
 		}
 		else{
@@ -105,7 +112,153 @@ public class GameController : ParentController {
 		}
 	}
 
-	// Called when Token's OnMouseDown is triggered
+	// Runs every frame this controller is active
+	void Update() {
+
+#region development
+		// Computer move/zoom
+		if(Input.GetKey("up")){
+			Camera.main.transform.position += Vector3.up * 0.1f;
+		}
+		if(Input.GetKey("down")){
+			Camera.main.transform.position += Vector3.down * 0.1f;
+		}
+		if(Input.GetKey("left")){
+			Camera.main.transform.position += Vector3.left * 0.1f;
+		}
+		if(Input.GetKey("right")){
+			Camera.main.transform.position += Vector3.right * 0.1f;
+		}
+		if(Input.GetKey("i")){
+			Camera.main.orthographicSize *= (Camera.main.orthographicSize < 0.5f)? 1f : 0.95f;
+		}
+		if(Input.GetKey("o"))		{
+			Camera.main.orthographicSize /= 0.95f;
+		}
+#endregion
+
+		/*
+		 * Check if there were any server messages from the other player
+		 */
+		// If the other user has taken an action
+		Queue<Dictionary<string, object>> asyncMessages = CommunicationManager.GetAsyncKeyQueue("ACTION_TAKEN");
+		Dictionary<string, object> unit, target;
+
+		while(asyncMessages != null && asyncMessages.Count > 0){
+			Dictionary<string, object> currentMessage = asyncMessages.Dequeue();
+			Dictionary<string, object> data = (Dictionary<string, object>)currentMessage["Data"];
+
+			// A game ID and unit must be provided
+			if(!data.ContainsKey("Game_ID") || !data.ContainsKey("Unit")){
+				continue;
+			}
+
+			int key = int.Parse(data["Game_ID"].ToString());
+			unit = (Dictionary<string, object>)data["Unit"];
+			target = (data.ContainsKey("Target"))? (Dictionary<string, object>)data["Target"]: null;
+
+			GameData.UpdateTAGameData(key, unit, target);
+
+			if(key == GameData.CurrentMatch.ID){
+				GameData.CurrentMatch = GameData.GetMatch(key);
+				SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
+			}
+		}
+
+		// Check if the other user ended their turn
+		asyncMessages = CommunicationManager.GetAsyncKeyQueue("ENDED_TURN");
+		while(asyncMessages != null && asyncMessages.Count > 0){
+			Dictionary<string, object> currentMessage = asyncMessages.Dequeue();
+			Dictionary<string, object> data = (Dictionary<string, object>)currentMessage["Data"];
+
+			// A game ID must be provided
+			if(!data.ContainsKey("Game_ID")){
+				continue;
+			}
+
+			int gameID = int.Parse(data["Game_ID"].ToString());
+			GameData.UpdateETGameData(gameID);
+
+			if(gameID == GameData.CurrentMatch.ID){
+				GameData.CurrentMatch = GameData.GetMatch(gameID);
+				ChangeTurn();
+				EndTurnGO.SetActive(true);
+			}
+		}
+	}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// On Click Functions --------------------------------------------------------------------------------------------------
+	/* Confirming the user wants to end their turn */
+	public void ConfirmEndTurn() {
+		if(!_displayEndTurn) {
+			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(true);
+			_displayEndTurn = true;
+		}
+	}
+
+	/* Confirming the user wants to exit this game */
+	public void ConfirmBackToMenu() {
+		if(!_displayBackToMenu) {
+			BackToMenuGO.SetActive(true);
+			_displayBackToMenu = true;
+		}
+	}
+
+	/* Makes the server call to end the turn for this player */
+	private void EndTurn() {
+		Dictionary<string, object> response = Server.EndTurn();
+		if(Parse.Bool(response["Success"])){
+			_displayEndTurn = false;
+			GameData.CurrentMatch.EndTurn();
+			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+			EndTurnGO.SetActive(false);
+			ChangeTurn();
+		}
+		else{
+			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
+		}
+	}
+
+	/* Cancels ending the user's turn, closing the end turn confirm dialog box */
+	public void CancelEndTurn() {
+		_displayEndTurn = false;
+		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+	}
+
+	/* Closes the error message popup */
+	public void CloseErrorMessage() {
+		GameController.ErrorMessagePopup.gameObject.SetActive(false);
+	}
+
+	/* Returns user to the main menu */
+	public void BackToMenu() {
+		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
+	}
+
+	/* Closes dialog asking user if they really want to exit to main menu */
+	public void CancelBackToMenu() {
+		_displayBackToMenu = false;
+		BackToMenuGO.SetActive(false);
+	}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Public Functions ----------------------------------------------------------------------------------------------------
+	/**
+	 * Checks whether the target is in range to counter
+	 * <returns>True if the target can counter the attacking unit</returns>
+	 */
+	public static bool CanTargetCounter() {
+		int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - IntendedTarget.X) : Mathf.Abs(SelectedToken.X - IntendedTarget.X);
+		int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - IntendedTarget.Y) : Mathf.Abs(SelectedToken.Y - IntendedTarget.Y);
+		int range = GameData.GetUnit(IntendedTarget.CurrentUnit.UnitName).GetStat("Attack Range").Value;
+		return range >= _deltaX + _deltaY;
+	}
+
+	/**
+	 * Called when Token's OnMouseDown is triggered
+	 * <param name="token">The token clicked to trigger the OnMouseDown event</param>
+	 */
 	public void HandleTokenClick(Token token){
 		// During the Place Units phase
 		if(PlacingUnits) {
@@ -159,8 +312,72 @@ public class GameController : ParentController {
 		}
 	}
 
-	// When Conditions
-	private bool UnitsArePlaced(bool alliedTeam) {
+	/**
+	 * Runs when a unit is selected. Take action if possible, otherwise show unit info
+	 * <param name="token">The token on which the unit to be selected is currently located</param>
+	 */
+	public void SelectUnit(Token token) {
+		SelectedToken = token;
+		Unit unit = token.CurrentUnit;
+
+		if(unit != null) {
+			ShowUnitInfo(unit);
+
+			SelectedToken.CurrentUnit = unit;
+			if(unit.MyTeam && !unit.Acted && GameData.CurrentMatch.UserTurn) {
+				SetValidActions(token);
+			}
+		}
+	}
+
+	/**
+	 * Runs when a unit is unselected (i.e. user clicks other unit, or unit takes turn)
+	 */
+	public void UnselectUnit() {
+		_unitInfoController.RemoveUnitInfo();
+		_selectedToken = null;
+		IntendedMove = null;
+		UnselectTarget();
+		ClearValidActions();
+	}
+
+	/**
+	 * Activates the error message popup and sets its display text to the provided value
+	 * <param name="errorText">The error message to be displayed</param>
+	 */
+	public static void DisplayGameErrorMessage(string errorText){
+		Text[] errorChildren = GameController.ErrorMessagePopup.GetComponentsInChildren<Text>();
+		errorChildren[GameController.ERR_TEXT_IDX].text = errorText;
+		GameController.ErrorMessagePopup.gameObject.SetActive(true);
+	}
+
+	/**
+	 * Takes a hex string and converts it to a color object
+	 * <param name="hex">The hex string value to convert</param>
+	 * <returns>A color object representing the provided color</returns>
+	 */
+	public static Color HexToColor(string hex) {
+		hex = hex.Replace ("0x", "");//in case the string is formatted 0xFFFFFF
+		hex = hex.Replace ("#", "");//in case the string is formatted #FFFFFF
+		byte a = 255;//assume fully visible unless specified in hex
+		byte r = byte.Parse(hex.Substring(0,2), System.Globalization.NumberStyles.HexNumber);
+		byte g = byte.Parse(hex.Substring(2,2), System.Globalization.NumberStyles.HexNumber);
+		byte b = byte.Parse(hex.Substring(4,2), System.Globalization.NumberStyles.HexNumber);
+		//Only use alpha if the string has enough characters
+		if(hex.Length == 8){
+			a = byte.Parse(hex.Substring(6,2), System.Globalization.NumberStyles.HexNumber);
+		}
+		return new Color32(r,g,b,a);
+	}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Private Functions ---------------------------------------------------------------------------------------------------
+	/**
+	 * To check if all units are placed for a specified team
+	 * <param name="alliedTeam">true for allied team, false for enemy</param>
+	 * <returns>True if all units are placed for the specified team</returns>
+	 */
+	private static bool UnitsArePlaced(bool alliedTeam) {
 		Dictionary<int, Unit> unitList = null;
  		if(alliedTeam){
 			unitList = GameData.CurrentMatch.AlliedUnits;
@@ -176,67 +393,65 @@ public class GameController : ParentController {
 		return true;
 	}
 
-	// Run when turn someone ends their turn
-	public void ChangeTurn() {
-		foreach(Unit unit in Units) {
+	/**
+	 * Run when turn someone ends their turn
+	 */
+	private static void ChangeTurn() {
+		foreach(Unit unit in _units) {
 			unit.Reset();
 		}
 	}
 
-	// Token actions when unit is placed
-	public void PlaceUnit(Token token) {
+	/**
+	 * Token actions when unit is placed
+	 * <param name="token">The token on which to place the unit</param>
+	 */
+	private static void PlaceUnit(Token token) {
 		Unit placedUnit = new Unit(UnitBeingPlaced.ID, UnitBeingPlaced.UnitName, token.X, token.Y);
 
 		SC.SpawnUnit(placedUnit);
 		token.CurrentUnit = placedUnit;
 	}
 
-	// Runs when a unit is selected. Take action if possible, otherwise show unit info
-	public void SelectUnit(Token token) {
-		SelectedToken = token;
-		Unit unit = token.CurrentUnit;
-
-		if(unit != null) {
-			ShowUnitInfo(unit);
-
-			SelectedToken.CurrentUnit = unit;
-			if(unit.MyTeam && !unit.Acted && GameData.CurrentMatch.UserTurn) {
-				SetValidActions(token);
-			}
-		}
-	}
-
-	// Shows unit info on UI
-	public void ShowUnitInfo(Unit unit) {
+	/**
+	 * Shows information about an acting unit
+	 * <param name="unit">The unit whose information is to be displated</param>
+	 */
+	private static void ShowUnitInfo(Unit unit) {
 		_unitInfoController.SetUnitInfo(unit);
 	}
-	// Shows target info on UI
-	public void ShowTargetInfo(Unit unit) {
+
+	/**
+	 * Shows information about a unit being targeted
+	 * <param name="unit">The unit whose information is to be displated</param>
+	 */
+	private static void ShowTargetInfo(Unit unit) {
 		_targetInfoController.SetUnitInfo(unit);
 		TargetDetailsController.Main.SetDetails();
 	}
 
-	// Runs when a unit is unselected (i.e. user clicks other unit, or unit takes turn)
-	public void UnselectUnit() {
-		_unitInfoController.RemoveUnitInfo();
-		_selectedToken = null;
-		IntendedMove = null;
-		UnselectTarget();
-		ClearValidActions();
-	}
-
-	// Repaints the available actions after a unit's intended move is set
-	public void PaintIntendedMoveActions() {
-		foreach(KeyValuePair<Twople<int, int>, int> action in Actions) {
-			Token currToken = Tokens[action.Key.Item1][action.Key.Item2];
-			if(currToken == IntendedMove || CanTargetFromToken(currToken)) {
-				continue;
+	/**
+	 * Repaints the available actions after a unit's intended move is set
+	 */
+	private void PaintIntendedMoveActions() {
+		foreach(KeyValuePair<int, Dictionary<int, int>> key1 in _actions) {
+			Dictionary<int, int> key2 = key1.Value;
+			foreach(int y in key2.Keys){
+				Token currToken = Tokens[key1.Key][y];
+				if(currToken == IntendedMove || CanTargetFromToken(currToken)) {
+					continue;
+				}
+				currToken.SetActionProperties("clear");
 			}
-			currToken.SetActionProperties("clear");
 		}
 	}
-	// Checks whether the unit can target from IntendedMove
-	public bool CanTargetFromToken(Token currToken) {
+
+	/**
+	 * Checks whether the unit can target from IntendedMove
+	 * <param name="currToken">The token targeted</param>
+	 * <returns>True if the CurrentUnit can target the unit on that token</returns>
+	 */
+	private static bool CanTargetFromToken(Token currToken) {
 		if((currToken.CanAttack && currToken.HasEnemy()) || (currToken.CanHeal && currToken.HasAlly())) {
 			int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - currToken.X) : Mathf.Abs(SelectedToken.X - currToken.X);
 			int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - currToken.Y) : Mathf.Abs(SelectedToken.Y - currToken.Y);
@@ -245,23 +460,22 @@ public class GameController : ParentController {
 		}
 		return false;
 	}
-	// Checks whether the target is in range to counter
-	public bool CanTargetCounter() {
-		int _deltaX = (IntendedMove != null)? Mathf.Abs(IntendedMove.X - IntendedTarget.X) : Mathf.Abs(SelectedToken.X - IntendedTarget.X);
-		int _deltaY = (IntendedMove != null)? Mathf.Abs(IntendedMove.Y - IntendedTarget.Y) : Mathf.Abs(SelectedToken.Y - IntendedTarget.Y);
-		int range = GameData.GetUnit(IntendedTarget.CurrentUnit.UnitName).GetStat("Attack Range").Value;
-		return range >= _deltaX + _deltaY;
-	}
 
-	// Move unit to new token and paint new actions
-	public void SetIntendedMove(Token token) {
+	/**
+	 * Move unit to new token and paint new actions
+	 * <param name="token">The token on which to move the unit</param>
+	 */
+	private void SetIntendedMove(Token token) {
 		UnselectTarget();
 		IntendedMove = token;
 		_selectedToken.CurrentUnit.transform.position = token.gameObject.transform.position;
 		PaintIntendedMoveActions();
 	}
-	// Confirm move unit to new token and unselect after
-	public void ConfirmMove() {
+
+	/**
+	 * Confirm move unit to new token and unselect after
+	 */
+	private static void ConfirmMove() {
 		Dictionary<string, object> response = Server.TakeNonTargetAction(SelectedToken.CurrentUnit,
 			"Wait", IntendedMove.X, IntendedMove.Y);
 		if(Parse.Bool(response["Success"])){
@@ -271,8 +485,11 @@ public class GameController : ParentController {
 			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
 		}
 	}
-	// All the actions when moving a unit
-	public void MoveUnit() {
+
+	/**
+	 * All the actions when moving a unit
+	 */
+	private static void MoveUnit() {
 		bool coordChanged = (IntendedMove.X != SelectedToken.CurrentUnit.X) || (IntendedMove.Y != SelectedToken.CurrentUnit.Y);
 		IntendedMove.CurrentUnit = SelectedToken.CurrentUnit;
 		if(coordChanged) {
@@ -280,8 +497,12 @@ public class GameController : ParentController {
 		}
 		IntendedMove.CurrentUnit.ConfirmMove();
 	}
-	// When your unit is already selected and you choose a target
-	public void SetIntendedTarget(Token token) {
+
+	/**
+	 * When your unit is already selected and you choose a target
+	 * <param name="token">The token being targeted</param>
+	 */
+	private void SetIntendedTarget(Token token) {
 		if(IntendedMove == null) {
 			// If targeting from current token, IntendedMove will be null so set it now
 			SetIntendedMove(SelectedToken);
@@ -291,6 +512,10 @@ public class GameController : ParentController {
 		IntendedTarget.gameObject.GetComponent<SpriteRenderer>().color = HexToColor("000000FF");
 		ShowTargetInfo(IntendedTarget.CurrentUnit);
 	}
+
+	/**
+	 * Unselects the target token
+	 */
 	public void UnselectTarget() {
 		if(IntendedTarget != null) {
 			IntendedTarget.gameObject.GetComponent<SpriteRenderer>().color = HexToColor("FFFFFFFF");
@@ -298,8 +523,12 @@ public class GameController : ParentController {
 			IntendedTarget = null;
 		}
 	}
-	// Confirms attack target and moves to intended token if applicable
-	public void ConfirmTargetAction(Unit targetUnit) {
+
+	/**
+	 * Confirms attack target and moves to intended token if applicable
+	 * <param name="targetUnit">The unit being targeted</param>
+	 */
+	private void ConfirmTargetAction(Unit targetUnit) {
 		// Confirm whether the target token is red or green (attack or heal)
 		string action = (IntendedTarget.CanAttack)? "Attack" : "Heal";
 
@@ -330,10 +559,13 @@ public class GameController : ParentController {
 		}
 	}
 
-	// Begins the process to assess valid moves for the selected unit
-	// Set range to unit's remaining range (in case we make units able to move twice if it has leftover) - I think this concept should be removed (B)
-	// After all actions have been assessed, paint the tokens
+	/**
+	 * Assess valid moves for the selected unit. After all actions have been assessed, paint the tokens.
+	 * <param name="token">The token selected which has a movable unit on it</param>
+	 */
 	private void SetValidActions(Token token) {
+		var watch = System.Diagnostics.Stopwatch.StartNew();
+
 		// Reset valid actions and queue of remaining tokens to check
 		ClearValidActions();
 
@@ -364,7 +596,6 @@ public class GameController : ParentController {
 
 		// Declare while loop vars once
 		Twople<Token, int> currElement;
-		Twople<int, int> coord;
 		int currX;
 		int currY;
 		int terrainWeight;
@@ -415,7 +646,6 @@ public class GameController : ParentController {
 				currElement = currQueue.Dequeue();
 				currX = currElement.Item1.X;
 				currY = currElement.Item1.Y;
-				coord = Twople.Create(currX, currY);
 
 				if(currElement.Item2 >= 0){
 					checkNeighbors = true;
@@ -424,7 +654,7 @@ public class GameController : ParentController {
 					if(currElement.Item1.CurrentUnit == null ||
 							currElement.Item1.CurrentUnit.ID == movingUnit.ID)
 					{
-						Actions.Add(coord, phase);
+						AddToActions(currX, currY, phase);
 						currElement.Item1.SetActionProperties(((UnitAction)phase).ToString());
 					}
 					// Logic to handle a token with a unit:
@@ -457,8 +687,10 @@ public class GameController : ParentController {
 									break;
 								// Can heal allies
 								case (int)UnitAction.heal:
-									Actions.Add(coord, (int)UnitAction.heal);
-									currElement.Item1.SetActionProperties("heal");
+									if(InMoveRangeToAct(currX, currY, currElement.Item2)){
+										AddToActions(currX, currY, (int)UnitAction.heal);
+										currElement.Item1.SetActionProperties("heal");
+									}
 									break;
 							}
 						}
@@ -488,8 +720,10 @@ public class GameController : ParentController {
 									}
 									break;
 								case (int)UnitAction.attack:
-									Actions.Add(coord, (int)UnitAction.attack);
-									currElement.Item1.SetActionProperties("attack");
+									if(InMoveRangeToAct(currX, currY, currElement.Item2)){
+										AddToActions(currX, currY, (int)UnitAction.attack);
+										currElement.Item1.SetActionProperties("attack");
+									}
 									break;
 							}
 						}
@@ -532,68 +766,49 @@ public class GameController : ParentController {
 			}
 		}
 
-		foreach(KeyValuePair<Twople<int, int>, int> action in Actions) {
-			Tokens[action.Key.Item1][action.Key.Item2].PaintAction(((UnitAction)action.Value).ToString());
+		foreach(KeyValuePair<int, Dictionary<int, int>> key1 in _actions) {
+			foreach(KeyValuePair<int, int> key2 in key1.Value){
+				Tokens[key1.Key][key2.Key].PaintAction(((UnitAction)key2.Value).ToString());
+			}
 		}
+
+		// the code that you want to measure comes here
+		watch.Stop();
+		var elapsedMs = watch.ElapsedMilliseconds;
+		Debug.Log("Time taken: " + elapsedMs);
 	}
 
-	// Clears the token vars and actions list
+	/**
+	 * Clears the token vars and actions list
+	 */
 	private void ClearValidActions() {
-		foreach(KeyValuePair<Twople<int, int>, int> action in Actions) {
-			Tokens[action.Key.Item1][action.Key.Item2].SetActionProperties("clear");
+		foreach(KeyValuePair<int, Dictionary<int, int>> key1 in _actions) {
+			Dictionary<int, int> key2 = key1.Value;
+			foreach(int y in key2.Keys){
+				Tokens[key1.Key][y].SetActionProperties("clear");
+			}
 		}
-		Actions.Clear();
+		_actions = new Dictionary<int, Dictionary<int, int>>();
 	}
 
-	public void ConfirmEndTurn() {
-		if(!_endTurn) {
-			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(true);
-			_endTurn = true;
-		}
-	}
-	public void EndTurn() {
-		Dictionary<string, object> response = Server.EndTurn();
-		if(Parse.Bool(response["Success"])){
-			_endTurn = false;
-			GameData.CurrentMatch.EndTurn();
-			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
-			EndTurnGO.SetActive(false);
-			ChangeTurn();
-		}
-		else{
-			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
-		}
-	}
-	public void CancelEndTurn() {
-		_endTurn = false;
-		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
-	}
-
-	// Activates the error message popup and sets its display text to the provided value
-	public static void DisplayGameErrorMessage(string errorText){
-		Text[] errorChildren = GameController.ErrorMessagePopup.GetComponentsInChildren<Text>();
-		errorChildren[GameController.ERR_TEXT_IDX].text = errorText;
-		GameController.ErrorMessagePopup.gameObject.SetActive(true);
-	}
-
-	public void CloseErrorMessage() {
-		GameController.ErrorMessagePopup.gameObject.SetActive(false);
-	}
-
-	// Initializes the game UI when opening after place units has already been completed
+	/**
+	 * Initializes the game UI when opening after place units has already been completed
+	 */
 	private void InitializeUI() {
 		GameController.ErrorMessagePopup = GameObject.Find("GameErrorMessage").GetComponent<RectTransform>();
 		CloseErrorMessage();
 		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
 		BackToMenuGO.SetActive(false);
-		_endTurn = false;
-		_backToMenu = false;
+		_displayEndTurn = false;
+		_displayBackToMenu = false;
 		if(!GameData.CurrentMatch.UserTurn || PlacingUnits || !UnitsArePlaced(GC_ENEMY_TEAM)) {
 			EndTurnGO.SetActive(false);
 		}
 	}
 
-	// Initializes the game map when opening after place units has already been completed
+	/**
+	 * Initializes the game map when opening after place units has already been completed
+	 */
 	private void InitializeMap() {
 		foreach(Unit unit in GameData.CurrentMatch.AlliedUnits.Values) {
 			SC.SpawnUnit(unit);
@@ -603,106 +818,65 @@ public class GameController : ParentController {
 		}
 	}
 
-	public void ConfirmBackToMenu() {
-		if(!_backToMenu) {
-			BackToMenuGO.SetActive(true);
-			_backToMenu = true;
+	/**
+	 * Adds an action to the list of available actions for a unit
+	 * <param name="x">The X coordinate of the valid action</param>
+	 * <param name="y">The Y coordinate of the valid action</param>
+	 * <param name="actionType">The integer value representing the action that can be taken</param>
+	 */
+	private void AddToActions(int x, int y, int actionType){
+		if(!_actions.ContainsKey(x)){
+			_actions[x] = new Dictionary<int, int>();
 		}
-	}
-	// Returns user to the main menu
-	public void BackToMenu() {
-		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
-	}
-	public void CancelBackToMenu() {
-		_backToMenu = false;
-		BackToMenuGO.SetActive(false);
+		_actions[x][y] = actionType;
 	}
 
-	public static Color HexToColor(string hex) {
-		hex = hex.Replace ("0x", "");//in case the string is formatted 0xFFFFFF
-		hex = hex.Replace ("#", "");//in case the string is formatted #FFFFFF
-		byte a = 255;//assume fully visible unless specified in hex
-		byte r = byte.Parse(hex.Substring(0,2), System.Globalization.NumberStyles.HexNumber);
-		byte g = byte.Parse(hex.Substring(2,2), System.Globalization.NumberStyles.HexNumber);
-		byte b = byte.Parse(hex.Substring(4,2), System.Globalization.NumberStyles.HexNumber);
-		//Only use alpha if the string has enough characters
-		if(hex.Length == 8){
-			a = byte.Parse(hex.Substring(6,2), System.Globalization.NumberStyles.HexNumber);
-		}
-		return new Color32(r,g,b,a);
-	}
+	/**
+	 * Determines if the provided token is within a valid range of a movement square
+	 * <param name="x">The X token being checked for the action</param>
+	 * <param name="y">The Y token being checked for the action</param>
+	 * <param name="rangeRemaining">A move token must be within this range</param>
+	 */
+	// TODO: Add to list of dictionaries with rangeRemaining sizes
+	private bool InMoveRangeToAct(int x, int y, int rangeRemaining){
+		int maxRangeAccepted = rangeRemaining + 1;
 
-	// Runs every frame
-	void Update() {
-
-#region development
-		// Computer move/zoom
-		if(Input.GetKey("up")){
-			Camera.main.transform.position += Vector3.up * 0.1f;
-		}
-		if(Input.GetKey("down")){
-			Camera.main.transform.position += Vector3.down * 0.1f;
-		}
-		if(Input.GetKey("left")){
-			Camera.main.transform.position += Vector3.left * 0.1f;
-		}
-		if(Input.GetKey("right")){
-			Camera.main.transform.position += Vector3.right * 0.1f;
-		}
-		if(Input.GetKey("i")){
-			Camera.main.orthographicSize *= (Camera.main.orthographicSize < 0.5f)? 1f : 0.95f;
-		}
-		if(Input.GetKey("o"))		{
-			Camera.main.orthographicSize /= 0.95f;
-		}
-#endregion
-
-		// Check if there were any actions taken by the other player
-		Queue<Dictionary<string, object>> asyncMessages = CommunicationManager.GetAsyncKeyQueue("ACTION_TAKEN");
-		Dictionary<string, object> unit, target;
-
-		// If the other user has taken an action
-		while(asyncMessages != null && asyncMessages.Count > 0){
-			Dictionary<string, object> currentMessage = asyncMessages.Dequeue();
-			Dictionary<string, object> data = (Dictionary<string, object>)currentMessage["Data"];
-
-			// A game ID and unit must be provided
-			if(!data.ContainsKey("Game_ID") || !data.ContainsKey("Unit")){
+		// Get a list of all coordinates within rangeRemaining spaces of this token
+		List<Twople<int, int>> actionRange = new List<Twople<int, int>>();
+		for(int xRng = -maxRangeAccepted; xRng <= maxRangeAccepted; xRng++){
+			// Ensure X is within the grid
+			if(x + xRng >= _gridLength || x + xRng < 0){
 				continue;
 			}
 
-			int key = int.Parse(data["Game_ID"].ToString());
-			unit = (Dictionary<string, object>)data["Unit"];
-			target = (data.ContainsKey("Target"))? (Dictionary<string, object>)data["Target"]: null;
+			for(int yRng = -maxRangeAccepted; yRng <= maxRangeAccepted; yRng++){
+				// Ensure the two numbers combied are within the range (check within diamond of unit, not square)
+				if(Math.Abs(xRng) + Math.Abs(yRng) > maxRangeAccepted){
+					continue;
+				}
 
-			GameData.UpdateTAGameData(key, unit, target);
+				// Ensure Y is within the grid
+				if(y + yRng >= _gridHeight || y + yRng < 0){
+					continue;
+				}
 
-			if(key == GameData.CurrentMatch.ID){
-				GameData.CurrentMatch = GameData.GetMatch(key);
-				SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
+				actionRange.Add(Twople.Create(xRng, yRng));
 			}
 		}
 
-		// Check if the other user ended their turn
-		asyncMessages = CommunicationManager.GetAsyncKeyQueue("ENDED_TURN");
-		while(asyncMessages != null && asyncMessages.Count > 0){
-			Dictionary<string, object> currentMessage = asyncMessages.Dequeue();
-			Dictionary<string, object> data = (Dictionary<string, object>)currentMessage["Data"];
-
-			// A game ID must be provided
-			if(!data.ContainsKey("Game_ID")){
-				continue;
-			}
-
-			int gameID = int.Parse(data["Game_ID"].ToString());
-			GameData.UpdateETGameData(gameID);
-
-			if(gameID == GameData.CurrentMatch.ID){
-				GameData.CurrentMatch = GameData.GetMatch(gameID);
-				ChangeTurn();
-				EndTurnGO.SetActive(true);
+		// For each token within range of this token, if one is a move, can target here
+		int testX;
+		int testY;
+		foreach(Twople<int, int> coord in actionRange){
+			testX = x + coord.Item1;
+			testY = y + coord.Item2;
+			if(_actions.ContainsKey(testX) && _actions[testX].ContainsKey(testY)
+					&& _actions[testX][testY] == (int)UnitAction.move){
+				return true;
 			}
 		}
+
+		return false;
 	}
 
 }
