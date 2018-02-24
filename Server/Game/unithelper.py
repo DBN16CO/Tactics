@@ -74,10 +74,10 @@ def placeUnits(game_user, units, user, version):
 
 		# Check that the specific location in the map is valid for placement
 		if version_map_data[x][y]["Placement"] != user_team:
-			return "Location X:" + str(x) + " Y:" + str(y) + " is not a valid placement location for a unit for your team."
+			return "Location X:{} Y:{} is not a valid placement location for a unit for your team.".format(x, y)
 
 		if (x, y) in placed_locs:
-			return "More than 1 unit cannot be placed at Location X:" + str(x) + " Y:" + str(y) + "."
+			return "More than 1 unit cannot be placed at Location X:{} Y:{}.".format(x, y)
 
 		# Momentarily store class HP maxes, in case the unit is selected more than once
 		if not unit.unit_class.name in class_max_hp:
