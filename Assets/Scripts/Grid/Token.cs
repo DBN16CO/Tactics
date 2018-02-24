@@ -41,11 +41,12 @@ public class Token : MonoBehaviour {
 	}
 #endregion
 
-	public static Token Create(int x, int y, string terrainType, float scale, float size, Transform parentMap){
+	public static Token Create(int x, int y, string terrainType, float scale, float size){
 		// Instantiate token at each grid position
 		Vector3 position = new Vector2(((float)x * scale) - size, -((float)y * scale) + size) +
 			new Vector2(scale / 2f, - scale / 2f);
-		Object tokenObj = Instantiate(Resources.Load("Prefabs/Token"), position, Quaternion.identity, parentMap);
+		Object tokenObj = Instantiate(Resources.Load("Prefabs/Token"), position, Quaternion.identity,
+			GameController.MapTokens.transform);
 		Token token = (tokenObj as GameObject).GetComponent<Token>();
 
 		// Coordinates
