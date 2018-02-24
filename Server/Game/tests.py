@@ -469,7 +469,7 @@ class TestPlaceUnits(TestGame):
 	- Units can only be placed in valid locations, which excludes: (Test 01)\m
 		+ A random point in the map not for placement\n
 		+ An opponents placement location\n
-		+ Multiple units on the same location
+		+ Multiple units on the same location\n
 	- Calling the command properly returns success (Test 02)\n
 	- For a successful call, each unit is properly placed in the database: (Test 02)\n
 		+ In the game properly\n
