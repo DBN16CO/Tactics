@@ -469,6 +469,7 @@ class TestPlaceUnits(TestGame):
 	- Units can only be placed in valid locations, which excludes: (Test 01)\m
 		+ A random point in the map not for placement\n
 		+ An opponents placement location\n
+		+ Multiple units on the same location
 	- Calling the command properly returns success (Test 02)\n
 	- For a successful call, each unit is properly placed in the database: (Test 02)\n
 		+ In the game properly\n
@@ -552,6 +553,14 @@ class TestPlaceUnits(TestGame):
 			unit_dict["Y"] = 15
 		self.helper_execute_failure(inval_place_cmd,
 			"Location X:0 Y:15 is not a valid placement location for a unit for your team.")
+
+		# Invalid placement location - 2 Units on same location
+		inval_place_cmd = copy.deepcopy(self.pu_cmd)
+		first_unit = inval_place_cmd["Units"][0]
+		inval_place_cmd["Units"][1]["X"] = first_unit["X"]
+		inval_place_cmd["Units"][1]["Y"] = first_unit["Y"]
+		self.helper_execute_failure(inval_place_cmd,
+			"More than 1 unit cannot be placed at Location X:0 Y:0.")
 
 	def test_pu_02_success(self):
 		self.helper_execute_success(self.pu_cmd)
