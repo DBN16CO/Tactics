@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 // Class governing unit options
 public class Unit {
+	private static readonly Vector3 U_UNIT_OFFSET = new Vector3(0, 0, -1);
+
 	public static bool ALLY_TEAM  = true;
 	public static bool ENEMY_TEAM = false;
 
@@ -86,9 +88,11 @@ public class Unit {
 	}
 
 	public void Spawn(float scale) {
-		_unitObject = GameObject.Instantiate(Resources.Load("Units/" + _unitName),Vector3.zero,Quaternion.identity) as GameObject;
+		_unitObject = GameObject.Instantiate(Resources.Load("Units/" + _unitName), Vector3.zero,Quaternion.identity,
+			GameController.MapUnits.transform) as GameObject;
 
-		_unitObject.transform.position = GameController.Tokens[_x][_y].transform.position;
+		// Move unit to location of its occupied token and move forward in z direction to move on top of movement arrows
+		_unitObject.transform.position = GameController.Tokens[_x][_y].transform.position + U_UNIT_OFFSET;
 		_unitObject.gameObject.transform.localScale = new Vector3(scale, scale, 1);
 		_unitObject.gameObject.name = _unitName + "_" + _id;
 
@@ -110,7 +114,8 @@ public class Unit {
 	public void UnselectUnit() {
 		_selected = false;
 		if(GameController.SelectedToken != null) {
-			_unitObject.gameObject.transform.position = GameController.SelectedToken.gameObject.transform.position;
+			_unitObject.gameObject.transform.position = GameController.SelectedToken.gameObject.transform.position
+				+ U_UNIT_OFFSET;
 		}
 		GameController.Main.UnselectUnit();
 	}

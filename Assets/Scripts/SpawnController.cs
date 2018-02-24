@@ -17,10 +17,6 @@ public class SpawnController : ParentController {
 		float orthoSize = Camera.main.orthographicSize;
 		_scaleFactor = (2f * orthoSize) / (float)tokens.Length;
 
-		// Create a map GameObject to hold all token objects
-		GameObject GameMap = new GameObject();
-		GameMap.name = "MapTokens";
-
 		int myTeam = gameObject.GetComponent<GameController>().myTeam;
 		MapData currentMap = gameObject.GetComponent<GameController>().CurrentMap;
 
@@ -30,7 +26,7 @@ public class SpawnController : ParentController {
 				// Assign terrain based on preset map
 				string terr = map.Terrain[x][y];
 
-				Token token = Token.Create(x, y, terr, _scaleFactor, orthoSize, GameMap.transform);
+				Token token = Token.Create(x, y, terr, _scaleFactor, orthoSize);
 
 				// If placing units, grey out the tokens that can't be placed on
 				if(GameController.PlacingUnits && currentMap.TeamPlaceUnit[x][y] != myTeam) {
@@ -43,7 +39,7 @@ public class SpawnController : ParentController {
 		}
 
 		// Flip the map if this user is not user 1
-		GameMap.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
+		GameController.MapTokens.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
 
 		// Set game vars
 		GameController.GridLength = tokens.Length;
