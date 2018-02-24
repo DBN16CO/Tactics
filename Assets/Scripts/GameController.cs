@@ -27,8 +27,7 @@ public class GameController : ParentController {
 	public static Token IntendedMove;						// Selected a token to move to before actually moving
 	public static Token IntendedTarget;						// Target selected by a targeted action
 
-	public static GameObject ParentGrid;					// All grid-based objects should be children of this
-	public static GameObject MapTokens;					// All tokens should be placed under this as children
+	public static GameObject MapTokens;						// All tokens should be placed under this as children
 	public static GameObject MapUnits;						// All units should be placed under this as children
 	public static GameObject MovementArrows;				// Parent for the icons displayed before a unit moves
 
