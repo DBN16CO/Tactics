@@ -64,8 +64,8 @@ def placeUnits(game_user, units, user, version):
 		if not "X" in placed_units[0] or not "Y" in placed_units[0]:
 			return "Internal Error: Missing X or Y."
 
-		x = placed_units[0]["X"]
-		y = placed_units[0]["Y"]
+		x_pos = placed_units[0]["X"]
+		y_pos = placed_units[0]["Y"]
 
 		# Further check that the game has started - ensure the user is on a team
 		user_team = game_user.team
@@ -73,24 +73,24 @@ def placeUnits(game_user, units, user, version):
 			return "You cannot place units until both players have set their teams."
 
 		# Check that the specific location in the map is valid for placement
-		if version_map_data[x][y]["Placement"] != user_team:
-			return "Location X:{} Y:{} is not a valid placement location for a unit for your team.".format(x, y)
+		if version_map_data[x_pos][y_pos]["Placement"] != user_team:
+			return "Location X:{} Y:{} is not a valid placement location for a unit for your team.".format(x_pos, y_pos)
 
-		if (x, y) in placed_locs:
-			return "More than 1 unit cannot be placed at Location X:{} Y:{}.".format(x, y)
+		if (x_pos, y_pos) in placed_locs:
+			return "More than 1 unit cannot be placed at Location X:{} Y:{}.".format(x_pos, y_pos)
 
 		# Momentarily store class HP maxes, in case the unit is selected more than once
 		if not unit.unit_class.name in class_max_hp:
 			class_max_hp[unit.unit_class.name] = stat_info["Classes"][unit.unit_class.name]["Stats"]["HP"]
 
 		# Update the DB with the unit placement
-		unit.x  = x
-		unit.y  = y
+		unit.x  = x_pos
+		unit.y  = y_pos
 		unit.hp = class_max_hp[unit.unit_class.name]
 		unit.acted = False
 
 		# Update the placed location tracker data structure
-		placed_locs.add((x, y))
+		placed_locs.add((x_pos, y_pos))
 
 		# To keep the 0th unit to match with the current unit iteration in set_untis
 		del placed_units[0]
