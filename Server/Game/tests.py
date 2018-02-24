@@ -112,6 +112,34 @@ class TestGame(Communication.testhelper.CommonTestHelper):
 		# Ensure that there are two players in the queue at this point
 		self.assertTrue(Game_User.objects.filter(game=None).count() == 2)
 
+	def match_players_in_queue(self, success=True):
+		processMatchmakingQueue()
+
+		# Check if the matchmaking is expected to be successful
+		if not success:
+			return
+
+		game = Game.objects.latest('id')
+
+		game_users = Game_User.objects.filter(game=game)
+
+		# Ensure only 2 game users are in the game
+		self.assertEquals(len(game_users), 2)
+
+		# Ensure the first user created is always on team 1
+		first_game_user = game_users[0]
+		second_game_user = game_users[1]
+
+		if first_game_user.user == self.user:
+			first_game_user.team = 1
+			second_game_user.team = 2
+		else:
+			first_game_user.team = 2
+			second_game_user.team = 1
+
+		first_game_user.save()
+		second_game_user.save()
+
 class TestSetTeam(TestGame):
 	"""
 	All tests within this class relate specifically to the command 'ST' (Set team)
@@ -372,7 +400,7 @@ class TestMatchmaking(TestGame):
 		self.get_both_users_in_queue()
 
 	def test_mm_01_pair_success(self):
-		processMatchmakingQueue()
+		self.match_players_in_queue()
 
 		# Ensure the Game_User objects were created properly
 		self.assertTrue(len(Game_User.objects.filter(game=None)) == 0)
@@ -401,7 +429,7 @@ class TestMatchmaking(TestGame):
 		self.helper_execute_success(self.st_cmd)
 		self.helper_execute_success(self.fm_cmd)
 
-		processMatchmakingQueue()
+		self.match_players_in_queue(success=False)
 
 		# Ensure no game users were created
 		self.assertTrue(Game_User.objects.exclude(game=None).count() == 0)
@@ -410,14 +438,14 @@ class TestMatchmaking(TestGame):
 		self.assertTrue(Game_Queue.objects.count() == 1)
 
 	def test_mm_03_two_games_matched(self):
-		processMatchmakingQueue()
+		self.match_players_in_queue()
 
 		# Get both players in the queue again and match again
 		self.helper_execute_success(self.st_cmd)
 		self.helper_execute_success(self.fm_cmd)
 		self.helper_execute_success(self.st_cmd, 2)
 		self.helper_execute_success(self.fm_cmd, 2)
-		processMatchmakingQueue()
+		self.match_players_in_queue()
 
 		# Ensure the Game_User objects were created properly
 		self.assertTrue(len(Game_User.objects.filter(game=None)) == 0)
@@ -448,7 +476,7 @@ class TestMatchmaking(TestGame):
 		os.environ['UT-Fail'] = "True"
 
 		# Should throw an exception after the game is created in db
-		processMatchmakingQueue()
+		self.match_players_in_queue(success=False)
 
 		del os.environ['UT-Fail']
 
@@ -482,7 +510,7 @@ class TestPlaceUnits(TestGame):
 		super(TestPlaceUnits, self).setUp()
 
 		self.get_both_users_in_queue()
-		processMatchmakingQueue()
+		self.match_players_in_queue()
 		self.game = Game.objects.latest('pk')
 
 	def test_pu_01_bad_json(self):
@@ -600,12 +628,12 @@ class TestQueryGames(TestGame):
 
 		# setup game1
 		self.get_both_users_in_queue()
-		processMatchmakingQueue()
+		self.match_players_in_queue()
 		self.games.append(Game.objects.latest('pk'))
 
 		# setup game2
 		self.get_both_users_in_queue()
-		processMatchmakingQueue()
+		self.match_players_in_queue()
 		self.games.append(Game.objects.latest('pk'))
 
 		# QGU Command
@@ -988,7 +1016,7 @@ class TestTakeAction(TestGame):
 
 		# Get both users into a game
 		self.get_both_users_in_queue()
-		processMatchmakingQueue()
+		self.match_players_in_queue()
 		self.game = Game.objects.latest('pk')
 
 		# Place units for player one
@@ -2110,7 +2138,7 @@ class TestEndTurn(TestGame):
 
 		# Get both users into a game
 		self.get_both_users_in_queue()
-		processMatchmakingQueue()
+		self.match_players_in_queue()
 		self.game = Game.objects.latest('pk')
 
 		# Place units for player one
