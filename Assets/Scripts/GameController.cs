@@ -12,6 +12,12 @@ public class GameController : ParentController {
 	/* Private Constant Game Variables */
 	private const bool GC_ALLY_TEAM = true;					// Constant for allied team
 	private const bool GC_ENEMY_TEAM = false;				// Constant for enemy team
+	private static readonly Twople<int, int>[] GC_NEIGHBORS = {	// The immediate cardinal direction neighbor offsets
+		Twople.Create( 0,  1),									// for any given token.
+		Twople.Create( 0, -1),
+		Twople.Create( 1,  0),
+		Twople.Create(-1,  0)
+	};
 
 	/* Public Static Game Variables */
 	public static SpawnController SC;						// Reference to SpawnController
@@ -20,6 +26,11 @@ public class GameController : ParentController {
 	public static PUUnit UnitBeingPlaced;					// Unit selected in PU tab, will be placed on clicked token
 	public static Token IntendedMove;						// Selected a token to move to before actually moving
 	public static Token IntendedTarget;						// Target selected by a targeted action
+
+	public static GameObject ParentGrid;					// All grid-based objects should be children of this
+	public static GameObject MapTokens;					// All tokens should be placed under this as children
+	public static GameObject MapUnits;						// All units should be placed under this as children
+	public static GameObject MovementArrows;				// Parent for the icons displayed before a unit moves
 
 	// UI variables
 	public static RectTransform ErrorMessagePopup;			// Popup which displays error messages received from server
@@ -39,6 +50,8 @@ public class GameController : ParentController {
 	private static Token _selectedToken;					// The last token touched by a user
 	private static MapData _currentMap;						// Info on the map used for this game
 	private Dictionary<int, Dictionary<int, int>> _actions;	// Collection of valid moves X --> (Y --> UnitAction enum)
+	private static float _orthoSize;
+	private static float _scale;
 
 	// Unit data
 	private static List<Unit> _units;						// All units in the game (ally and enemy)
@@ -93,13 +106,23 @@ public class GameController : ParentController {
 		SC = gameObject.AddComponent<SpawnController>();
 		_unitInfoController = GameObject.Find("UnitInfo").GetComponent<UnitInfoController>();
 		_targetInfoController = GameObject.Find("TargetInfo").GetComponent<UnitInfoController>();
+		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
 		Main = this;
+
+		// Organize Grid elements in parent objects
+		MapTokens = new GameObject();
+		MapTokens.name = "MapTokens";
+		MovementArrows = new GameObject();
+		MovementArrows.name = "MovementArrows";
+		MapUnits = new GameObject();
+		MapUnits.name = "MapUnits";
+
 		// Map game vars from QGU match data and determine if place units is necessary
 		myTeam = GameData.CurrentMatch.UserTeam;
 		_alliedUnits = new Dictionary<int, Unit>();
 		_enemyUnits = new Dictionary<int, Unit>();
 		PlacingUnits = !UnitsArePlaced(GC_ALLY_TEAM);
-		_currentMap = GameData.GetMap(GameData.CurrentMatch.MapName);
+
 		SC.CreateMap(GameData.CurrentMatch.MapName);
 		InitializeUI();
 
@@ -338,6 +361,7 @@ public class GameController : ParentController {
 		_selectedToken = null;
 		IntendedMove = null;
 		UnselectTarget();
+		ClearArrows();
 		ClearValidActions();
 	}
 
@@ -467,9 +491,165 @@ public class GameController : ParentController {
 	 */
 	private void SetIntendedMove(Token token) {
 		UnselectTarget();
+		ClearArrows();
+
+		if(_selectedToken.X != token.X || _selectedToken.Y != token.Y){
+			DrawMovementArrows(token);
+		}
+
 		IntendedMove = token;
-		_selectedToken.CurrentUnit.transform.position = token.gameObject.transform.position;
 		PaintIntendedMoveActions();
+	}
+
+	/**
+	 * Determines the shortest valid path to the target token and draws an arrow to it
+	 * Assumes the _selectedToken has been set as the moving unit
+	 * <param name="token">The target token to which the unit is moving</param>
+	 */
+	private void DrawMovementArrows(Token token){
+		// Name of moving unit is used in  weight determiniation
+		string unitName = _selectedToken.CurrentUnit.UnitName;
+
+		int[][] weightMap = JaggedArray.CreateJaggedArray<int[][]>(_gridLength, _gridHeight);
+		int MAX_DIST = GameData.GetUnit(unitName).GetStat("Move").Value;
+		for(int x = 0; x < _gridLength; x++){
+			for(int y = 0; y < _gridHeight; y++){
+				weightMap[x][y] = MAX_DIST;
+			}
+		}
+
+		PriorityQueue<vertex> tokensToProcess = new PriorityQueue<vertex>();
+
+		// Enqueue the starting node with 0 distance and maximum priority
+		int MAX_PRIORITY = 999;
+		tokensToProcess.Enqueue(MAX_PRIORITY, new vertex(_selectedToken.X, _selectedToken.Y, 0));
+		weightMap[_selectedToken.X][_selectedToken.Y] = 0;
+
+		// Declare loop variables once
+		vertex v;
+		int testX;
+		int testY;
+		int terrainWeight;
+		int newDist;
+		Token currToken = null;
+		vertex foundTarget = null;
+
+		// Loop until all valid tokens in range are checked or the target location is found
+		while(tokensToProcess.Count > 0){
+			v = tokensToProcess.Dequeue();
+
+			// If this test X and Y are the coordinates we are looking for, we're done!
+			if(v.x == token.X && v.y == token.Y){
+				foundTarget = v;
+				break;
+			}
+
+			// Loop over the token's cardinal direction neighbors
+			foreach(Twople<int, int> nbr in GC_NEIGHBORS){
+				testX = v.x + nbr.Item1;
+				testY = v.y + nbr.Item2;
+
+				// Skip checking if the location is not on the map
+				if(testX >= _gridLength || testX < 0 || testY >= _gridHeight || testY < 0){
+					continue;
+				}
+
+				// Skip checking if the token is attackable (can't move to or through it)
+				currToken = _tokens[testX][testY];
+				if(currToken.CurrentUnit != null && !currToken.CurrentUnit.MyTeam){
+					continue;
+				}
+
+				// Next token's distance is current token's distance + terrain weight of next token
+				terrainWeight = GameData.TerrainWeight(unitName, _tokens[testX][testY].CurrentTerrain.ShortName);
+				newDist = v.dist + terrainWeight;
+				if(newDist <= weightMap[testX][testY]){
+					tokensToProcess.Enqueue(MAX_PRIORITY - newDist, new vertex(testX, testY, newDist, v));
+				}
+
+			}
+
+			if(foundTarget != null){
+				break;
+			}
+		}
+
+		vertex f = foundTarget;
+		bool endArrow = true;
+	 	float dx;
+		float dy;
+
+		// Because (0, 0) is top left, not bottom left, the dy is negated
+		dx = (float)f.x - (float)f.prev.x;
+		dy = -((float)f.y - (float)f.prev.y);
+		CreateArrow(f.x, f.y, _scale, _orthoSize, dx, dy, endArrow);
+		endArrow = false;
+		while(f.prev != null){
+			dx = (float)f.x - (float)f.prev.x;
+			dy = -((float)f.y - (float)f.prev.y);
+			CreateArrow(f.x, f.y, _scale, _orthoSize, dx, dy, endArrow);
+			f = f.prev;
+
+		}
+
+		// Arrow must also flip if the user is on the other team
+		MovementArrows.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
+	}
+	// Helper class (struct) for above function DrawMovementArrows()
+	private class vertex{
+		public int x;
+		public int y;
+		public int dist;
+		public vertex prev;
+
+		public vertex(int _x, int _y, int _dist, vertex _prev = null){
+			x = _x;
+			y = _y;
+			dist = _dist;
+			prev = _prev;
+		}
+	};
+
+	/**
+	 * Instantiates and properly positions either an arrow segment or the end of the arrow on the grid
+	 * <param name="x">The x position of where the segement is placed</param>
+	 * <param name="y">The y position of where the segement is placed</param>
+	 * <param name="scale">The scale used in positioning the arrow</param>
+	 * <param name="size">The size used in determining how big to make the arrow</param>
+	 * <param name="dx">The x offset for where to point the arrow</param>
+	 * <param name="dy">The y offset for where to point the arrow</param>
+	 * <param name="endArrow">True only when painting the end of the arrow</param>
+	 */
+	private static void CreateArrow(int x, int y, float scale, float size, float dx, float dy, bool endArrow){
+		// Determine position of the arrow segment: offset towards next token
+		float xPos = (endArrow)? x * scale: ((float)x - (dx / 2)) * scale;
+		float yPos = (endArrow)? y * scale: ((float)y + (dy / 2)) * scale;
+		Vector3 position = new Vector2(xPos - size, -yPos + size) + new Vector2(scale / 2f, - scale / 2f);
+
+		// Create the arrow segment
+		string objectToLoad = (endArrow)? "Materials/Arrow": "Materials/MovementCylinder";
+		UnityEngine.Object arrObj = Instantiate(Resources.Load(objectToLoad), position,
+			Quaternion.identity, MovementArrows.transform);
+		GameObject arrow = (arrObj as GameObject);
+
+		// Determine the arrows rotation
+		float rotation = ((float)Math.Atan2(dy, dx)) * (180 / (float)Math.PI);
+		arrow.gameObject.transform.Rotate(0, 0, rotation);
+
+		// Set the name to be its coordinates
+		arrow.gameObject.name = ((endArrow)?"End: ": "Segment: ") + " (" + x + ", " + y + ")";
+		arrow.gameObject.transform.localScale = new Vector3(scale, scale, 1);
+	}
+
+	/**
+	 * Clears all of the arrow segments and head of the arrow
+	 */
+	private static void ClearArrows(){
+		foreach (Transform child in MovementArrows.transform) {
+			GameObject.Destroy(child.gameObject);
+		}
+
+		MovementArrows.transform.eulerAngles = new Vector3(0, 0, 0);
 	}
 
 	/**
@@ -490,10 +670,11 @@ public class GameController : ParentController {
 	 * All the actions when moving a unit
 	 */
 	private static void MoveUnit() {
-		bool coordChanged = (IntendedMove.X != SelectedToken.CurrentUnit.X) || (IntendedMove.Y != SelectedToken.CurrentUnit.Y);
+		bool coordChanged = (IntendedMove.X != _selectedToken.X) || (IntendedMove.Y != _selectedToken.Y);
 		IntendedMove.CurrentUnit = SelectedToken.CurrentUnit;
 		if(coordChanged) {
-			SelectedToken.CurrentUnit = null;
+			IntendedMove.CurrentUnit.transform.position = IntendedMove.gameObject.transform.position;
+			_selectedToken.CurrentUnit = null;
 		}
 		IntendedMove.CurrentUnit.ConfirmMove();
 	}
@@ -597,12 +778,6 @@ public class GameController : ParentController {
 		int currX;
 		int currY;
 		int terrainWeight;
-		Twople<int, int>[] neighbors = {
-			Twople.Create( 0,  1),
-			Twople.Create( 0, -1),
-			Twople.Create( 1,  0),
-			Twople.Create(-1,  0)
-		};
 		bool checkNeighbors = false;
 
 		// Determmine if the unit can attack or heal before entering loop
@@ -697,22 +872,14 @@ public class GameController : ParentController {
 							// If still moving, add this to attack check for after movement is done
 							switch(phase){
 								case (int)UnitAction.move:
-									if(currElement.Item2 == 0){
-										checkNeighbors = false;
-										if(canAttack){
-											uncheckedAttackTokens.Enqueue(0, Twople.Create(
-												Tokens[currX][currY], startingAttackRange-1)
-											);
-										}
-										if(canHeal){
-											uncheckedHealTokens.Enqueue(0, Twople.Create(
-												Tokens[currX][currY], startingAttackRange-1)
-											);
-										}
-									}
+									checkNeighbors = false;
 									if(canAttack){
-										checkNeighbors = false;
 										uncheckedAttackTokens.Enqueue(0, Twople.Create(
+											Tokens[currX][currY], startingAttackRange-1)
+										);
+									}
+									if(canHeal){
+										uncheckedHealTokens.Enqueue(0, Twople.Create(
 											Tokens[currX][currY], startingAttackRange-1)
 										);
 									}
@@ -729,7 +896,7 @@ public class GameController : ParentController {
 
 					// Add the 4 neighbors to the queue to be checked
 					if(checkNeighbors){
-						foreach(Twople<int, int> nbr in neighbors){
+						foreach(Twople<int, int> nbr in GC_NEIGHBORS){
 							if(currX + nbr.Item1 < GridLength && currX + nbr.Item1 >= 0 &&
 							   currY + nbr.Item2 < GridHeight && currY + nbr.Item2 >= 0) {
 								if(!queuedTokens[currX + nbr.Item1][currY + nbr.Item2]){
@@ -797,6 +964,10 @@ public class GameController : ParentController {
 		if(!GameData.CurrentMatch.UserTurn || PlacingUnits || !UnitsArePlaced(GC_ENEMY_TEAM)) {
 			EndTurnGO.SetActive(false);
 		}
+
+		// Set scale factors
+		_orthoSize = Camera.main.orthographicSize;
+		_scale = (2f * _orthoSize) / (float)_tokens.Length;
 	}
 
 	/**
