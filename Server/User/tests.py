@@ -5,6 +5,7 @@ from User.models import Users
 import datetime
 import logging
 from Server import config
+from fcm_django.models import FCMDevice
 
 class TestCreateUser(CommonTestHelper):
 	"""
@@ -212,7 +213,7 @@ class TestLoginLogout(CommonTestHelper):
 		self.assertEquals(result["Level"], user.level)
 		self.assertEquals(result["Experience"], user.experience)
 		self.assertEquals(result["Coins"], user.coins)
-		self.assertEquals(result["Preferences"]["Grid Opacity"], user.pref_grid)
+		self.assertEquals(result["Preferences"], user.prefs)
 
 	def test_lo_08_login_token_expire(self):
 		user = Users.objects.filter(username=self.credentials["username"])
@@ -225,3 +226,34 @@ class TestLoginLogout(CommonTestHelper):
 		result = self.testHelper.login({"token": self.result["Token"]})
 		self.assertFalse(result["Success"])
 		self.assertEquals(result["Error"], "Login token has expired, please login again using your username/password.")
+
+	def test_lo_08_send_user_info_success(self):
+		result = self.testHelper.login({"username": self.credentials["username"],
+			"password": self.credentials["password"]})
+
+		reg_id = 'abc123'
+
+		cmd = {
+			"Command": "SUI",
+			"Notifications": {
+				"RegistrationID": reg_id,
+				"DeviceType": "android"
+			},
+			"Preferences": {
+				"Grid Opacity": 99
+			}
+		}
+
+		self.testHelper.send(json.dumps(cmd))
+		result = json.loads(self.testHelper.receive())
+
+		self.assertTrue(result['Success'])
+
+		user = Users.objects.get(username=self.credentials["username"])
+
+		self.assertEquals(user.prefs['Grid Opacity'], 99)
+
+		device = user.device
+		self.assertEquals(device.type, 'android')
+		self.assertEquals(device.registration_id, reg_id)
+

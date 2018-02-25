@@ -10,6 +10,7 @@ import logging
 import User.userhelper
 from User.models import Users
 from Communication.routehelper import *
+from fcm_django.models import FCMDevice
 
 def login(data):
 	"""
@@ -178,6 +179,61 @@ def getUserInfo(data):
 	response["Level"] = user.level
 	response["Experience"] = user.experience
 	response["Coins"] = user.coins
-	response["Preferences"] = {"Grid Opacity": user.pref_grid}
+	response["Preferences"] = user.prefs
+
+	return response
+
+def sendUserInfo(data):
+	"""
+	Called to send user information to store on the server.
+	Examples are the front end sending any user setting changes, usage statistics, and the GCM registration id.
+
+	Command: SUI (Send User Info)
+
+	:type data: Dictionary
+	:param data: The necessary input information to process the command, should
+	             be of the following format:\n
+	             {\n
+	              "Preferences": {...},\n
+	              "Notifications": {\n
+					"RegistrationID": "<reg id>",\n
+					"DeviceType": "android/ios",\n
+	              }\n,
+	              "Usage": {...} (Eventually)\n
+	             }\n
+
+	:rtype: Dictionary
+	:return: A JSON object indicating whether the server successfully received and processed the data
+
+			 {\n
+			  "Success":True/False,\n
+			  "Error": ""\n
+			 }\n
+	"""
+
+	response = {"Success": True}
+
+	username = data["session_username"]
+	user = Users.objects.filter(username=username).first()
+
+	gcm_settings = data.get('Notifications')
+
+	if gcm_settings:
+		reg_id = gcm_settings['RegistrationID']
+		device_type = gcm_settings['DeviceType']
+
+		device = FCMDevice()
+		device.registration_id = reg_id
+		device.type = device_type
+		device.save()
+
+		user.device = device
+		user.save()
+
+	prefs = data.get('Preferences')
+
+	if prefs:
+		user.prefs.update(prefs)
+		user.save()
 
 	return response

@@ -67,11 +67,13 @@ public class StartupController : ParentController {
 	}
 
 	public void OnTokenReceived(object sender, Firebase.Messaging.TokenReceivedEventArgs token) {
-		UnityEngine.Debug.Log("Received Registration Token: " + token.Token);
+		Debug.Log("Received Registration Token: " + token.Token);
+
+		Server.SendFCMToken(token.Token, "android");
 	}
 
 	public void OnMessageReceived(object sender, Firebase.Messaging.MessageReceivedEventArgs e) {
-		UnityEngine.Debug.Log("Received a new message from: " + e.Message.From);
+		Debug.Log("Received a new message from: " + e.Message.From);
 	}
 
 	// Sets vars when login or register is clicked. Public so that it can be called from the scene

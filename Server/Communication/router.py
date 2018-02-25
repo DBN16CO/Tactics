@@ -69,6 +69,8 @@ def processRequest(message):
 		+-------+------------------+---------+--------------------+----------------------+
 		| ST    | Set Team         | Game    | setTeam            | TestSetTeam          |
 		+-------+------------------+---------+--------------------+----------------------+
+		| SUI   | Send User Info   | User    | sendUserInfo       | <TODO>               |
+		+-------+------------------+---------+--------------------+----------------------+
 		| TA    | Take Action      | Game    | takeAction         | TestTakeAction       |
 		+-------+------------------+---------+--------------------+----------------------+
 
@@ -209,6 +211,7 @@ def processRequest(message):
 		"QGU":Game.routegamehelper.queryGamesUser,
 		"RM":Communication.routehelper.receivedMessage,
 		"ST":Game.routeunithelper.setTeam,
+		"SUI":User.routehelper.sendUserInfo,
 		"TA":Game.routeunithelper.takeAction,
 	}
 
