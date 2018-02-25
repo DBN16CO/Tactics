@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources tools:keep="@string/firebase_database_url,@string/gcm_defaultSenderId,@string/google_storage_bucket,@string/project_id,@string/google_api_key,@string/google_crash_reporting_api_key,@string/google_app_id,@string/default_web_client_id" xmlns:tools="http://schemas.android.com/tools">
+  <string name="firebase_database_url" translatable="false">https://tactics-967fb.firebaseio.com</string>
+  <string name="gcm_defaultSenderId" translatable="false">739214425009</string>
+  <string name="google_storage_bucket" translatable="false">tactics-967fb.appspot.com</string>
+  <string name="project_id" translatable="false">tactics-967fb</string>
+  <string name="google_api_key" translatable="false">AIzaSyDbxBcnPBqLTdQFcIcdSlWwMk6WydGfSc4</string>
+  <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDbxBcnPBqLTdQFcIcdSlWwMk6WydGfSc4</string>
+  <string name="google_app_id" translatable="false">1:739214425009:android:9c4c76f06a86322e</string>
+  <string name="default_web_client_id" translatable="false">739214425009-0srtbuk5ku99m93nodnag68cb55v209r.apps.googleusercontent.com</string>
+</resources>

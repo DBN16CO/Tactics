@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "739214425009",
+    "firebase_url": "https://tactics-967fb.firebaseio.com",
+    "project_id": "tactics-967fb",
+    "storage_bucket": "tactics-967fb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739214425009:android:9c4c76f06a86322e",
+        "android_client_info": {
+          "package_name": "com.dbnco16.tactics"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "739214425009-0srtbuk5ku99m93nodnag68cb55v209r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbxBcnPBqLTdQFcIcdSlWwMk6WydGfSc4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
