@@ -27,9 +27,6 @@ public class StartupController : ParentController {
 		//PlayerPrefs.DeleteKey("session"); // Uncomment this to test from login screen
 		CommunicationManager.Start();
 
-		Firebase.Messaging.FirebaseMessaging.TokenReceived += OnTokenReceived;
-		Firebase.Messaging.FirebaseMessaging.MessageReceived += OnMessageReceived;
-
 		// If session token works, go to game, otherwise remove token and init login UI
 		if(PlayerPrefs.HasKey("session")) {
 			if(!CommunicationManager.RetryLogin()) {
@@ -64,16 +61,6 @@ public class StartupController : ParentController {
 			_passwordRT.anchoredPosition = new Vector3(0,Mathf.Lerp(_passwordRT.anchoredPosition.y,-148.75f,_t));
 			_confirmPasswordRT.anchoredPosition = new Vector3(0,Mathf.Lerp(_confirmPasswordRT.anchoredPosition.y,-148.75f,_t));
 		}
-	}
-
-	public void OnTokenReceived(object sender, Firebase.Messaging.TokenReceivedEventArgs token) {
-		Debug.Log("Received Registration Token: " + token.Token);
-
-		Server.SendFCMToken(token.Token, "android");
-	}
-
-	public void OnMessageReceived(object sender, Firebase.Messaging.MessageReceivedEventArgs e) {
-		Debug.Log("Received a new message from: " + e.Message.From);
 	}
 
 	// Sets vars when login or register is clicked. Public so that it can be called from the scene
