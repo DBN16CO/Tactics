@@ -69,7 +69,7 @@ def processRequest(message):
 		+-------+------------------+---------+--------------------+----------------------+
 		| ST    | Set Team         | Game    | setTeam            | TestSetTeam          |
 		+-------+------------------+---------+--------------------+----------------------+
-		| SUI   | Send User Info   | User    | sendUserInfo       | <TODO>               |
+		| SUI   | Send User Info   | User    | sendUserInfo       | TestLoginLogout      |
 		+-------+------------------+---------+--------------------+----------------------+
 		| TA    | Take Action      | Game    | takeAction         | TestTakeAction       |
 		+-------+------------------+---------+--------------------+----------------------+
