@@ -10,6 +10,8 @@ import logging
 import User.userhelper
 from User.models import Users
 from Communication.routehelper import *
+from fcm_django.models import FCMDevice
+from Server.settings import ALLOWED_USER_PREFS, SUPPORTED_DEVICE_TYPES
 
 def login(data):
 	"""
@@ -178,6 +180,78 @@ def getUserInfo(data):
 	response["Level"] = user.level
 	response["Experience"] = user.experience
 	response["Coins"] = user.coins
-	response["Preferences"] = {"Grid Opacity": user.pref_grid}
+	response["Preferences"] = user.prefs
+
+	return response
+
+def sendUserInfo(data):
+	"""
+	Called to send user information to store on the server.
+	Examples are the front end sending any user setting changes, usage statistics, and the GCM registration id.
+
+	Command: SUI (Send User Info)
+
+	:type data: Dictionary
+	:param data: The necessary input information to process the command, should
+	             be of the following format:\n
+	             {\n
+	              "Preferences": {...},\n
+	              "Notifications": {\n
+					"RegistrationID": "<reg id>",\n
+					"DeviceType": "android/ios",\n
+	              }\n,
+	              "Usage": {...} (Eventually)\n
+	             }\n
+
+	:rtype: Dictionary
+	:return: A JSON object indicating whether the server successfully received and processed the data
+
+			 {\n
+			  "Success":True/False,\n
+			  "Error": ""\n
+			 }\n
+	"""
+
+	response = {"Success": True}
+
+	username = data["session_username"]
+	user = Users.objects.filter(username=username).first()
+
+	gcm_settings = data.get('Notifications')
+
+	if gcm_settings:
+		reg_id = gcm_settings.get('RegistrationID')
+		device_type = gcm_settings.get('DeviceType')
+
+		if reg_id is None:
+			error = "Notification Registration ID is missing for GCM Settings"
+			return formJsonResult(error)
+
+		if device_type is None:
+			error = "Notification Device type is missing for GCM Settings"
+			return formJsonResult(error)
+
+		if device_type not in SUPPORTED_DEVICE_TYPES:
+			error = "Device type '{}' is not supported for notifications".format(device_type)
+			return formJsonResult(error)
+
+		device = FCMDevice()
+		device.registration_id = reg_id
+		device.type = device_type
+		device.save()
+
+		user.device = device
+		user.save()
+
+	prefs = data.get('Preferences')
+
+	if prefs:
+		for pref in prefs:
+			if pref not in ALLOWED_USER_PREFS:
+				error = "User preference '{}' is not a known preference.".format(pref)
+				return formJsonResult(error)
+
+		user.prefs.update(prefs)
+		user.save()
 
 	return response
