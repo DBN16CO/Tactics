@@ -55,5 +55,6 @@ ehthumbs.db
 *matchmaking.log
 *message_queue.log
 nohup.out
+localsettings.py
 *.rdb
 /Server/cover/*

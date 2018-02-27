@@ -15,6 +15,9 @@ public class MainMenuController : ParentController {
 
 	// Initiate variables and load active games
 	void Start () {
+		Firebase.Messaging.FirebaseMessaging.TokenReceived += OnTokenReceived;
+		Firebase.Messaging.FirebaseMessaging.MessageReceived += OnMessageReceived;
+
 		MOVE_BUTTON_DISTANCE = Screen.height;
 		_startRankedGame = GameObject.Find("RankedGameTab").transform.Find("Battle").gameObject.GetComponent<Button>();
 
@@ -67,6 +70,16 @@ public class MainMenuController : ParentController {
 				}
 			}
 		}
+	}
+
+	public void OnTokenReceived(object sender, Firebase.Messaging.TokenReceivedEventArgs token) {
+		Debug.Log("Received Registration Token: " + token.Token);
+
+		Server.SendFCMToken(token.Token, "android");
+	}
+
+	public void OnMessageReceived(object sender, Firebase.Messaging.MessageReceivedEventArgs e) {
+		Debug.Log("Received a new message from: " + e.Message.From);
 	}
 
 	public void LoadSetTeam() {

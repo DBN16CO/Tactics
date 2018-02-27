@@ -196,6 +196,17 @@ public static class Server {
 		return response;
 	}
 
+	// Sends the FCM Registration Information to the server
+	public static void SendFCMToken(string token, string deviceType) {
+		var request = new Dictionary<string, object>();
+		request["Command"] = "SUI";
+		request["Notifications"] = new Dictionary<string, object>();
+		((Dictionary<string, object>)request["Notifications"])["RegistrationID"] = token;
+		((Dictionary<string, object>)request["Notifications"])["DeviceType"] = deviceType;
+
+		CommunicationManager.RequestAndGetResponse(request);
+	}
+
 	/**
 	 * Used to send the full request to the CommunicationManager.  If the sole parameter for the request is the Command,
 	 * the input request dictionary can be null.

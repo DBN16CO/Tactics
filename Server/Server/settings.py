@@ -34,6 +34,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+ALLOWED_USER_PREFS = [
+    "Grid Opacity"
+]
+
+SUPPORTED_DEVICE_TYPES = [
+    "android",
+    "ios"
+]
 
 # Application definition
 
@@ -50,7 +58,8 @@ INSTALLED_APPS = [
     'User',
     'django_nose',
     'django_celery_beat',
-    'Admin'
+    'Admin',
+    'fcm_django'
 ]
 
 # Use nose to run all tests
@@ -162,3 +171,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+try:
+    from localsettings import *
+except Exception:
+    pass
