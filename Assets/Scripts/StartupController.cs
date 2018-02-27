@@ -1,7 +1,11 @@
+using Common.Cryptography;				// For AES encryption
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+
+using System.Threading;
 
 public class StartupController : ParentController {
 
@@ -21,10 +25,24 @@ public class StartupController : ParentController {
 	private InputField _emailText;
 	private Text _errorText;
 
+	private bool _ilDone = false;
+	private bool _ilCalled = false;
+	private bool _qguDone = false;
+	private bool _guiDone = false;
+
+	void Awake() {
+		// Populate dictionary of called sever functions
+		_functionMapping[RequestType.GUI] = HandleGuiResponse;
+		_functionMapping[RequestType.IL]  = HandleIlResponse;
+		_functionMapping[RequestType.LGN] = HandleLgnResponse;
+		_functionMapping[RequestType.QGU] = HandleQguResponse;
+	}
+
 
 	// Runs on app startup - start server connection, login, load game data
 	void Start () {
-		//PlayerPrefs.DeleteKey("session"); // Uncomment this to test from login screen
+
+		PlayerPrefs.DeleteKey("session"); // Uncomment this to test from login screen
 		CommunicationManager.Start();
 
 		// If session token works, go to game, otherwise remove token and init login UI
@@ -60,6 +78,17 @@ public class StartupController : ParentController {
 			_emailRT.anchoredPosition = new Vector3(0,Mathf.Lerp(_emailRT.anchoredPosition.y,-118.75f,_t));
 			_passwordRT.anchoredPosition = new Vector3(0,Mathf.Lerp(_passwordRT.anchoredPosition.y,-148.75f,_t));
 			_confirmPasswordRT.anchoredPosition = new Vector3(0,Mathf.Lerp(_confirmPasswordRT.anchoredPosition.y,-148.75f,_t));
+		}
+
+		ProcessResponses();
+		if(!_ilDone && !_ilCalled && _qguDone && _guiDone){
+			Server.InitialLoad(this);
+			_ilCalled = true;
+		}
+		else if(_ilDone){
+			_ilDone = false;
+			LoadingCircle.Hide();
+			SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 		}
 	}
 
@@ -128,22 +157,55 @@ public class StartupController : ParentController {
 		}
 
 		// If the user is logging into Tactics
-		response = Server.Login(username, password);
-		if((bool)response["Success"]){
-			GoToMain();
-		}
-		else{
-			_passwordText.text = "";
-			_errorText.text = Parse.String(response["Error"]);
-		}
+		Server.Login(username, password, this);
+		LoadingCircle.Show();
 	}
 
 	// Load game scene
 	private void GoToMain() {
-		Server.GetUserInfo();
-		if(Server.InitialLoad()) {
-			SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
+		Server.GetUserInfo(this);
+		Server.QueryGames(this);
+	}
+
+	private IEnumerator HandleGuiResponse(Dictionary<string, object> response){
+		GameData.SetPlayerData(response);
+		_guiDone = true;
+
+		yield break;
+	}
+
+
+	private IEnumerator HandleIlResponse(Dictionary<string, object> response){
+		GameData.SetGameData(response);
+		_ilDone = true;
+
+		yield break;
+	}
+
+	private IEnumerator HandleQguResponse(Dictionary<string, object> response){
+		GameData.SetMatchData(response);
+		GameData.SetMatchQueueData(response);
+		_qguDone = true;
+
+		yield break;
+	}
+
+	private IEnumerator HandleLgnResponse(Dictionary<string, object> response){
+		if(!(bool)response["Success"]){
+			LoadingCircle.Hide();
+			_passwordText.text = "";
+			_errorText.text = Parse.String(response["Error"]);
+			yield break;
 		}
+
+		string _loginToken = response["Token"].ToString();
+		string _encryptedToken = AES.Encrypt(_loginToken, CommunicationManager.GenerateAESKey());
+		PlayerPrefs.SetString("session", _encryptedToken);
+		PlayerPrefs.Save();
+
+		GoToMain();
+
+		yield break;
 	}
 
 }

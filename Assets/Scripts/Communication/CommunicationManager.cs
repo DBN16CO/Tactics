@@ -22,6 +22,7 @@ public class CommunicationManager
 
 	private static Dictionary<string, Queue<Dictionary<string, object>>> asyncMessagesQueue;
 	private static Queue<Dictionary<string, object>> requestQueue;
+	private static Dictionary<string, ParentController> requestToPc;
 	private static Dictionary<string, Dictionary<string, object>> responseDict;
 
 	private static string url = "ws://tactics-dev.ddns.net:8443";
@@ -40,6 +41,7 @@ public class CommunicationManager
 		//Create the communication data structures
 		asyncMessagesQueue = new Dictionary<string, Queue<Dictionary<string, object>>>();
 		requestQueue = new Queue<Dictionary<string, object>>();
+		requestToPc = new Dictionary<string, ParentController>();
 		responseDict = new Dictionary<string, Dictionary<string, object>>();
 
 		//Create the server connection
@@ -80,11 +82,12 @@ public class CommunicationManager
 
 					if (response != null){
 						//Add the response to the common dictionaries
-						if (response.ContainsKey(
-							"Request_ID")){
+						if (response.ContainsKey("Request_ID")){
 							string requestID = (string) response["Request_ID"];
 							Debug.Log("Obtained response for request " + requestID);
 							responseDict[requestID] = response;
+							requestToPc[requestID].SetRequestReadiness(requestID, ParentController.REQUEST_IS_READY);
+							requestToPc.Remove(requestID);
 							LogDictionary(response);
 						}
 						else{
@@ -179,7 +182,7 @@ public class CommunicationManager
 	/********************************************
 	 * Public Interface functions
 	 ********************************************/
-	public static string Request(Dictionary<string, object> data)
+	public static string Request(Dictionary<string, object> data, ParentController pc)
 	{
 		//Communication Manager Thread crashed, restart it
 		if (!_requestThreadRunning || !_responseThreadRunning){
@@ -188,24 +191,28 @@ public class CommunicationManager
 		}
 
 		//Generate a request id
-		Guid g = Guid.NewGuid();
-		data["Request_ID"] = g.ToString();
+		string rid = Guid.NewGuid().ToString();
+		data["Request_ID"] = rid;
 
 		//Put the request id and the request data into the request Queue
 		lock (requestQueueLock)
 		{
 			requestQueue.Enqueue(data);
+
+			// So communication mananger can notify that PC when the response is received
+			requestToPc[rid] = pc;
+
 			Monitor.Pulse(requestQueueLock);
 		}
 
 		//Return the request id
-		return g.ToString();
+		return rid;
 	}
 
 	public static Dictionary<string, object> RequestAndGetResponse(Dictionary<string, object> data){
-		string requestID = Request(data);
+		//string requestID = Request(data);
 
-		return GetResponse(requestID);
+		return GetResponse("aaa");
 	}
 
 	public static Dictionary<string, object> GetResponse(string request_id, bool blocking = true, int timeout = 2, int sleep_time = 100)

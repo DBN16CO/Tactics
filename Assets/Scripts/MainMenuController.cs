@@ -15,10 +15,6 @@ public class MainMenuController : ParentController {
 
 	// Initiate variables and load active games
 	void Start () {
-		if(!Parse.Bool(Server.QueryGames()["Success"])) {
-			Debug.Log("Query Games failed");
-		}
-
 		MOVE_BUTTON_DISTANCE = Screen.height;
 		_startRankedGame = GameObject.Find("RankedGameTab").transform.Find("Battle").gameObject.GetComponent<Button>();
 
@@ -55,9 +51,9 @@ public class MainMenuController : ParentController {
 				if(data.ContainsKey("Game_ID")){
 					int gameId = Parse.Int(data["Game_ID"]);
 
-					if(!Parse.Bool(Server.QueryGames(gameId)["Success"])) {
-						Debug.Log("Query Games failed");
-					}
+					// if(!Parse.Bool(Server.QueryGames(gameId)["Success"])) {
+					// 	Debug.Log("Query Games failed");
+					// }
 
 					DisplayRankedGameButton();
 
