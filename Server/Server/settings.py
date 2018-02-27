@@ -34,6 +34,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+ALLOWED_USER_PREFS = [
+    "Grid Opacity"
+]
+
+SUPPORTED_DEVICE_TYPES = [
+    "android",
+    "ios"
+]
 
 # Application definition
 

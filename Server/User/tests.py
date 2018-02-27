@@ -257,3 +257,37 @@ class TestLoginLogout(CommonTestHelper):
 		self.assertEquals(device.type, 'android')
 		self.assertEquals(device.registration_id, reg_id)
 
+	def test_lo_09_send_user_info_invalid_data(self):
+		result = self.testHelper.login({"username": self.credentials["username"],
+			"password": self.credentials["password"]})
+
+		reg_id = None
+
+		cmd = {
+			"Command": "SUI",
+			"Notifications": {
+				"RegistrationID": reg_id,
+				"DeviceType": "android"
+			},
+			"Preferences": {
+				"Grid Opacity": 99
+			}
+		}
+
+		self.helper_execute_failure(cmd, "Notification Registration ID is missing for GCM Settings")
+
+		cmd["Notifications"]["RegistrationID"] = "abc123"
+		cmd["Notifications"]["DeviceType"] = None
+
+		self.helper_execute_failure(cmd, "Notification Device type is missing for GCM Settings")
+
+		cmd["Notifications"]["DeviceType"] = "invalid-device"
+
+		self.helper_execute_failure(cmd, "Device type 'invalid-device' is not supported for notifications")
+
+		cmd["Notifications"]["DeviceType"] = 'ios'
+		cmd["Preferences"]["invalid-pref"] = "data"
+
+		self.helper_execute_failure(cmd, "User preference 'invalid-pref' is not a known preference.")
+
+

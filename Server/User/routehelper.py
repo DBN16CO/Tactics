@@ -11,6 +11,7 @@ import User.userhelper
 from User.models import Users
 from Communication.routehelper import *
 from fcm_django.models import FCMDevice
+from Server.settings import ALLOWED_USER_PREFS, SUPPORTED_DEVICE_TYPES
 
 def login(data):
 	"""
@@ -219,8 +220,20 @@ def sendUserInfo(data):
 	gcm_settings = data.get('Notifications')
 
 	if gcm_settings:
-		reg_id = gcm_settings['RegistrationID']
-		device_type = gcm_settings['DeviceType']
+		reg_id = gcm_settings.get('RegistrationID')
+		device_type = gcm_settings.get('DeviceType')
+
+		if reg_id is None:
+			error = "Notification Registration ID is missing for GCM Settings"
+			return formJsonResult(error)
+
+		if device_type is None:
+			error = "Notification Device type is missing for GCM Settings"
+			return formJsonResult(error)
+
+		if device_type not in SUPPORTED_DEVICE_TYPES:
+			error = "Device type '{}' is not supported for notifications".format(device_type)
+			return formJsonResult(error)
 
 		device = FCMDevice()
 		device.registration_id = reg_id
@@ -233,6 +246,11 @@ def sendUserInfo(data):
 	prefs = data.get('Preferences')
 
 	if prefs:
+		for pref in prefs:
+			if pref not in ALLOWED_USER_PREFS:
+				error = "User preference '{}' is not a known preference.".format(pref)
+				return formJsonResult(error)
+
 		user.prefs.update(prefs)
 		user.save()
 
