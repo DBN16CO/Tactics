@@ -124,7 +124,9 @@ public class CommunicationManager
 				//Take a request off the queue
 				lock(requestQueueLock){
 					//Suspend the thread until the websocket receives a message
-					Monitor.Wait(requestQueueLock);
+					if(requestQueue.Count == 0){
+						Monitor.Wait(requestQueueLock);
+					}
 
 					if (requestQueue.Count > 0){
 						request = requestQueue.Dequeue();

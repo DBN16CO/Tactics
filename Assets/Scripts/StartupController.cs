@@ -32,31 +32,27 @@ public class StartupController : ParentController {
 
 	void Awake() {
 		// Populate dictionary of called sever functions
-		_functionMapping[RequestType.GUI] = HandleGuiResponse;
-		_functionMapping[RequestType.IL]  = HandleIlResponse;
+		_functionMapping[RequestType.CU] = HandleLgnResponse;	// Same response as logging in
 		_functionMapping[RequestType.LGN] = HandleLgnResponse;
+		_functionMapping[RequestType.GUI] = HandleGuiResponse;
 		_functionMapping[RequestType.QGU] = HandleQguResponse;
+		_functionMapping[RequestType.IL]  = HandleIlResponse;
 	}
 
 
 	// Runs on app startup - start server connection, login, load game data
 	void Start () {
-
-		PlayerPrefs.DeleteKey("session"); // Uncomment this to test from login screen
+		//PlayerPrefs.DeleteKey("session"); // Uncomment this to test from login screen
 		CommunicationManager.Start();
+
+		Debug.Log("Initializing Login UI");
+		InitLoginUI();
 
 		// If session token works, go to game, otherwise remove token and init login UI
 		if(PlayerPrefs.HasKey("session")) {
-			if(!CommunicationManager.RetryLogin()) {
-				PlayerPrefs.DeleteKey("session");
-				Debug.Log("Initializing Login UI");
-				InitLoginUI();
-			}else{
-				GoToMain();
-			}
-		}else{
-			Debug.Log("Initializing Login UI");
-			InitLoginUI();
+			Debug.Log("Logging in using token.");
+			LoadingCircle.Show();
+			Server.TokenLogin(this);
 		}
 	}
 
@@ -133,36 +129,32 @@ public class StartupController : ParentController {
 
 		string username = _usernameText.text;
 		string password = _passwordText.text;
-		Dictionary<string, object> response;
 
 		// If the user is registering
 		if(selectedButton == "Register") {
 			string email = _emailText.text;
 			string confirmpw = _confirmPasswordText.text;
-			if(string.Equals(password, confirmpw)) {
-				response = Server.CreateUser(username, password, email);
 
-				if(!(bool)response["Success"]) {
-					_passwordText.text = "";
-					_confirmPasswordText.text = "";
-					_errorText.text = Parse.String(response["Error"]);
-					return;
-				}
-			}else{
+			// Ensure the password and confirm password match
+			if(!string.Equals(password, confirmpw)) {
 				_errorText.text = "The password fields do not match.";
 				_passwordText.text = "";
 				_confirmPasswordText.text = "";
 				return;
 			}
+
+			Server.CreateUser(username, password, email, this);
+		}
+		// If the user is logging into Tactics
+		else{
+			Server.Login(username, password, this);
 		}
 
-		// If the user is logging into Tactics
-		Server.Login(username, password, this);
 		LoadingCircle.Show();
 	}
 
 	// Load game scene
-	private void GoToMain() {
+	private void GoToMain(){
 		Server.GetUserInfo(this);
 		Server.QueryGames(this);
 	}
@@ -171,15 +163,14 @@ public class StartupController : ParentController {
 		GameData.SetPlayerData(response);
 		_guiDone = true;
 
-		yield break;
+		yield return null;
 	}
-
 
 	private IEnumerator HandleIlResponse(Dictionary<string, object> response){
 		GameData.SetGameData(response);
 		_ilDone = true;
 
-		yield break;
+		yield return null;
 	}
 
 	private IEnumerator HandleQguResponse(Dictionary<string, object> response){
@@ -187,13 +178,15 @@ public class StartupController : ParentController {
 		GameData.SetMatchQueueData(response);
 		_qguDone = true;
 
-		yield break;
+		yield return null;
 	}
 
 	private IEnumerator HandleLgnResponse(Dictionary<string, object> response){
 		if(!(bool)response["Success"]){
+			Debug.Log("Login Error: " + Parse.String(response["Error"]));
 			LoadingCircle.Hide();
 			_passwordText.text = "";
+			_confirmPasswordText.text = "";
 			_errorText.text = Parse.String(response["Error"]);
 			yield break;
 		}
@@ -205,7 +198,7 @@ public class StartupController : ParentController {
 
 		GoToMain();
 
-		yield break;
+		yield return null;
 	}
 
 }

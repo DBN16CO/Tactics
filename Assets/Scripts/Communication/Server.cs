@@ -1,5 +1,6 @@
-﻿using UnityEngine;						// For Unity's PlayerPrefs
+using Common.Cryptography;
 using System.Collections.Generic;		// For dictionaries
+using UnityEngine;						// For Unity's PlayerPrefs
 
 // Holds all of the Server call functions related to gameplay
 public static class Server {
@@ -13,19 +14,13 @@ public static class Server {
 	 * and requesting all necessary data from the server to fully initialize the game.
 	 */
 	// Used to create a user in the database
-	public static Dictionary<string, object> CreateUser(string username, string pw, string email) {
-		var request = new Dictionary<string, object>();
-		request["Command"] 	= "CU";
+	public static void CreateUser(string username, string pw, string email, ParentController pc){
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["username"]	= username;
 		request["pw"]		= pw;
 		request["email"]	= email;
 
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
-		if(response == null){
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-
-		return response;
+		BasicServerRequest(RequestType.CU, pc, request);
 	}
 
 	// Used to get user info and preferences
@@ -43,6 +38,18 @@ public static class Server {
 		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["username"]	= username;
 		request["pw"]		= pw;
+
+		BasicServerRequest(RequestType.LGN, pc, request);
+	}
+
+	// Used to login to server with cached session token
+	public static void TokenLogin(ParentController pc){
+		string _encryptedToken = PlayerPrefs.GetString("session");
+		string _loginToken = AES.Decrypt(_encryptedToken, CommunicationManager.GenerateAESKey());
+
+		// Create the request, decrypt session token, and send it
+		Dictionary<string, object> request = new Dictionary<string, object>();
+		request["token"] = _loginToken;
 
 		BasicServerRequest(RequestType.LGN, pc, request);
 	}
@@ -227,8 +234,9 @@ public static class Server {
 }
 
 public enum RequestType{
-	GUI = 0,
-	IL  = 1,
-	LGN = 2,
+	CU  = 0,
+	LGN = 1,
+	GUI = 2,
 	QGU = 3,
+	IL  = 4
 };
