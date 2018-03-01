@@ -1,6 +1,6 @@
-using Common.Cryptography;
-using System.Collections.Generic;		// For dictionaries
-using UnityEngine;						// For Unity's PlayerPrefs
+using Common.Cryptography;				// AES
+using System.Collections.Generic;		// Dictionary
+using UnityEngine;						// Unity's PlayerPrefs
 
 // Holds all of the Server call functions related to gameplay
 public static class Server {

@@ -25,10 +25,10 @@ public class StartupController : ParentController {
 	private InputField _emailText;
 	private Text _errorText;
 
-	private bool _ilDone = false;
-	private bool _ilCalled = false;
 	private bool _qguDone = false;
 	private bool _guiDone = false;
+	private bool _ilDone  = false;
+	private Dictionary<string, object> _ilResponse = null;
 
 	void Awake() {
 		// Populate dictionary of called sever functions
@@ -77,12 +77,11 @@ public class StartupController : ParentController {
 		}
 
 		ProcessResponses();
-		if(!_ilDone && !_ilCalled && _qguDone && _guiDone){
-			Server.InitialLoad(this);
-			_ilCalled = true;
+		if(_ilResponse != null && _guiDone){
+			GameData.SetGameData(_ilResponse);
+			_ilDone = true;
 		}
-		else if(_ilDone){
-			_ilDone = false;
+		if(_ilDone && _qguDone && _guiDone){
 			LoadingCircle.Hide();
 			SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
 		}
@@ -157,8 +156,10 @@ public class StartupController : ParentController {
 	private void GoToMain(){
 		Server.GetUserInfo(this);
 		Server.QueryGames(this);
+		Server.InitialLoad(this);
 	}
 
+	// Handles the Get User Info response
 	private IEnumerator HandleGuiResponse(Dictionary<string, object> response){
 		GameData.SetPlayerData(response);
 		_guiDone = true;
@@ -166,13 +167,15 @@ public class StartupController : ParentController {
 		yield return null;
 	}
 
+	// Sets the _ilResponse dictionary so that static unit data can be loaded on the next frame.
+	// This data depends on GUI to be loaded first.
 	private IEnumerator HandleIlResponse(Dictionary<string, object> response){
-		GameData.SetGameData(response);
-		_ilDone = true;
+		_ilResponse = response;
 
 		yield return null;
 	}
 
+	// Handles the Query Games for User response
 	private IEnumerator HandleQguResponse(Dictionary<string, object> response){
 		GameData.SetMatchData(response);
 		GameData.SetMatchQueueData(response);
@@ -181,6 +184,7 @@ public class StartupController : ParentController {
 		yield return null;
 	}
 
+	// Handles the Login or Create User responses, if successful, calls GUI, QGU, and IL
 	private IEnumerator HandleLgnResponse(Dictionary<string, object> response){
 		if(!(bool)response["Success"]){
 			Debug.Log("Login Error: " + Parse.String(response["Error"]));
