@@ -69,60 +69,42 @@ public static class Server {
 	}
 
 	// Used to logout of the server
-	public static bool Logout() {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "LGO";
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
-
-		if (response == null){
-			return false;
-		}
-
-		bool success = (bool)response["Success"];
-		if (success){
-			PlayerPrefs.DeleteKey("session");
-			PlayerPrefs.Save();
-		}
-		return success;
+	public static void Logout(ParentController pc) {
+		BasicServerRequest(RequestType.LGO, pc);
 	}
 
 	// Used to set selected team in database
-	public static Dictionary<string, object> SetTeam(string leader, string ability, List<string> units, List<string> perks) {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "ST";
+	public static void SetTeam(string leader, string ability, List<string> units,
+			List<string> perks, ParentController pc){
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Leader"] = leader;
 		request["Ability"] = ability;
 		request["Units"] = units;
 		request["Perks"] = perks;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if (response == null){
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
+		BasicServerRequest(RequestType.ST, pc, request);
 	}
 
 	// Called to find ranked match after team is set
-	public static Dictionary<string, object> FindMatch() {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "FM";
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
+	public static void FindMatch(ParentController pc) {
+		BasicServerRequest(RequestType.FM, pc);
+	}
 
-		if (response == null){
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
+	// Called to cancel ranked match queue
+	public static void CancelQueue(ParentController pc) {
+		BasicServerRequest(RequestType.CS, pc);
 	}
 
 	// Called to send placed unit info to database
-	public static Dictionary<string, object> PlaceUnits(MatchData match) {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "PU";
+	public static void PlaceUnits(MatchData match, ParentController pc) {
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Game"] = match.Name;
 
 		List<Dictionary<string, object>> unitsDict = new List<Dictionary<string, object>>();
+		Dictionary<string, object> unitDict;
+
 		foreach(Unit unit in GameController.Units) {
-			var unitDict = new Dictionary<string, object>();
+			unitDict = new Dictionary<string, object>();
 			unitDict["ID"] 		= unit.ID;
 			unitDict["Name"] 	= unit.UnitName;
 			unitDict["X"]		= unit.X;
@@ -130,25 +112,8 @@ public static class Server {
 			unitsDict.Add(unitDict);
 		}
 		request["Units"] = unitsDict;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if (response == null){
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
-	}
-
-	// Called to cancel ranked match queue
-	public static bool CancelQueue() {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "CS";
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
-
-		if (response == null){
-			return false;
-		}
-		bool success = (bool)response["Success"];
-		return success;
+		BasicServerRequest(RequestType.PU, pc, request);
 	}
 
 	// Called to have a unit take a move action on the game map
@@ -234,9 +199,16 @@ public static class Server {
 }
 
 public enum RequestType{
-	CU  = 0,
-	LGN = 1,
-	GUI = 2,
-	QGU = 3,
-	IL  = 4
+	CU  =  0,
+	LGN =  1,
+	GUI =  2,
+	QGU =  3,
+	IL  =  4,
+	ST  =  5,
+	FM  =  6,
+	CS  =  7,
+	LGO =  8,
+	PU  =  9,
+	ET  = 10,
+	TA  = 11
 };

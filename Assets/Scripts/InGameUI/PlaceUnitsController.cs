@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +10,11 @@ public class PlaceUnitsController : ParentController {
 
 	private RectTransform unitsRect;
 	private GameObject _submit;
+
+	// Register handler functions
+	void Awake(){
+		_functionMapping[RequestType.PU] = HandlePuResponse;
+	}
 
 	// Runs when GameObject is added to scene
 	void Start() {
@@ -24,6 +30,10 @@ public class PlaceUnitsController : ParentController {
 		// Init game vars
 		_units = new List<PUUnit>();
 		InitPlaceUnits();
+	}
+
+	void Update(){
+		ProcessResponses();
 	}
 
 	// Runs when the app is closed - attempt to close the websocket cleanly
@@ -68,19 +78,25 @@ public class PlaceUnitsController : ParentController {
 
 	// Action when submit button is pressed
 	void PlaceUnits(){
-		Dictionary<string, object> response = Server.PlaceUnits(GameData.CurrentMatch);
-		if(Parse.Bool(response["Success"])){
-			GameController.PlacingUnits = false;
-			for(int x = 0; x < GameController.Tokens.Length; x++) {
-				for(int y = 0; y < GameController.Tokens[x].Length; y++) {
-					GameController.Tokens[x][y].SetActionProperties("clear");
-				}
-			}
-			Destroy(gameObject);
-		}
-		else{
+		Server.PlaceUnits(GameData.CurrentMatch, this);
+	}
+
+	private IEnumerator HandlePuResponse(Dictionary<string, object> response){
+		if(!Parse.Bool(response["Success"])){
 			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
+
+			yield break;
 		}
+
+		GameController.PlacingUnits = false;
+		for(int x = 0; x < GameController.Tokens.Length; x++) {
+			for(int y = 0; y < GameController.Tokens[x].Length; y++) {
+				GameController.Tokens[x][y].SetActionProperties("clear");
+			}
+		}
+		Destroy(gameObject);
+
+		yield return null;
 	}
 
 }

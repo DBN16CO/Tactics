@@ -1,12 +1,15 @@
-﻿using UnityEngine;
+using System;					// DateTime
+using System.Collections;		// IEnumerator
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using System.Collections.Generic;
 
 // This class controls the SetTeamController GameObject in the SetTeam scene
 public class SetTeamController : ParentController {
 
 	/* Constant vars */
+	private static readonly DateTime STC_EPOCH = new DateTime(1970, 1, 1);
 	public GameObject leader;					// The leader selected
 	public string ability;						// The ability associated with that leader
 	public List<string> units;					// A list of units, the element is the name of the unit
@@ -28,6 +31,12 @@ public class SetTeamController : ParentController {
 
 /// -----------------------------------------------------------------------------------------------
 /// Unity methods ---------------------------------------------------------------------------------
+	void Awake(){
+		// Populate dictionary of called sever functions
+		_functionMapping[RequestType.ST] = HandleStResponse;
+		_functionMapping[RequestType.FM] = HandleFmResponse;
+	}
+
 	void Start () {
 		// Populate LeaderTab
 		List<string> strLeaders = new List<string>(GameData.Leaders.Keys);
@@ -52,6 +61,10 @@ public class SetTeamController : ParentController {
 		_maxFunds = GameData.Version.MaxFunds;
 		FundsRemaining = _maxFunds;
 		ErrorMessageText = GameObject.Find("SetTeamErrorMessage").GetComponent<Text>();
+	}
+
+	void Update(){
+		ProcessResponses();
 	}
 
 /// -----------------------------------------------------------------------------------------------
@@ -80,18 +93,10 @@ public class SetTeamController : ParentController {
 				}
 			}
 
-			Dictionary<string, object> response = Server.SetTeam(strLeader, ability, units, strPerks);
-			if(Parse.Bool(response["Success"])){
-				Dictionary<string, object> fmResponse = Server.FindMatch();
-				if(! Parse.Bool(fmResponse["Success"])) {
-					ErrorMessageText.text = Parse.String(fmResponse["Error"]);
-				}
-				SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
-			}
-			else{
-				ErrorMessageText.text = Parse.String(response["Error"]);
-			}
-		}else{
+			LoadingCircle.Show();
+			Server.SetTeam(strLeader, ability, units, strPerks, this);
+		}
+		else{
 			Debug.Log("Invalid team");
 		}
 	}
@@ -185,5 +190,40 @@ public class SetTeamController : ParentController {
 		_rt.anchoredPosition = new Vector3((i % 2) * _rt.sizeDelta.x * _rt.localScale.x, (-i / 2) * _rt.sizeDelta.y * _rt.localScale.y);
 		_perk.GetComponent<SelectPerkController>().AssignPerk(perkData);
 		GameObject.Find("PerkTabContent").GetComponent<RectTransform>().sizeDelta = new Vector3(0,((i/2)+1) * _rt.sizeDelta.y * _rt.localScale.y);
+	}
+
+	// Handles when the Set Team response is returned
+	private IEnumerator HandleStResponse(Dictionary<string, object> response){
+		if(!Parse.Bool(response["Success"])){
+			ErrorMessageText.text = Parse.String(response["Error"]);
+			LoadingCircle.Hide();
+
+			yield break;
+		}
+		Server.FindMatch(this);
+	}
+
+	// Handles when the Find Match response is returned
+	private IEnumerator HandleFmResponse(Dictionary<string, object> response){
+		LoadingCircle.Hide();
+
+		if(!Parse.Bool(response["Success"])) {
+			ErrorMessageText.text = Parse.String(response["Error"]);
+
+			yield break;
+		}
+
+		// Get time since epoch
+		TimeSpan t = DateTime.UtcNow - STC_EPOCH;
+		int secondsSinceEpoch = (int)t.TotalSeconds;
+
+		Dictionary<string, object> qData = new Dictionary<string, object>();
+		qData["In_Game_Queue"]  = true;
+		qData["In_Queue_Since"] = secondsSinceEpoch;
+		GameData.SetMatchQueueData(qData);
+
+		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
+
+		yield return null;
 	}
 }

@@ -32,7 +32,7 @@ public class StartupController : ParentController {
 
 	void Awake() {
 		// Populate dictionary of called sever functions
-		_functionMapping[RequestType.CU] = HandleLgnResponse;	// Same response as logging in
+		_functionMapping[RequestType.CU]  = HandleLgnResponse;	// Same response as logging in
 		_functionMapping[RequestType.LGN] = HandleLgnResponse;
 		_functionMapping[RequestType.GUI] = HandleGuiResponse;
 		_functionMapping[RequestType.QGU] = HandleQguResponse;

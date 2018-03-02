@@ -27,6 +27,7 @@ public class ParentController : MonoBehaviour {
 		lock(_readyRequestLock){
 			RequestsAreReady[rid] = isReady;
 		}
+		Debug.Log("Setting request " + rid + " as ready.");
 	}
 
 	protected void ProcessResponses(){
@@ -47,6 +48,7 @@ public class ParentController : MonoBehaviour {
 						Debug.Log("ERROR: Missing mapping for RequestType value: " + RequestToType[rid].ToString());
 					}
 					else{
+						Debug.Log("Handling response for: " + RequestToType[rid].ToString());
 						StartCoroutine(_functionMapping[RequestToType[rid]](Server.GetResponse(rid)));
 					}
 
