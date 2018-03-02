@@ -1,6 +1,5 @@
-using Common.Cryptography;				// For AES encryption
-using System.Collections;
-using System.Collections.Generic;
+using Common.Cryptography;			// For AES encryption
+using System.Collections.Generic;	// Dictionary
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -160,39 +159,34 @@ public class StartupController : ParentController {
 	}
 
 	// Handles the Get User Info response
-	private IEnumerator HandleGuiResponse(Dictionary<string, object> response){
+	private void HandleGuiResponse(Dictionary<string, object> response){
 		GameData.SetPlayerData(response);
 		_guiDone = true;
-
-		yield return null;
 	}
 
 	// Sets the _ilResponse dictionary so that static unit data can be loaded on the next frame.
 	// This data depends on GUI to be loaded first.
-	private IEnumerator HandleIlResponse(Dictionary<string, object> response){
+	private void HandleIlResponse(Dictionary<string, object> response){
 		_ilResponse = response;
-
-		yield return null;
 	}
 
 	// Handles the Query Games for User response
-	private IEnumerator HandleQguResponse(Dictionary<string, object> response){
+	private void HandleQguResponse(Dictionary<string, object> response){
 		GameData.SetMatchData(response);
 		GameData.SetMatchQueueData(response);
 		_qguDone = true;
-
-		yield return null;
 	}
 
 	// Handles the Login or Create User responses, if successful, calls GUI, QGU, and IL
-	private IEnumerator HandleLgnResponse(Dictionary<string, object> response){
+	private void HandleLgnResponse(Dictionary<string, object> response){
 		if(!(bool)response["Success"]){
 			Debug.Log("Login Error: " + Parse.String(response["Error"]));
 			LoadingCircle.Hide();
 			_passwordText.text = "";
 			_confirmPasswordText.text = "";
 			_errorText.text = Parse.String(response["Error"]);
-			yield break;
+
+			return;
 		}
 
 		string _loginToken = response["Token"].ToString();
@@ -201,8 +195,6 @@ public class StartupController : ParentController {
 		PlayerPrefs.Save();
 
 		GoToMain();
-
-		yield return null;
 	}
 
 }

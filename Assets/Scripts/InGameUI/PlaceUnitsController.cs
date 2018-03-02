@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using System.Collections.Generic;	// Dictionary
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -81,11 +80,11 @@ public class PlaceUnitsController : ParentController {
 		Server.PlaceUnits(GameData.CurrentMatch, this);
 	}
 
-	private IEnumerator HandlePuResponse(Dictionary<string, object> response){
+	private void HandlePuResponse(Dictionary<string, object> response){
 		if(!Parse.Bool(response["Success"])){
 			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
 
-			yield break;
+			return;
 		}
 
 		GameController.PlacingUnits = false;
@@ -95,8 +94,6 @@ public class PlaceUnitsController : ParentController {
 			}
 		}
 		Destroy(gameObject);
-
-		yield return null;
 	}
 
 }

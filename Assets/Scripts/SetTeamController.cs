@@ -1,6 +1,5 @@
-using System;					// DateTime
-using System.Collections;		// IEnumerator
-using System.Collections.Generic;
+using System;						// DateTime
+using System.Collections.Generic;	// Dictionary
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -193,24 +192,24 @@ public class SetTeamController : ParentController {
 	}
 
 	// Handles when the Set Team response is returned
-	private IEnumerator HandleStResponse(Dictionary<string, object> response){
+	private void HandleStResponse(Dictionary<string, object> response){
 		if(!Parse.Bool(response["Success"])){
 			ErrorMessageText.text = Parse.String(response["Error"]);
 			LoadingCircle.Hide();
 
-			yield break;
+			return;
 		}
 		Server.FindMatch(this);
 	}
 
 	// Handles when the Find Match response is returned
-	private IEnumerator HandleFmResponse(Dictionary<string, object> response){
+	private void HandleFmResponse(Dictionary<string, object> response){
 		LoadingCircle.Hide();
 
 		if(!Parse.Bool(response["Success"])) {
 			ErrorMessageText.text = Parse.String(response["Error"]);
 
-			yield break;
+			return;
 		}
 
 		// Get time since epoch
@@ -223,7 +222,5 @@ public class SetTeamController : ParentController {
 		GameData.SetMatchQueueData(qData);
 
 		SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
-
-		yield return null;
 	}
 }

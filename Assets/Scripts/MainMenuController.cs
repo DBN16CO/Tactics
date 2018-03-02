@@ -1,6 +1,5 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using System;						// DateTime
+using System.Collections.Generic;	// Dictionary
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -25,7 +24,7 @@ public class MainMenuController : ParentController {
 	// Initiate variables and load active games
 	void Start () {
 		Firebase.Messaging.FirebaseMessaging.TokenReceived += OnTokenReceived;
-	//	Firebase.Messaging.FirebaseMessaging.MessageReceived += OnMessageReceived;
+		Firebase.Messaging.FirebaseMessaging.MessageReceived += OnMessageReceived;
 
 		MOVE_BUTTON_DISTANCE = Screen.height;
 		_startRankedGame = GameObject.Find("RankedGameTab").transform.Find("Battle").gameObject.GetComponent<Button>();
@@ -87,6 +86,7 @@ public class MainMenuController : ParentController {
 
 	// Cancel the match search for the specific user
 	public void CancelQueuedMatch(){
+		LoadingCircle.Show();
 		Server.CancelQueue(this);
 	}
 
@@ -138,15 +138,15 @@ public class MainMenuController : ParentController {
 		}
 	}
 
-	//TODO: Untested
-	private IEnumerator HandleQguResponse(Dictionary<string, object> response){
+	// Handles when a match is found and the new game needs to be added to the user's list
+	private void HandleQguResponse(Dictionary<string, object> response){
 		GameData.SetMatchData(response);
 		GameData.SetMatchQueueData(response);
 
 		if(response["Games"].ToString() == "[]"){
 			Debug.Log("ERROR: QGU did not return any games.");
 
-			yield break;
+			return;
 		}
 
 		DisplayRankedGameButton();
@@ -169,12 +169,12 @@ public class MainMenuController : ParentController {
 		// Adjust the size of the scrollable area
 		activeGames.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.width,
 			300 * (float)GameData.Matches.Count);
-
-		yield return null;
 	}
 
-	//TODO: Untested
-	private IEnumerator HandleCsResponse(Dictionary<string, object> response){
+	// Handles when the player wants to cancel searching for a match
+	private void HandleCsResponse(Dictionary<string, object> response){
+		LoadingCircle.Hide();
+
 		// Hide cancel button
 		RectTransform rt = _cancelRankedButton.GetComponent<RectTransform>();
 		rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, rt.anchoredPosition.y + MOVE_BUTTON_DISTANCE);
@@ -182,8 +182,6 @@ public class MainMenuController : ParentController {
 		// Show set team button
 		rt = _startRankedGame.GetComponent<RectTransform>();
 		rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, rt.anchoredPosition.y - MOVE_BUTTON_DISTANCE);
-
-		yield return null;
 	}
 
 }

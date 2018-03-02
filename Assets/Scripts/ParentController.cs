@@ -1,7 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
+using System;						// Action
+using System.Collections.Generic;	// Dictionary
+using System.Threading;				// lock, Monitor
 using UnityEngine;
 
 public class ParentController : MonoBehaviour {
@@ -49,7 +48,7 @@ public class ParentController : MonoBehaviour {
 					}
 					else{
 						Debug.Log("Handling response for: " + RequestToType[rid].ToString());
-						StartCoroutine(_functionMapping[RequestToType[rid]](Server.GetResponse(rid)));
+						_functionMapping[RequestToType[rid]](Server.GetResponse(rid));
 					}
 
 					RequestsAreReady.Remove(rid);
@@ -63,6 +62,6 @@ public class ParentController : MonoBehaviour {
 		}
 	}
 
-	protected Dictionary<RequestType, Func<Dictionary<string, object>, IEnumerator>> _functionMapping =
-			new Dictionary<RequestType, Func<Dictionary<string, object>, IEnumerator>>();
+	protected Dictionary<RequestType, Action<Dictionary<string, object>>> _functionMapping =
+			new Dictionary<RequestType, Action<Dictionary<string, object>>>();
 }

@@ -1,4 +1,3 @@
-using System.Collections;			// IEnumerator
 using System.Collections.Generic;	// Dictionary
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,12 +27,10 @@ public class AdController : ParentController {
 		Server.Logout(this);
 	}
 
-	private IEnumerator HandleLgoResponse(Dictionary<string, object> response){
+	private void HandleLgoResponse(Dictionary<string, object> response){
 		// Delete player preferences regardless of request success
 		PlayerPrefs.DeleteKey("session");
 		PlayerPrefs.Save();
 		SceneManager.LoadSceneAsync("Startup", LoadSceneMode.Single);
-
-		yield return null;
 	}
 }
