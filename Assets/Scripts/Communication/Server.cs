@@ -117,9 +117,8 @@ public static class Server {
 	}
 
 	// Called to have a unit take a move action on the game map
-	public static Dictionary<string, object> TakeNonTargetAction(Unit unit, string action, int X = -1, int Y = -1) {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "TA";
+	public static void TakeNonTargetAction(ParentController pc, Unit unit, string action, int X = -1, int Y = -1) {
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Game"] = GameData.CurrentMatch.Name;
 		request["Action"] = action;
 		request["Unit"] = unit.ID;
@@ -127,18 +126,13 @@ public static class Server {
 		// Wait at current position if optional params not passed in
 		request["X"] = (X == -1)? unit.X : X;
 		request["Y"] = (Y == -1)? unit.Y : Y;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if(response == null) {
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
+		BasicServerRequest(RequestType.TA, pc, request);
 	}
 
 	// Called to have a unit take an attack/heal action on the game map
-	public static Dictionary<string, object> TakeTargetAction(Unit unit, string action, int targetID, int X = -1, int Y = -1){
-		var request = new Dictionary<string, object>();
-		request["Command"] = "TA";
+	public static void TakeTargetAction(ParentController pc, Unit unit, string action, int targetID, int X = -1, int Y = -1){
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Game"] = GameData.CurrentMatch.Name;
 		request["Action"] = action;
 		request["Unit"] = unit.ID;
@@ -147,36 +141,26 @@ public static class Server {
 		request["X"] = (X == -1)? unit.X : X;
 		request["Y"] = (Y == -1)? unit.Y : Y;
 		request["Target"] = targetID;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if(response == null) {
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
+		BasicServerRequest(RequestType.TA, pc, request);
 	}
 
 	// Called to end a player's turn
-	public static Dictionary<string, object> EndTurn() {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "ET";
+	public static void EndTurn(ParentController pc) {
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Game"] = GameData.CurrentMatch.Name;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if(response == null) {
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
+		BasicServerRequest(RequestType.ET, pc, request);
 	}
 
 	// Sends the FCM Registration Information to the server
-	public static void SendFCMToken(string token, string deviceType) {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "SUI";
+	public static void SendFCMToken(ParentController pc, string token, string deviceType) {
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Notifications"] = new Dictionary<string, object>();
 		((Dictionary<string, object>)request["Notifications"])["RegistrationID"] = token;
 		((Dictionary<string, object>)request["Notifications"])["DeviceType"] = deviceType;
 
-		CommunicationManager.RequestAndGetResponse(request);
+		BasicServerRequest(RequestType.SUI, pc, request);
 	}
 
 	/**
@@ -209,6 +193,7 @@ public enum RequestType{
 	CS  =  7,
 	LGO =  8,
 	PU  =  9,
-	ET  = 10,
-	TA  = 11
+	TA  = 10,
+	ET  = 11,
+	SUI = 12
 };

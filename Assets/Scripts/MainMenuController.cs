@@ -19,6 +19,7 @@ public class MainMenuController : ParentController {
 		// Populate dictionary of called sever functions
 		_functionMapping[RequestType.QGU] = HandleQguResponse;
 		_functionMapping[RequestType.CS]  = HandleCsResponse;
+		_functionMapping[RequestType.SUI] = HandleSuiResponse;
 	}
 
 	// Initiate variables and load active games
@@ -73,7 +74,7 @@ public class MainMenuController : ParentController {
 	public void OnTokenReceived(object sender, Firebase.Messaging.TokenReceivedEventArgs token) {
 		Debug.Log("Received Registration Token: " + token.Token);
 
-		Server.SendFCMToken(token.Token, "android");
+		Server.SendFCMToken(this, token.Token, "android");
 	}
 
 	public void OnMessageReceived(object sender, Firebase.Messaging.MessageReceivedEventArgs e) {
@@ -182,6 +183,10 @@ public class MainMenuController : ParentController {
 		// Show set team button
 		rt = _startRankedGame.GetComponent<RectTransform>();
 		rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, rt.anchoredPosition.y - MOVE_BUTTON_DISTANCE);
+	}
+
+	private void HandleSuiResponse(Dictionary<string, object> response){
+		// Do nothing?!
 	}
 
 }
