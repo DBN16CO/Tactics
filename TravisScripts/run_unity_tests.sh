@@ -10,12 +10,12 @@
 result=$?
 echo "The Unity tests ran with an exit code of $result"
 
-echo "-------------START unity_logfile.log-------------"
-cat $(pwd)/unity_logfile.log
-echo "-------------END unity_logfile.log-------------"
-
 echo "-------------START unity_tests.log-------------"
 cat $(pwd)/unity_tests.xml
 echo "-------------END unity_tests.log-------------"
+
+echo "-------------START unity_logfile.log-------------"
+cat $(pwd)/unity_logfile.log
+echo "-------------END unity_logfile.log-------------"
 
 exit $result
