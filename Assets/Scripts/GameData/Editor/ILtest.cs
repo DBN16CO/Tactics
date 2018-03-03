@@ -27,7 +27,7 @@ public class ILTest
 	public void AbilityDataTest(){
 		AbilityData ab = new AbilityData(new KeyValuePair<string, object>(testNameVal, testDescVal));
 
-		Assert.AreEqual(ab.Name, "test failure");
+		Assert.AreEqual(ab.Name, testNameVal);
 		Assert.AreEqual(ab.Description, testDescVal);
 	}
 
