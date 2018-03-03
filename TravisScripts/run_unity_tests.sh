@@ -15,8 +15,7 @@ cat $(pwd)/unity_tests.xml
 echo "-------------END unity_tests.xml-------------"
 
 echo "-------------START unity_logfile.log-------------"
-#cat $(pwd)/unity_logfile.log
-cat ~/Library/Logs/Unity/Editor.log
+cat $(pwd)/unity_logfile.log
 echo "-------------END unity_logfile.log-------------"
 
 exit $result
