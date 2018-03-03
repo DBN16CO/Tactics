@@ -451,6 +451,7 @@ def endTurn(data):
 		return formJsonResult(game_data["Error"], data)
 
 	game = game_data["Game"]
+	game_user = Game_User.objects.filter(game=game, user=game_data["User"]).first()
 	other_user = Game_User.objects.filter(game=game).exclude(user=game_data["User"]).first().user
 
 	# Update the game to be the other user's turn
@@ -466,7 +467,12 @@ def endTurn(data):
 	async_data = {}
 	async_data["Game_ID"] = game.id
 
+	dev_title = "It's your turn!"
+	dev_msg = game_user.name
+
 	async_message = AsyncMessages(user=other_user, message_key=notify_message_key, data=async_data)
+	async_message.device_title = dev_title
+	async_message.device_message = dev_msg
 	async_message.save()
 
 	return formJsonResult(None, data)

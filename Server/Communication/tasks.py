@@ -63,7 +63,14 @@ def process_message_queue():
 				else:
 					if is_message_expired(message):
 						logger.debug("Message with id {} has expired.".format(message.id))
-						# TODO: Send an email once email notifications are implemented
+						
+						device = message.user.device
+						if device and device.active:
+							logger.debug("Sending the user a notification!")
+							title = message.device_title
+							msg = message.device_message
+							sound = "default"
+							device.send_message(title=title, message=msg, sound=sound)
 
 						# Delete the expired message
 						message.delete()
