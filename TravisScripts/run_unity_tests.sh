@@ -5,7 +5,7 @@
   -silent-crashes \
   -logFile $(pwd)/unity_logfile.log \
   -projectPath $(pwd) \
-  -editorTestsResultFile $(pwd)/unity_tests.log \
+  -editorTestsResultFile $(pwd)/unity_tests.xml \
   -runEditorTests \
   -quit
 result=$?
@@ -16,7 +16,7 @@ echo "The Unity tests ran with an exit code of $result"
 #echo "-------------END unity_logfile.log-------------"
 
 echo "-------------START unity_tests.log-------------"
-cat $(pwd)/unity_tests.log
+cat $(pwd)/unity_tests.xml
 echo "-------------END unity_tests.log-------------"
 
 exit $result
