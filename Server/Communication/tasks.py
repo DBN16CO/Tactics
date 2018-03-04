@@ -1,12 +1,11 @@
-import celery
 import logging
 import datetime
 import json
 import os
+import celery
 from Server import config
 from channels import Channel
 from Communication.models import AsyncMessages
-from celery.utils.log import get_task_LOGGER
 from django.db import transaction
 from Server.config import MESSAGE_EXPIRATION
 from django.utils import timezone
