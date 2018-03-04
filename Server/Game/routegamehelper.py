@@ -452,7 +452,8 @@ def endTurn(data):
 
 	game = game_data["Game"]
 	game_user = Game_User.objects.filter(game=game, user=game_data["User"]).first()
-	other_user = Game_User.objects.filter(game=game).exclude(user=game_data["User"]).first().user
+	other_game_user = Game_User.objects.filter(game=game).exclude(user=game_data["User"]).first()
+	other_user = other_game_user.user
 
 	# Update the game to be the other user's turn
 	game.user_turn = other_user
@@ -467,8 +468,8 @@ def endTurn(data):
 	async_data = {}
 	async_data["Game_ID"] = game.id
 
-	dev_title = "It's your turn!"
-	dev_msg = game_user.name
+	dev_title = "Your opponent has taken their turn!"
+	dev_msg = other_game_user.name
 
 	async_message = AsyncMessages(user=other_user, message_key=notify_message_key, data=async_data)
 	async_message.device_title = dev_title

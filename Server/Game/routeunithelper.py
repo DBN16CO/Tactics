@@ -290,9 +290,6 @@ def takeAction(data):
 		async_data["Game_ID"] = game.id
 		del async_data["Success"]
 
-		dev_title = ""
-		dev_msg = ""
-
 		opp_user = Game_User.objects.filter(game=game).exclude(user=user).first()
 		async_message = AsyncMessages(user=opp_user.user, message_key=notify_message_key, data=async_data)
 

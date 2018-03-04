@@ -33,15 +33,51 @@ def is_message_expired(message):
 
 	return False
 
+def send_notification(device, message):
+	"""
+	Sends the given device a notification.
+
+	:type device: FCMDevice
+	:param message: The model of the user's phone
+
+	:type messsage: AsyncMessage
+	:param message: Contains the data about the notification settings
+	"""
+	logger.debug("Sending the user a notification!")
+	notify_data = {
+		"title": message.device_title,
+		"body": message.device_message,
+		"sound": message.device_sound
+	}
+
+	if message.device_icon:
+		notify_data["icon"] = message.device_icon
+
+	result = device.send_message(**notify_data)
+	if result['success'] == 1:
+		logger.debug("Notification sent successfully!")
+	else:
+		logger.debug("Notification failed to be sent!")
+
 @celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=config.MESSAGE_QUEUE_INTERVAL))
-def process_message_queue():
+def process_message_queue(notify_expected=False):
+	"""
+	Processes the asynchronous message queue.
+	Can send messages via websocket or via Google's notification service (Firebase).
+
+	:type notify_expected: bool
+	:param notify_expected: Used for indicating if automated tests expect notifications to be sent
+	"""
 	try:
 		with transaction.atomic():
 			messages = AsyncMessages.objects.select_for_update()
 
 			for message in messages:
-				sent = message.sent
-				if not sent:
+				# Used for automated testing of notification path
+				notified = False
+
+				websocket_sent = message.websocket_sent
+				if not websocket_sent:
 					channel_name = message.user.channel
 					msg = message.message_key
 					data = message.data
@@ -53,27 +89,38 @@ def process_message_queue():
 					channel = Channel(channel_name)
 					channel.send({u'bytes': json.dumps(msg)})
 
-					message.sent = True
+					message.websocket_sent = True
 					message.save()
 					continue
 
 				if message.received:
 					logging.debug("Message response received, deleting message")
 					message.delete()
-				else:
-					if is_message_expired(message):
-						logger.debug("Message with id {} has expired.".format(message.id))
-						
-						device = message.user.device
-						if device and device.active:
-							logger.debug("Sending the user a notification!")
-							title = message.device_title
-							msg = message.device_message
-							sound = "default"
-							device.send_message(title=title, message=msg, sound=sound)
+				elif is_message_expired(message):
+					logger.debug("Message with id {} has expired.".format(message.id))
 
-						# Delete the expired message
-						message.delete()
+					device = message.user.device
+
+					# Only send the user a notification if they have a registered & active device
+					is_active_device = device is not None and device.active
+
+					# Only send the user a notification if the message is a message
+					# that we want to send notifications for
+					is_notify_message = message.device_title != None
+
+					if is_active_device and is_notify_message:
+						title = message.device_title
+						body = message.device_message
+						send_notification(device, message)
+
+						# Used for automated testing of notification path
+						notified = True
+
+					# Delete the expired message
+					message.delete()
+
+				if notify_expected:
+					assert notified
 
 	except Exception as e:
 		logging.exception(e)
