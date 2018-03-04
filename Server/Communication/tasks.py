@@ -2,6 +2,7 @@ import celery
 import logging
 import datetime
 import json
+import os
 from Server import config
 from channels import Channel
 from Communication.models import AsyncMessages
@@ -109,9 +110,11 @@ def process_message_queue(notify_expected=False):
 					is_notify_message = message.device_title != None
 
 					if is_active_device and is_notify_message:
-						title = message.device_title
-						body = message.device_message
-						send_notification(device, message)
+						try:
+							send_notification(device, message)
+						except Exception:
+							if 'TEST_ENV' not in os.environ:
+								raise
 
 						# Used for automated testing of notification path
 						notified = True

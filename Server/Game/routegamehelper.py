@@ -451,7 +451,6 @@ def endTurn(data):
 		return formJsonResult(game_data["Error"], data)
 
 	game = game_data["Game"]
-	game_user = Game_User.objects.filter(game=game, user=game_data["User"]).first()
 	other_game_user = Game_User.objects.filter(game=game).exclude(user=game_data["User"]).first()
 	other_user = other_game_user.user
 
