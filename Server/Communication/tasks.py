@@ -6,15 +6,15 @@ import os
 from Server import config
 from channels import Channel
 from Communication.models import AsyncMessages
-from celery.utils.log import get_task_logger
+from celery.utils.log import get_task_LOGGER
 from django.db import transaction
 from Server.config import MESSAGE_EXPIRATION
 from django.utils import timezone
 
-logger = get_task_logger(__name__)
-fh = logging.FileHandler('./{0}'.format(config.MESSAGE_QUEUE_LOG_NAME), mode='a')
-logger.addHandler(fh)
-logger.setLevel(config.MESSAGE_QUEUE_LOG_LEVEL)
+LOGGER = get_task_LOGGER(__name__)
+FHANDLER = logging.FileHandler('./{0}'.format(config.MESSAGE_QUEUE_LOG_NAME), mode='a')
+LOGGER.addHandler(FHANDLER)
+LOGGER.setLevel(config.MESSAGE_QUEUE_LOG_LEVEL)
 
 def is_message_expired(message):
 	"""
@@ -44,7 +44,7 @@ def send_notification(device, message):
 	:type messsage: AsyncMessage
 	:param message: Contains the data about the notification settings
 	"""
-	logger.debug("Sending the user a notification!")
+	LOGGER.debug("Sending the user a notification!")
 	notify_data = {
 		"title": message.device_title,
 		"body": message.device_message,
@@ -56,9 +56,9 @@ def send_notification(device, message):
 
 	result = device.send_message(**notify_data)
 	if result['success'] == 1:
-		logger.debug("Notification sent successfully!")
+		LOGGER.debug("Notification sent successfully!")
 	else:
-		logger.debug("Notification failed to be sent!")
+		LOGGER.debug("Notification failed to be sent!")
 
 def send_websocket_message(message):
 	"""
@@ -67,7 +67,7 @@ def send_websocket_message(message):
 	:type messsage: AsyncMessage
 	:param message: Contains the data about the websocket message settings
 	"""
-	logger.debug("Sending the user a websocket message!")
+	LOGGER.debug("Sending the user a websocket message!")
 	channel_name = message.user.channel
 	msg = message.message_key
 	data = message.data
@@ -108,7 +108,7 @@ def process_message_queue(notify_expected=False):
 					logging.debug("Message response received, deleting message")
 					message.delete()
 				elif is_message_expired(message):
-					logger.debug("Message with id {} has expired.".format(message.id))
+					LOGGER.debug("Message with id {} has expired.".format(message.id))
 
 					device = message.user.device
 
@@ -135,5 +135,5 @@ def process_message_queue(notify_expected=False):
 				if notify_expected:
 					assert notified
 
-	except Exception as e:
-		logging.exception(e)
+	except Exception as exc:
+		logging.exception(exc)
