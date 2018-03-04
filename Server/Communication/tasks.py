@@ -60,6 +60,28 @@ def send_notification(device, message):
 	else:
 		logger.debug("Notification failed to be sent!")
 
+def send_websocket_message(message):
+	"""
+	Sends the user's device a message via websocket.
+
+	:type messsage: AsyncMessage
+	:param message: Contains the data about the websocket message settings
+	"""
+	logger.debug("Sending the user a websocket message!")
+	channel_name = message.user.channel
+	msg = message.message_key
+	data = message.data
+
+	msg = {"ID": message.id, "Key": msg, "Data": data}
+
+	# Send message to user
+	logging.debug("Sending {} message: {}".format(message.user.username, msg))
+	channel = Channel(channel_name)
+	channel.send({u'bytes': json.dumps(msg)})
+
+	message.websocket_sent = True
+	message.save()
+
 @celery.decorators.periodic_task(run_every=datetime.timedelta(seconds=config.MESSAGE_QUEUE_INTERVAL))
 def process_message_queue(notify_expected=False):
 	"""
@@ -79,19 +101,7 @@ def process_message_queue(notify_expected=False):
 
 				websocket_sent = message.websocket_sent
 				if not websocket_sent:
-					channel_name = message.user.channel
-					msg = message.message_key
-					data = message.data
-
-					msg = {"ID": message.id, "Key": msg, "Data": data}
-
-					# Send message to user
-					logging.debug("Sending {} message: {}".format(message.user.username, msg))
-					channel = Channel(channel_name)
-					channel.send({u'bytes': json.dumps(msg)})
-
-					message.websocket_sent = True
-					message.save()
+					send_websocket_message(message)
 					continue
 
 				if message.received:
