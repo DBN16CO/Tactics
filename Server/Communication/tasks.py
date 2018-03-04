@@ -6,11 +6,12 @@ import celery
 from Server import config
 from channels import Channel
 from Communication.models import AsyncMessages
+from celery.utils.log import get_task_logger
 from django.db import transaction
 from Server.config import MESSAGE_EXPIRATION
 from django.utils import timezone
 
-LOGGER = get_task_LOGGER(__name__)
+LOGGER = get_task_logger(__name__)
 FHANDLER = logging.FileHandler('./{0}'.format(config.MESSAGE_QUEUE_LOG_NAME), mode='a')
 LOGGER.addHandler(FHANDLER)
 LOGGER.setLevel(config.MESSAGE_QUEUE_LOG_LEVEL)
