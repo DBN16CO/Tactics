@@ -128,9 +128,9 @@ public class Unit {
 		_y 	= (newY == -1)?  _y  : newY;
 	}
 
-	public void ConfirmMove() {
-		_x = GameController.IntendedMove.X;
-		_y = GameController.IntendedMove.Y;
+	public void ConfirmMove(Token t) {
+		_x = t.X;
+		_y = t.Y;
 		_acted = true;
 		_selected = false;
 

@@ -1,13 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 using System;
 
 public class GameController : ParentController {
 
 	/* Public Constant Game Variables */
-	// None
+	public const float GC_MOVEMENT_SECONDS = 0.5f;			// Number of seconds taken to move a unit
+	public const float GC_ACTION_SECONDS = 0.5f;			// Number of seconds taken to display an action
 
 	/* Private Constant Game Variables */
 	private const bool GC_ALLY_TEAM = true;					// Constant for allied team
@@ -61,6 +63,10 @@ public class GameController : ParentController {
 	// Game vars
 	private bool _displayEndTurn;							// If true, "End Turn" button is displayed
 	private bool _displayBackToMenu;						// If true, "Back to Menu" button is displayed
+	private static Stack<Token> _moveSquares;				// A list of squares to animate the unit moving over
+	private static bool movementAnimcationDone;				// True when the unit has finished moving
+	private static bool continueMovementAnimation;			// If set to true, movement stops and unit is returned
+	private static bool _actionStillAnimating;				// Gets set to false when an action has finished animating
 
 #region Setters and Getters
 	public static Token[][] Tokens {
@@ -127,6 +133,7 @@ public class GameController : ParentController {
 		_alliedUnits = new Dictionary<int, Unit>();
 		_enemyUnits = new Dictionary<int, Unit>();
 		PlacingUnits = !UnitsArePlaced(GC_ALLY_TEAM);
+		_moveSquares = null;
 
 		SC.CreateMap(GameData.CurrentMatch.MapName);
 		InitializeUI();
@@ -189,7 +196,8 @@ public class GameController : ParentController {
 
 			if(key == GameData.CurrentMatch.ID){
 				GameData.CurrentMatch = GameData.GetMatch(key);
-				_enemyUnits[Parse.Int(unit["ID"])].ConfirmMove();
+				Token newToken = _tokens[Parse.Int(unit["NewX"])][Parse.Int(unit["NewY"])];
+				_enemyUnits[Parse.Int(unit["ID"])].ConfirmMove(newToken);
 			}
 		}
 
@@ -357,6 +365,7 @@ public class GameController : ParentController {
 	public void UnselectUnit() {
 		_unitInfoController.RemoveUnitInfo();
 		_selectedToken = null;
+		_moveSquares = null;
 		IntendedMove = null;
 		UnselectTarget();
 		ClearArrows();
@@ -492,7 +501,8 @@ public class GameController : ParentController {
 		ClearArrows();
 
 		if(_selectedToken.X != token.X || _selectedToken.Y != token.Y){
-			DrawMovementArrows(token);
+			List<Token> shortestPath = FindShortestPath(token);
+			PaintArrowPath(shortestPath);
 		}
 
 		IntendedMove = token;
@@ -504,7 +514,7 @@ public class GameController : ParentController {
 	 * Assumes the _selectedToken has been set as the moving unit
 	 * <param name="token">The target token to which the unit is moving</param>
 	 */
-	private void DrawMovementArrows(Token token){
+	private List<Token> FindShortestPath(Token token){
 		// Name of moving unit is used in  weight determiniation
 		string unitName = _selectedToken.CurrentUnit.UnitName;
 
@@ -572,26 +582,34 @@ public class GameController : ParentController {
 			}
 		}
 
-		vertex f = foundTarget;
-		bool endArrow = true;
-	 	float dx;
-		float dy;
-
-		// Because (0, 0) is top left, not bottom left, the dy is negated
-		dx = (float)f.x - (float)f.prev.x;
-		dy = -((float)f.y - (float)f.prev.y);
-		CreateArrow(f.x, f.y, _scale, _orthoSize, dx, dy, endArrow);
-		endArrow = false;
-		while(f.prev != null){
-			dx = (float)f.x - (float)f.prev.x;
-			dy = -((float)f.y - (float)f.prev.y);
-			CreateArrow(f.x, f.y, _scale, _orthoSize, dx, dy, endArrow);
-			f = f.prev;
-
+		// If the end was not found, return null, in error
+		if(foundTarget == null){
+			return null;
 		}
 
-		// Arrow must also flip if the user is on the other team
-		MovementArrows.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
+		vertex f = foundTarget;
+		Token t = _tokens[f.x][f.y];
+
+		// Populate list for where to paint arrows
+		List<Token> shortestPath = new List<Token>();
+		shortestPath.Add(t);
+
+		// Also populate move squares, in case the unit actually moves here
+		_moveSquares = new Stack<Token>();
+		_moveSquares.Push(t);
+
+		while(f.prev != null){
+			f = f.prev;
+
+			t = _tokens[f.x][f.y];
+			shortestPath.Add(t);
+			_moveSquares.Push(t);
+		}
+
+		// Lastly, add the starting point to the list
+		shortestPath.Add(_selectedToken);
+
+		return shortestPath;
 	}
 	// Helper class (struct) for above function DrawMovementArrows()
 	private class vertex{
@@ -607,6 +625,35 @@ public class GameController : ParentController {
 			prev = _prev;
 		}
 	};
+
+	/**
+	 * Loops over the provided list of tokens and draws the appropriate arrow segment on them.
+	 * <param name="shortestPath">A list of tokens to paint</param>
+	 */
+	private static void PaintArrowPath(List<Token> shortestPath){
+		bool IS_END_ARROW = true;
+		bool IS_NOT_END_ARROW = false;
+
+		// First, paint the arrow end
+		Token endArr = shortestPath[0];
+
+		// Because (0, 0) is top left, not bottom left, the dy is negated
+		float dx = (float)endArr.X - (float)shortestPath[1].X;
+		float dy = -((float)endArr.Y - (float)shortestPath[1].Y);
+
+		CreateArrow(endArr.X, endArr.Y, _scale, _orthoSize, dx, dy, IS_END_ARROW);
+
+		// Loop over all but last Token
+		for(int i = 0; i < shortestPath.Count - 2; i++){
+			dx = (float)shortestPath[i].X - (float)shortestPath[i+1].X;
+			dy = -((float)shortestPath[i].Y - (float)shortestPath[i+1].Y);
+
+			CreateArrow(shortestPath[i].X, shortestPath[i].Y, _scale, _orthoSize, dx, dy, IS_NOT_END_ARROW);
+		}
+
+		// Arrow must also flip if the user is on the other team
+		MovementArrows.transform.eulerAngles = new Vector3(0,0,(GameData.CurrentMatch.UserTeam == 1)? 180 : 0);
+	}
 
 	/**
 	 * Instantiates and properly positions either an arrow segment or the end of the arrow on the grid
@@ -651,23 +698,88 @@ public class GameController : ParentController {
 	}
 
 	/**
-	 * Confirm move unit to new token and unselect after
+	 * Called when a unit actually moves.  Slowly draws them moving over each token.
+	 * <param name="movementTokens">The tokens overwhich to animate movement</param>
 	 */
-	private void ConfirmMove() {
-		Server.TakeNonTargetAction(this, SelectedToken.CurrentUnit, "Wait", IntendedMove.X, IntendedMove.Y);
+	private IEnumerator AnimateMovement(Transform movingUnit, Stack<Token> movementTokens){
+		ClearArrows();
+		ClearValidActions();
+		UnselectTarget();
+
+		float timeInEachSquare = GC_MOVEMENT_SECONDS / (float)movementTokens.Count;
+
+		Vector3 startingPosition = movingUnit.position;
+		Vector3 currentPosition;
+		Token t;
+		Vector3 target;
+		float elapsedTime;
+
+		while(continueMovementAnimation && movementTokens.Count > 0){
+			currentPosition = movingUnit.position;
+			t = movementTokens.Pop();
+			target = t.transform.position;
+			elapsedTime = 0f;
+
+			while(continueMovementAnimation && elapsedTime < timeInEachSquare){
+				elapsedTime += Time.deltaTime;
+				movingUnit.position = Vector3.Lerp(currentPosition, target, (elapsedTime / timeInEachSquare));
+				yield return new WaitForEndOfFrame();
+			}
+			movingUnit.position = target;
+		}
+
+		// If the server response suggested the movement should be canceled, move the unit back
+		if(!continueMovementAnimation){
+			movingUnit.position = startingPosition;
+		}
+
+		movementAnimcationDone = true;
+	}
+
+	private IEnumerator AnimateAction(Unit unt, Unit tgt, Dictionary<string, object> response){
+		// Determine the type of action
+		bool actionIsRed = !_alliedUnits.ContainsKey(tgt.ID);
+
+		// Setup for action animation
+		float lungeTime;
+
+		Vector3 startingPosition = unt.transform.position;
+		Vector3 currentPosition;
+		Token t;
+		Vector3 target;
+		float elapsedTime = 0f;
+
+		// Lunge unit towards target
+		lungeTime = GC_ACTION_SECONDS * 0.25f;
+		while(elapsedTime < lungeTime){
+			elapsedTime += Time.deltaTime;
+			unt.transform.position = Vector3.Lerp(startingPosition, tgt.transform.position, (elapsedTime / lungeTime));
+			yield return new WaitForEndOfFrame();
+		}
+
+		// Display action result
+		ActionResult ar = gameObject.AddComponent(typeof(ActionResult)) as ActionResult;
+		ar.Create(tgt.transform, actionIsRed, "test");
+
+		// Lunge unit back towards starting location
+		lungeTime = GC_ACTION_SECONDS * 0.75f;
+		elapsedTime = 0f;
+		while(elapsedTime < lungeTime){
+			elapsedTime += Time.deltaTime;
+			unt.transform.position = Vector3.Lerp(tgt.transform.position, startingPosition, (elapsedTime / lungeTime));
+			yield return new WaitForEndOfFrame();
+		}
+
+		_actionStillAnimating = false;
 	}
 
 	/**
-	 * All the actions when moving a unit
+	 * Confirm move unit to new token and unselect after
 	 */
-	private static void MoveUnit() {
-		bool coordChanged = (IntendedMove.X != _selectedToken.X) || (IntendedMove.Y != _selectedToken.Y);
-		IntendedMove.CurrentUnit = SelectedToken.CurrentUnit;
-		if(coordChanged) {
-			IntendedMove.CurrentUnit.transform.position = IntendedMove.gameObject.transform.position;
-			_selectedToken.CurrentUnit = null;
-		}
-		IntendedMove.CurrentUnit.ConfirmMove();
+	private void ConfirmMove() {
+		PrepareMovement();
+		StartCoroutine(AnimateMovement(SelectedToken.CurrentUnit.transform, _moveSquares));
+		Server.TakeNonTargetAction(this, SelectedToken.CurrentUnit, "Wait", IntendedMove.X, IntendedMove.Y);
 	}
 
 	/**
@@ -705,7 +817,17 @@ public class GameController : ParentController {
 		string action = (IntendedTarget.CanAttack)? "Attack" : "Heal";
 
 		// Take the targeted action
+		PrepareMovement();
+		StartCoroutine(AnimateMovement(SelectedToken.CurrentUnit.transform, _moveSquares));
 		Server.TakeTargetAction(this, SelectedToken.CurrentUnit, action, targetUnit.ID, IntendedMove.X, IntendedMove.Y);
+	}
+
+	/**
+	 * Sets all appropriate variables to their expected state before movement occurrs
+	 */
+	private static void PrepareMovement(){
+		continueMovementAnimation = true;
+		movementAnimcationDone = false;
 	}
 
 	/**
@@ -1013,9 +1135,21 @@ public class GameController : ParentController {
 
 
 	private void HandleTaResponse(Dictionary<string, object> response){
+		StartCoroutine(AnimateTaResponse(response));
+	}
+
+	private IEnumerator AnimateTaResponse(Dictionary<string, object> response){
 		if(!Parse.Bool(response["Success"])){
+			// Move unit back
+			continueMovementAnimation = false;
+			SelectedToken.CurrentUnit.transform.position = SelectedToken.transform.position;
 			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
-			return;
+			yield break;
+		}
+
+		// Wait for movement to complete before updating any info
+		while(!movementAnimcationDone){
+			yield return new WaitForEndOfFrame();
 		}
 
 		// The action taken targeted another unit
@@ -1028,28 +1162,54 @@ public class GameController : ParentController {
 
 			// Before assuming the target was an enemy, ensure that enemy exists
 			if(!targetIsAlly && !_enemyUnits.ContainsKey(tgtId)){
+				SelectedToken.CurrentUnit.transform.position = SelectedToken.transform.position;
 				GameController.DisplayGameErrorMessage("Internal Error: Invalid Target ID returned[" + tgtId + "]");
-				return;
+				yield break;
 			}
 
 			Unit tgtUnit = (targetIsAlly)? _alliedUnits[tgtId]: _enemyUnits[tgtId];
 
-			//Update unit info
-			SelectedToken.CurrentUnit.UpdateInfo(Parse.Int(unitDict["NewHP"]));
-			if(SelectedToken.CurrentUnit.HP <= 0) {
-				SelectedToken.CurrentUnit.Destroy();
-				SelectedToken.CurrentUnit = null;
-				UnselectUnit();
+			// Animate acting upon the target
+			_actionStillAnimating = true;
+			StartCoroutine(AnimateAction(SelectedToken.CurrentUnit, tgtUnit, response));
+			while(_actionStillAnimating){
+				yield return new WaitForEndOfFrame();
 			}
 
+			// Update target info
 			tgtUnit.UpdateInfo(Parse.Int(targetDict["NewHP"]));
 			if(tgtUnit.HP <= 0) {
 				GameController.Tokens[tgtUnit.X][tgtUnit.Y].CurrentUnit = null;
 				tgtUnit.Destroy();
 			}
+
+			// If the target countered, animate the counter
+			bool countered = Parse.Bool(targetDict["Counter"]);
+			if(countered){
+				_actionStillAnimating = true;
+				StartCoroutine(AnimateAction(tgtUnit, SelectedToken.CurrentUnit, response));
+				while(_actionStillAnimating){
+					yield return new WaitForEndOfFrame();
+				}
+			}
+
+			// Update unit info
+			if(countered){
+				if(SelectedToken.CurrentUnit.HP <= 0) {
+					SelectedToken.CurrentUnit.Destroy();
+					SelectedToken.CurrentUnit = null;
+					UnselectUnit();
+				}
+			}
+			SelectedToken.CurrentUnit.UpdateInfo(Parse.Int(unitDict["NewHP"]));
 		}
 
-		MoveUnit();
+		IntendedMove.CurrentUnit = SelectedToken.CurrentUnit;
+		bool coordChanged = (IntendedMove.X != _selectedToken.X) || (IntendedMove.Y != _selectedToken.Y);
+		if(coordChanged) {
+			_selectedToken.CurrentUnit = null;
+		}
+		IntendedMove.CurrentUnit.ConfirmMove(IntendedMove);
 	}
 
 	// Handles when the user wants to end their turn
