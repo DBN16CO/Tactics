@@ -57,7 +57,7 @@ def send_notification(user, message):
 		notify_data["icon"] = message.device_icon
 
 	result = device.send_message(**notify_data)
-	logger.debug("Notification result: {}".format(result))
+	LOGGER.debug("Notification result: {}".format(result))
 	if result['success'] == 1:
 		LOGGER.debug("Notification sent to user {} with device {} successfully!".format(user.username, user.device.registration_id))
 	else:
