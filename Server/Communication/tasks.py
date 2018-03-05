@@ -44,7 +44,9 @@ def send_notification(user, message):
 	:type messsage: AsyncMessage
 	:param message: Contains the data about the notification settings
 	"""
-	LOGGER.debug("Sending user {} with device {} a notification!".format(user.username, user.device.registration_id))
+	device = user.device
+	LOGGER.debug("Sending user {} with device {} a notification!".format(user.username, device.registration_id))
+
 	notify_data = {
 		"title": message.device_title,
 		"body": message.device_message,
@@ -55,6 +57,7 @@ def send_notification(user, message):
 		notify_data["icon"] = message.device_icon
 
 	result = device.send_message(**notify_data)
+	logger.debug("Notification result: {}".format(result))
 	if result['success'] == 1:
 		LOGGER.debug("Notification sent to user {} with device {} successfully!".format(user.username, user.device.registration_id))
 	else:
@@ -122,7 +125,8 @@ def process_message_queue(notify_expected=False):
 					if is_active_device and is_notify_message:
 						try:
 							send_notification(user, message)
-						except Exception:
+						except Exception as exc:
+							LOGGER.exception(exc)
 							if 'TEST_ENV' not in os.environ:
 								raise
 
