@@ -21,8 +21,8 @@ MESSAGE_QUEUE_INTERVAL = 10
 MESSAGE_QUEUE_LOG_NAME = 'message_queue.log'
 MESSAGE_QUEUE_LOG_LEVEL = logging.DEBUG
 
-# Number of seconds until an async message expires (30 minutes)
-MESSAGE_EXPIRATION = 1800
+# Number of seconds until an async message expires (30 seconds)
+MESSAGE_EXPIRATION = 30
 
 # Password policy configuration
 # Note: the requirements lists contain a boolean (whether or not to actively require that particular requirement) and also the valid list
