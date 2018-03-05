@@ -1,10 +1,12 @@
-using System;
-using System.Collections.Generic;
+using System;						// DateTime
+using System.Collections.Generic;	// Dictionary
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MainMenuController : ParentController {
+
+	private static readonly DateTime MMC_EPOCH = new DateTime(1970, 1, 1);
 
 	private static int MOVE_BUTTON_DISTANCE;
 
@@ -13,14 +15,17 @@ public class MainMenuController : ParentController {
 	private Button _cancelRankedButton;
 	private Text _cancelRankedText;
 
+	void Awake(){
+		// Populate dictionary of called sever functions
+		_functionMapping[RequestType.QGU] = HandleQguResponse;
+		_functionMapping[RequestType.CS]  = HandleCsResponse;
+		_functionMapping[RequestType.SUI] = HandleSuiResponse;
+	}
+
 	// Initiate variables and load active games
 	void Start () {
 		Firebase.Messaging.FirebaseMessaging.TokenReceived += OnTokenReceived;
 		Firebase.Messaging.FirebaseMessaging.MessageReceived += OnMessageReceived;
-
-		if(!Parse.Bool(Server.QueryGames()["Success"])) {
-			Debug.Log("Query Games failed");
-		}
 
 		MOVE_BUTTON_DISTANCE = Screen.height;
 		_startRankedGame = GameObject.Find("RankedGameTab").transform.Find("Battle").gameObject.GetComponent<Button>();
@@ -36,7 +41,7 @@ public class MainMenuController : ParentController {
 	void Update(){
 		if(GameData.InGameQueue){
 			// Update time the user has been waiting for a match
-			TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
+			TimeSpan t = DateTime.UtcNow - MMC_EPOCH;
 			int secondsSinceEpoch = (int)t.TotalSeconds;
 
 			int deltaT = secondsSinceEpoch - GameData.FMStartTime;
@@ -58,28 +63,18 @@ public class MainMenuController : ParentController {
 				if(data.ContainsKey("Game_ID")){
 					int gameId = Parse.Int(data["Game_ID"]);
 
-					if(!Parse.Bool(Server.QueryGames(gameId)["Success"])) {
-						Debug.Log("Query Games failed");
-					}
-
-					DisplayRankedGameButton();
-
-					Transform activeGames = GameObject.Find("ActiveCustomGamesContent").transform;
-					KeyValuePair<int, MatchData> pair = new KeyValuePair<int, MatchData>(gameId, GameData.Matches[gameId]);
-					LoadCustomGame(activeGames, pair, GameData.Matches.Count - 1);
-
-					// Adjust the size of the scrollable area
-					activeGames.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.width,
-						300 * (float)GameData.Matches.Count);
+					Server.QueryGames(this, gameId);
 				}
 			}
 		}
+
+		ProcessResponses();
 	}
 
 	public void OnTokenReceived(object sender, Firebase.Messaging.TokenReceivedEventArgs token) {
 		Debug.Log("Received Registration Token: " + token.Token);
 
-		Server.SendFCMToken(token.Token, "android");
+		Server.SendFCMToken(this, token.Token, "android");
 	}
 
 	public void OnMessageReceived(object sender, Firebase.Messaging.MessageReceivedEventArgs e) {
@@ -92,17 +87,8 @@ public class MainMenuController : ParentController {
 
 	// Cancel the match search for the specific user
 	public void CancelQueuedMatch(){
-		if(!Parse.Bool(Server.CancelQueue())){
-			//TODO
-		}
-
-		// Hide cancel button
-		RectTransform rt = _cancelRankedButton.GetComponent<RectTransform>();
-		rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, rt.anchoredPosition.y + MOVE_BUTTON_DISTANCE);
-
-		// Show set team button
-		rt = _startRankedGame.GetComponent<RectTransform>();
-		rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, rt.anchoredPosition.y - MOVE_BUTTON_DISTANCE);
+		LoadingCircle.Show();
+		Server.CancelQueue(this);
 	}
 
 	// Loads active games
@@ -151,6 +137,56 @@ public class MainMenuController : ParentController {
 			rt = _cancelRankedButton.GetComponent<RectTransform>();
 			rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, rt.anchoredPosition.y + MOVE_BUTTON_DISTANCE);
 		}
+	}
+
+	// Handles when a match is found and the new game needs to be added to the user's list
+	private void HandleQguResponse(Dictionary<string, object> response){
+		GameData.SetMatchData(response);
+		GameData.SetMatchQueueData(response);
+
+		if(response["Games"].ToString() == "[]"){
+			Debug.Log("ERROR: QGU did not return any games.");
+
+			return;
+		}
+
+		DisplayRankedGameButton();
+
+		Transform activeGames = GameObject.Find("ActiveCustomGamesContent").transform;
+
+		List<object> matches = Json.ToList(Parse.String(response["Games"]));
+		Dictionary<string, object> matchDataAsDict;
+		int gameId;
+
+		// Populate the list of games with the new game(s)
+		foreach(object match in matches) {
+			matchDataAsDict = Json.ToDict(Parse.String(match));
+			gameId = Parse.Int(matchDataAsDict["ID"]);
+
+			KeyValuePair<int, MatchData> pair = new KeyValuePair<int, MatchData>(gameId, GameData.Matches[gameId]);
+			LoadCustomGame(activeGames, pair, GameData.Matches.Count - 1);
+		}
+
+		// Adjust the size of the scrollable area
+		activeGames.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.width,
+			300 * (float)GameData.Matches.Count);
+	}
+
+	// Handles when the player wants to cancel searching for a match
+	private void HandleCsResponse(Dictionary<string, object> response){
+		LoadingCircle.Hide();
+
+		// Hide cancel button
+		RectTransform rt = _cancelRankedButton.GetComponent<RectTransform>();
+		rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, rt.anchoredPosition.y + MOVE_BUTTON_DISTANCE);
+
+		// Show set team button
+		rt = _startRankedGame.GetComponent<RectTransform>();
+		rt.anchoredPosition = new Vector3(rt.anchoredPosition.x, rt.anchoredPosition.y - MOVE_BUTTON_DISTANCE);
+	}
+
+	private void HandleSuiResponse(Dictionary<string, object> response){
+		// Do nothing?!
 	}
 
 }

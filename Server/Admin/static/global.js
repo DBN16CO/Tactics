@@ -12,7 +12,7 @@ $(document).ready(function(){
 	});
 
 	$("li.active").trigger("click");
-	$("#perf-table").DataTable();
+	$("#perf-table").DataTable({"paging": false});
 	var userTable = $("#user-table").DataTable({
 		"columns": [
 			{"data": "ID"},

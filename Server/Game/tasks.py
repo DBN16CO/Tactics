@@ -141,10 +141,17 @@ def processMatchmakingQueue():
             data = {
 				"Game_ID": game.id
 			}
+            dev_title = "Game on!"
+            dev_msg = "A match has been found!"
+
             first_player_message = AsyncMessages(user=first_player.user, message_key=notify_message_key, data=data)
+            first_player_message.device_title = dev_title
+            first_player_message.device_message = dev_msg
             first_player_message.save()
 
             second_player_message = AsyncMessages(user=second_player.user, message_key=notify_message_key, data=data)
+            second_player_message.device_title = dev_title
+            second_player_message.device_message = dev_msg
             second_player_message.save()
 
             logger.debug("Deleting players from the queue")

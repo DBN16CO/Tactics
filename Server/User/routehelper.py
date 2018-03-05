@@ -235,13 +235,19 @@ def sendUserInfo(data):
 			error = "Device type '{}' is not supported for notifications".format(device_type)
 			return formJsonResult(error)
 
-		device = FCMDevice()
-		device.registration_id = reg_id
-		device.type = device_type
-		device.save()
+		if user.device:
+			user_device = user.device
+			user_device.registration_id = reg_id
+			user_device.type = device_type
+			user_device.save()
+		else:
+			device = FCMDevice()
+			device.registration_id = reg_id
+			device.type = device_type
+			device.save()
 
-		user.device = device
-		user.save()
+			user.device = device
+			user.save()
 
 	prefs = data.get('Preferences')
 
