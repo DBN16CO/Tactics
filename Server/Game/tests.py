@@ -2092,6 +2092,8 @@ class TestTakeAction(TestGame):
 
 		# Ensure that the opponent user was told that they lost the game
 		opp_user_message = AsyncMessages.objects.get(user=self.user2, message_key="ACTION_TAKEN")
+		self.assertEquals(opp_user_message.device_title, None, "Opponent User's message:\n%s" % opp_user_message)
+		self.assertEquals(opp_user_message.device_message, None, "Opponent User's message:\n%s" % opp_user_message)
 		self.assertEquals(opp_user_message.data["GameOver"], -1, "Opponent User's message:\n%s" % opp_user_message)
 
 	def test_ta_28_game_over_user_suicide(self):
@@ -2118,6 +2120,8 @@ class TestTakeAction(TestGame):
 
 		# Ensure that the opponent user was told that they won the game
 		opp_user_message = AsyncMessages.objects.get(user=self.user2, message_key="ACTION_TAKEN")
+		self.assertEquals(opp_user_message.device_title, None, "Opponent User's message:\n%s" % opp_user_message)
+		self.assertEquals(opp_user_message.device_message, None, "Opponent User's message:\n%s" % opp_user_message)
 		self.assertEquals(opp_user_message.data["GameOver"], 1, "Opponent User's message:\n%s" % opp_user_message)
 
 class TestEndTurn(TestGame):
@@ -2196,6 +2200,19 @@ class TestEndTurn(TestGame):
 		# Ensure it is now user two's turn
 		game = Game.objects.filter(pk=self.game.id).first()
 		self.assertEqual(game.user_turn, self.user2)
+
+		# Ensure an async message was created for user2
+		messages = AsyncMessages.objects.filter(user=self.user2, message_key="ENDED_TURN")
+		self.assertEquals(len(messages), 1)
+
+		opp_game_user = Game_User.objects.filter(user=self.user2, game=game)[0]
+
+		message = messages[0]
+		self.assertEquals(message.data["Game_ID"], self.game.id)
+		self.assertEquals(message.device_title, "Your opponent has taken their turn!")
+		self.assertEquals(message.device_message, opp_game_user.name)
+		self.assertEquals(message.device_sound, "default")
+		self.assertEquals(message.device_icon, None)
 
 		# Ensure the game round has been increased
 		self.assertEqual(game.game_round, self.pre_game_round + 1)

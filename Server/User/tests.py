@@ -257,6 +257,14 @@ class TestLoginLogout(CommonTestHelper):
 		self.assertEquals(device.type, 'android')
 		self.assertEquals(device.registration_id, reg_id)
 
+		self.assertEquals(FCMDevice.objects.count(), 1)
+
+		# Verify that only one device is created/updated per user
+		self.testHelper.send(json.dumps(cmd))
+		result = json.loads(self.testHelper.receive())
+
+		self.assertEquals(FCMDevice.objects.count(), 1)
+
 	def test_lo_09_send_user_info_invalid_data(self):
 		result = self.testHelper.login({"username": self.credentials["username"],
 			"password": self.credentials["password"]})

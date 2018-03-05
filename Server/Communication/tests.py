@@ -7,6 +7,8 @@ from Game import maphelper
 from Static.models import Version
 from tasks import process_message_queue
 from models import AsyncMessages
+from fcm_django.models import FCMDevice
+from User.models import Users
 
 class TestCommunication(CommonTestHelper):
 	"""
@@ -77,7 +79,11 @@ class TestReceivedMessage(TestGame):
 		self.assertTrue(async_messages.count() == 2)
 
 		for async_message in async_messages.filter():
-			self.assertTrue(async_message.sent)
+			self.assertTrue(async_message.websocket_sent)
+			self.assertEquals(async_message.device_title, "Game on!")
+			self.assertEquals(async_message.device_message, "A match has been found!")
+			self.assertEquals(async_message.device_sound, "default")
+			self.assertEquals(async_message.device_icon, None)
 
 		async_first = self.testHelper.receive()
 		async_second = self.testHelper.receive(2)
@@ -140,9 +146,20 @@ class TestReceivedMessage(TestGame):
 		process_message_queue()
 		self.assertTrue(async_messages.count() == 2, "Async Message Count: {}".format(async_messages.count()))
 
-	def test_rm_03_async_message_expiration(self):
+	def test_rm_03_async_message_expiration_notify(self):
 		async_messages = AsyncMessages.objects
 		self.match_players_get_async_messages()
+
+		# Create fake user devices for testing the notification path
+		i = 0
+		for user in Users.objects.filter():
+			device = FCMDevice(registration_id="reg%d" % i, type="android", active=True)
+			device.save()
+
+			user.device = device
+			user.save()
+
+			i += 1
 
 		for async_message in async_messages.filter():
 			message_updated = async_message.updated - datetime.timedelta(seconds=1900)
@@ -150,5 +167,29 @@ class TestReceivedMessage(TestGame):
 			async_message_query.update(updated=message_updated)
 
 		self.assertTrue(async_messages.count() == 2, "Async Message Count: {}".format(async_messages.count()))
-		process_message_queue()
+		process_message_queue(notify_expected=True)
+		self.assertTrue(async_messages.count() == 0, "Async Message Count: {}".format(async_messages.count()))
+
+	def test_rm_04_async_message_expiration_no_notify(self):
+		async_messages = AsyncMessages.objects
+		self.match_players_get_async_messages()
+
+		# Create fake user devices for testing the notification path
+		i = 0
+		for user in Users.objects.filter():
+			device = FCMDevice(registration_id="reg%d" % i, type="android", active=True)
+			device.save()
+
+			user.device = device
+			user.save()
+
+			i += 1
+
+		for async_message in async_messages.filter():
+			message_updated = async_message.updated - datetime.timedelta(seconds=1900)
+			async_message_query = async_messages.filter(pk=async_message.id)
+			async_message_query.update(updated=message_updated, device_title=None)
+
+		self.assertTrue(async_messages.count() == 2, "Async Message Count: {}".format(async_messages.count()))
+		process_message_queue(notify_expected=False)
 		self.assertTrue(async_messages.count() == 0, "Async Message Count: {}".format(async_messages.count()))
