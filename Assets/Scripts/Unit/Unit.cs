@@ -88,7 +88,7 @@ public class Unit {
 	}
 
 	public void Spawn(float scale) {
-		_unitObject = GameObject.Instantiate(Resources.Load("Units/" + _unitName), Vector3.zero,Quaternion.identity,
+		_unitObject = GameObject.Instantiate(Resources.Load("Units/" + _unitName), Vector3.zero, Quaternion.identity,
 			GameController.MapUnits.transform) as GameObject;
 
 		// Move unit to location of its occupied token and move forward in z direction to move on top of movement arrows

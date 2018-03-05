@@ -1,119 +1,110 @@
-﻿using UnityEngine;						// For Unity's PlayerPrefs
-using System.Collections.Generic;		// For dictionaries
-using Common.Cryptography;				// For AES encryption
+using Common.Cryptography;				// AES
+using System.Collections.Generic;		// Dictionary
+using UnityEngine;						// Unity's PlayerPrefs
 
 // Holds all of the Server call functions related to gameplay
 public static class Server {
 
-	// Used to get user info and preferences
-	public static bool GetUserInfo() {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "GUI";
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
-
-		if (response == null){
-			return false;
-		}
-
-		bool success = (bool)response["Success"];
-		if(success) {
-			GameData.SetPlayerData(response);
-		}
-		return success;
+	public static Dictionary<string, object> GetResponse(string rid){
+		return CommunicationManager.GetResponse(rid);
 	}
 
-	// Used to logout of the server
-	public static bool Logout() {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "LGO";
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
-
-		if (response == null){
-			return false;
-		}
-
-		bool success = (bool)response["Success"];
-		if (success){
-			PlayerPrefs.DeleteKey("session");
-			PlayerPrefs.Save();
-		}
-		return success;
-	}
-
+	/**
+	 * The server requests in in the section that follows are associated with logging into the application,
+	 * and requesting all necessary data from the server to fully initialize the game.
+	 */
 	// Used to create a user in the database
-	public static Dictionary<string, object> CreateUser(string username, string pw, string email) {
-		var request = new Dictionary<string, object>();
-		request["Command"] 	= "CU";
+	public static void CreateUser(string username, string pw, string email, ParentController pc){
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["username"]	= username;
 		request["pw"]		= pw;
 		request["email"]	= email;
 
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
-		if(response == null){
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
+		BasicServerRequest(RequestType.CU, pc, request);
+	}
 
-		return response;
+	// Used to get user info and preferences
+	public static void GetUserInfo(ParentController pc) {
+		BasicServerRequest(RequestType.GUI, pc);
+	}
+
+	// Loads static game data on login
+	public static void InitialLoad(ParentController pc) {
+		BasicServerRequest(RequestType.IL, pc);
+	}
+
+	// Used to login to server with username and password
+	public static void Login(string username, string pw, ParentController pc) {
+		Dictionary<string, object> request = new Dictionary<string, object>();
+		request["username"]	= username;
+		request["pw"]		= pw;
+
+		BasicServerRequest(RequestType.LGN, pc, request);
+	}
+
+	// Used to login to server with cached session token
+	public static void TokenLogin(ParentController pc){
+		string _encryptedToken = PlayerPrefs.GetString("session");
+		string _loginToken = AES.Decrypt(_encryptedToken, CommunicationManager.GenerateAESKey());
+
+		// Create the request, decrypt session token, and send it
+		Dictionary<string, object> request = new Dictionary<string, object>();
+		request["token"] = _loginToken;
+
+		BasicServerRequest(RequestType.LGN, pc, request);
 	}
 
 	// Used to query active games for user
-	public static Dictionary<string, object> QueryGames(int filterGameID = -1) {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "QGU";
+	public static void QueryGames(ParentController pc, int filterGameID = -1) {
+		Dictionary<string, object> request = null;
 
 		if(filterGameID != -1){
+			request = new Dictionary<string, object>();
 			Dictionary<string, object> filtDict = new Dictionary<string, object>();
 			filtDict.Add("Game_ID", filterGameID);
 			request["Filters"] = filtDict;
 		}
 
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
+		BasicServerRequest(RequestType.QGU, pc, request);
+	}
 
-		bool success = (bool)response["Success"];
-		if(success) {
-			GameData.SetMatchData(response);
-			GameData.SetMatchQueueData(response);
-		}
-		return response;
+	// Used to logout of the server
+	public static void Logout(ParentController pc) {
+		BasicServerRequest(RequestType.LGO, pc);
 	}
 
 	// Used to set selected team in database
-	public static Dictionary<string, object> SetTeam(string leader, string ability, List<string> units, List<string> perks) {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "ST";
+	public static void SetTeam(string leader, string ability, List<string> units,
+			List<string> perks, ParentController pc){
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Leader"] = leader;
 		request["Ability"] = ability;
 		request["Units"] = units;
 		request["Perks"] = perks;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if (response == null){
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
+		BasicServerRequest(RequestType.ST, pc, request);
 	}
 
 	// Called to find ranked match after team is set
-	public static Dictionary<string, object> FindMatch() {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "FM";
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
+	public static void FindMatch(ParentController pc) {
+		BasicServerRequest(RequestType.FM, pc);
+	}
 
-		if (response == null){
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
+	// Called to cancel ranked match queue
+	public static void CancelQueue(ParentController pc) {
+		BasicServerRequest(RequestType.CS, pc);
 	}
 
 	// Called to send placed unit info to database
-	public static Dictionary<string, object> PlaceUnits(MatchData match) {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "PU";
+	public static void PlaceUnits(MatchData match, ParentController pc) {
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Game"] = match.Name;
 
 		List<Dictionary<string, object>> unitsDict = new List<Dictionary<string, object>>();
+		Dictionary<string, object> unitDict;
+
 		foreach(Unit unit in GameController.Units) {
-			var unitDict = new Dictionary<string, object>();
+			unitDict = new Dictionary<string, object>();
 			unitDict["ID"] 		= unit.ID;
 			unitDict["Name"] 	= unit.UnitName;
 			unitDict["X"]		= unit.X;
@@ -121,31 +112,13 @@ public static class Server {
 			unitsDict.Add(unitDict);
 		}
 		request["Units"] = unitsDict;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if (response == null){
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
-	}
-
-	// Called to cancel ranked match queue
-	public static bool CancelQueue() {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "CS";
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
-
-		if (response == null){
-			return false;
-		}
-		bool success = (bool)response["Success"];
-		return success;
+		BasicServerRequest(RequestType.PU, pc, request);
 	}
 
 	// Called to have a unit take a move action on the game map
-	public static Dictionary<string, object> TakeNonTargetAction(Unit unit, string action, int X = -1, int Y = -1) {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "TA";
+	public static void TakeNonTargetAction(ParentController pc, Unit unit, string action, int X = -1, int Y = -1) {
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Game"] = GameData.CurrentMatch.Name;
 		request["Action"] = action;
 		request["Unit"] = unit.ID;
@@ -153,18 +126,13 @@ public static class Server {
 		// Wait at current position if optional params not passed in
 		request["X"] = (X == -1)? unit.X : X;
 		request["Y"] = (Y == -1)? unit.Y : Y;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if(response == null) {
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
+		BasicServerRequest(RequestType.TA, pc, request);
 	}
 
 	// Called to have a unit take an attack/heal action on the game map
-	public static Dictionary<string, object> TakeTargetAction(Unit unit, string action, int targetID, int X = -1, int Y = -1){
-		var request = new Dictionary<string, object>();
-		request["Command"] = "TA";
+	public static void TakeTargetAction(ParentController pc, Unit unit, string action, int targetID, int X = -1, int Y = -1){
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Game"] = GameData.CurrentMatch.Name;
 		request["Action"] = action;
 		request["Unit"] = unit.ID;
@@ -173,74 +141,59 @@ public static class Server {
 		request["X"] = (X == -1)? unit.X : X;
 		request["Y"] = (Y == -1)? unit.Y : Y;
 		request["Target"] = targetID;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if(response == null) {
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
+		BasicServerRequest(RequestType.TA, pc, request);
 	}
 
 	// Called to end a player's turn
-	public static Dictionary<string, object> EndTurn() {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "ET";
+	public static void EndTurn(ParentController pc) {
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Game"] = GameData.CurrentMatch.Name;
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
 
-		if(response == null) {
-			response = CommunicationManager.CreateInternalErrorResponse();
-		}
-		return response;
-	}
-
-	// Loads static game data on login
-	public static bool InitialLoad() {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "IL";
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
-
-		if (response == null){
-			return false;
-		}
-
-		bool success = (bool)response["Success"];
-		if(success) {
-			GameData.SetGameData(response);
-		}
-		return success;
-	}
-
-	// Used to login to server with username and password
-	public static Dictionary<string, object> Login(string username, string pw) {
-		var request = new Dictionary<string, object>();
-		request["Command"] 	= "LGN";
-		request["username"]	= username;
-		request["pw"]		= pw;
-
-		Dictionary<string, object> response = CommunicationManager.RequestAndGetResponse(request);
-		if(response == null){
-			return CommunicationManager.CreateInternalErrorResponse();
-		}
-
-		bool success = (bool)response["Success"];
-		if(success) {
-			string _loginToken = response["Token"].ToString();
-			string _encryptedToken = AES.Encrypt(_loginToken, CommunicationManager.GenerateAESKey());
-			PlayerPrefs.SetString("session", _encryptedToken);
-			PlayerPrefs.Save();
-		}
-		return response;
+		BasicServerRequest(RequestType.ET, pc, request);
 	}
 
 	// Sends the FCM Registration Information to the server
-	public static void SendFCMToken(string token, string deviceType) {
-		var request = new Dictionary<string, object>();
-		request["Command"] = "SUI";
+	public static void SendFCMToken(ParentController pc, string token, string deviceType) {
+		Dictionary<string, object> request = new Dictionary<string, object>();
 		request["Notifications"] = new Dictionary<string, object>();
 		((Dictionary<string, object>)request["Notifications"])["RegistrationID"] = token;
 		((Dictionary<string, object>)request["Notifications"])["DeviceType"] = deviceType;
 
-		CommunicationManager.RequestAndGetResponse(request);
+		BasicServerRequest(RequestType.SUI, pc, request);
+	}
+
+	/**
+	 * Used to send the full request to the CommunicationManager.  If the sole parameter for the request is the Command,
+	 * the input request dictionary can be null.
+	 * <param name="reqCommand">The command name: "LGN", "QGU", etc.</param>
+	 * <param name="pc">The instance of the parent controller initiating the request</param>
+	 * <param name="request">Dictionary describing the request, if default the request is created within the method</param>
+	 */
+	private static void BasicServerRequest(RequestType rt, ParentController pc, Dictionary<string, object> request = null){
+		if(request == null){
+			request = new Dictionary<string, object>();
+		}
+		request["Command"] = rt.ToString();
+
+		string requestId = CommunicationManager.Request(request, pc);
+		pc.SetRequestReadiness(requestId, ParentController.REQUEST_IS_NOT_READY);
+		pc.RequestToType[requestId] = rt;
 	}
 }
+
+public enum RequestType{
+	CU  =  0,
+	LGN =  1,
+	GUI =  2,
+	QGU =  3,
+	IL  =  4,
+	ST  =  5,
+	FM  =  6,
+	CS  =  7,
+	LGO =  8,
+	PU  =  9,
+	TA  = 10,
+	ET  = 11,
+	SUI = 12
+};

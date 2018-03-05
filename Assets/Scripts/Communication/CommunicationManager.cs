@@ -22,6 +22,7 @@ public class CommunicationManager
 
 	private static Dictionary<string, Queue<Dictionary<string, object>>> asyncMessagesQueue;
 	private static Queue<Dictionary<string, object>> requestQueue;
+	private static Dictionary<string, ParentController> requestToPc;
 	private static Dictionary<string, Dictionary<string, object>> responseDict;
 
 	private static string url = "ws://tactics-dev.ddns.net:8443";
@@ -40,6 +41,7 @@ public class CommunicationManager
 		//Create the communication data structures
 		asyncMessagesQueue = new Dictionary<string, Queue<Dictionary<string, object>>>();
 		requestQueue = new Queue<Dictionary<string, object>>();
+		requestToPc = new Dictionary<string, ParentController>();
 		responseDict = new Dictionary<string, Dictionary<string, object>>();
 
 		//Create the server connection
@@ -80,11 +82,12 @@ public class CommunicationManager
 
 					if (response != null){
 						//Add the response to the common dictionaries
-						if (response.ContainsKey(
-							"Request_ID")){
+						if (response.ContainsKey("Request_ID")){
 							string requestID = (string) response["Request_ID"];
 							Debug.Log("Obtained response for request " + requestID);
 							responseDict[requestID] = response;
+							requestToPc[requestID].SetRequestReadiness(requestID, ParentController.REQUEST_IS_READY);
+							requestToPc.Remove(requestID);
 							LogDictionary(response);
 						}
 						else{
@@ -121,7 +124,9 @@ public class CommunicationManager
 				//Take a request off the queue
 				lock(requestQueueLock){
 					//Suspend the thread until the websocket receives a message
-					Monitor.Wait(requestQueueLock);
+					if(requestQueue.Count == 0){
+						Monitor.Wait(requestQueueLock);
+					}
 
 					if (requestQueue.Count > 0){
 						request = requestQueue.Dequeue();
@@ -179,7 +184,7 @@ public class CommunicationManager
 	/********************************************
 	 * Public Interface functions
 	 ********************************************/
-	public static string Request(Dictionary<string, object> data)
+	public static string Request(Dictionary<string, object> data, ParentController pc)
 	{
 		//Communication Manager Thread crashed, restart it
 		if (!_requestThreadRunning || !_responseThreadRunning){
@@ -188,24 +193,22 @@ public class CommunicationManager
 		}
 
 		//Generate a request id
-		Guid g = Guid.NewGuid();
-		data["Request_ID"] = g.ToString();
+		string rid = Guid.NewGuid().ToString();
+		data["Request_ID"] = rid;
 
 		//Put the request id and the request data into the request Queue
 		lock (requestQueueLock)
 		{
 			requestQueue.Enqueue(data);
+
+			// So communication mananger can notify that PC when the response is received
+			requestToPc[rid] = pc;
+
 			Monitor.Pulse(requestQueueLock);
 		}
 
 		//Return the request id
-		return g.ToString();
-	}
-
-	public static Dictionary<string, object> RequestAndGetResponse(Dictionary<string, object> data){
-		string requestID = Request(data);
-
-		return GetResponse(requestID);
+		return rid;
 	}
 
 	public static Dictionary<string, object> GetResponse(string request_id, bool blocking = true, int timeout = 2, int sleep_time = 100)
@@ -335,33 +338,6 @@ public class CommunicationManager
 		return false;
 	}
 
-	// Used to login to server with cached session token
-	public static bool RetryLogin()
-	{
-		// Create the request, decrypt session token, and send it
-		var request = new Dictionary<string, object>();
-		string _encryptedToken = PlayerPrefs.GetString("session");
-		string _loginToken = AES.Decrypt(_encryptedToken, GenerateAESKey());
-		request["Command"] = "LGN";
-		request["token"] = _loginToken;
-
-		var response = RequestAndGetResponse(request);
-		Debug.Log("Response to Retry Login: " + response.ToString());
-		// Error Handling
-		bool success = (bool)response["Success"];
-		if (success)
-		{
-			Debug.Log("user re-logged in with token: " + _loginToken);
-		}
-		else
-		{
-			Debug.Log("error logging user in with existing token");
-			PlayerPrefs.DeleteKey("session");
-			PlayerPrefs.Save();
-		}
-		return success;
-	}
-
 	private static bool SendCommand(Dictionary<string, object> request)
 	{
 		// Verify the websocket is still connected and try to reconnect if it isn't
@@ -395,7 +371,7 @@ public class CommunicationManager
 			if (IsUnauthenticated(response))
 			{
 				// Server says we are not logged in, re-authenticate
-				RetryLogin();
+				Debug.Log("The server does not think you are logged in.");
 				strResponse = null;
 				response = null;
 				throw new Exception("Response indicates user was unauthenticated please try again");
