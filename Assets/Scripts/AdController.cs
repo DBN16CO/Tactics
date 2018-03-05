@@ -24,10 +24,13 @@ public class AdController : ParentController {
 
 	void TaskOnClick(){
 		//Application.OpenURL("https://pbs.twimg.com/profile_images/2932495059/f664298aa5c7554496fc503909b94466_400x400.jpeg");
+		LoadingCircle.Show();
 		Server.Logout(this);
 	}
 
 	private void HandleLgoResponse(Dictionary<string, object> response){
+		LoadingCircle.Hide();
+
 		// Delete player preferences regardless of request success
 		PlayerPrefs.DeleteKey("session");
 		PlayerPrefs.Save();

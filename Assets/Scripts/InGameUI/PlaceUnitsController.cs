@@ -77,10 +77,13 @@ public class PlaceUnitsController : ParentController {
 
 	// Action when submit button is pressed
 	void PlaceUnits(){
+		LoadingCircle.Show();
 		Server.PlaceUnits(GameData.CurrentMatch, this);
 	}
 
 	private void HandlePuResponse(Dictionary<string, object> response){
+		LoadingCircle.Hide();
+
 		if(!Parse.Bool(response["Success"])){
 			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
 

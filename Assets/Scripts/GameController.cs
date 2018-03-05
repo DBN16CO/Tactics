@@ -190,7 +190,6 @@ public class GameController : ParentController {
 			if(key == GameData.CurrentMatch.ID){
 				GameData.CurrentMatch = GameData.GetMatch(key);
 				_enemyUnits[Parse.Int(unit["ID"])].ConfirmMove();
-				//SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
 			}
 		}
 
