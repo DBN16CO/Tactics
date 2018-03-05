@@ -518,3 +518,8 @@ def getVersionData(version):
 	ver_dict["Unit_Max"] = version.unit_max
 
 	return ver_dict
+
+def modifyCustomMap(user, map_name, map_data):
+	"""
+	"""
+	pass

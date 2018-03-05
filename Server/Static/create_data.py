@@ -286,7 +286,7 @@ def ver_1_0_static_data():
 	}
 
 	# Map Data
-	data["Map_Base"]  = "./Maps/v1_0/"
+	data["Map_Base"]  = "./Maps/v1_0/Default/"
 	data["Maps"]      = {
 		"Grassland":     "allGrass.map",
 		"Forest Pattern":"patternTree.map",

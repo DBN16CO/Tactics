@@ -98,3 +98,33 @@ def getAllStaticData(data):
 	response["Success"] = True if not "Error" in response else False
 
 	return response
+
+def modifyCustomMap(data):
+	"""
+	Called when a user wants to create or edit a custom map.
+
+	:type  data: Dictionary
+	:param data: The necessary input information to process the command, should
+	             be of the following format:\n
+	             {\n
+	             	"name":"<map name>",\n
+	             	"map":"0,G 0,G 0,G 0,G 0,G 0,G 0,G 0,Gn0,G 0,G 0,G 0,G 0,G 0,G 0,G 0,G..."\n
+	             }\n
+	"""
+	username = data["session_username"]
+	user = Users.objects.filter(username=username).first()
+
+	if "name" not in data:
+		error = "No map name was provided."
+		return formJsonResult(error)
+
+	if "map" not in data:
+		error = "No map data was provided."
+		return formJsonResult(error)
+
+	map_name = data["name"]
+	map_data = data["map"]
+
+	response = Static.statichelper.modifyCustomMap(user, map_name, map_data)
+
+	return response

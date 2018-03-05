@@ -206,6 +206,7 @@ def processRequest(message):
 		"GUI":User.routehelper.getUserInfo,
 		"IL":Static.routehelper.getAllStaticData,
 		"LGN":User.routehelper.login,
+		"MCM":Static.routehelper.modifyCustomMap,
 		"PA":Communication.routehelper.pingAuthentication,
 		"PU":Game.routegamehelper.placeUnits,
 		"QGU":Game.routegamehelper.queryGamesUser,
