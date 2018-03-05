@@ -34,17 +34,17 @@ def is_message_expired(message):
 
 	return False
 
-def send_notification(device, message):
+def send_notification(user, message):
 	"""
-	Sends the given device a notification.
+	Sends the given user a device notification.
 
-	:type device: FCMDevice
-	:param message: The model of the user's phone
+	:type user: User
+	:param user: The model of the user
 
 	:type messsage: AsyncMessage
 	:param message: Contains the data about the notification settings
 	"""
-	LOGGER.debug("Sending the user a notification!")
+	LOGGER.debug("Sending user {} with device {} a notification!".format(user.username, user.device.registration_id))
 	notify_data = {
 		"title": message.device_title,
 		"body": message.device_message,
@@ -56,9 +56,9 @@ def send_notification(device, message):
 
 	result = device.send_message(**notify_data)
 	if result['success'] == 1:
-		LOGGER.debug("Notification sent successfully!")
+		LOGGER.debug("Notification sent to user {} with device {} successfully!".format(user.username, user.device.registration_id))
 	else:
-		LOGGER.debug("Notification failed to be sent!")
+		LOGGER.debug("Notification failed to be sent to user {} with device {}!".format(user.username, user.device.registration_id))
 
 def send_websocket_message(message):
 	"""
@@ -67,7 +67,6 @@ def send_websocket_message(message):
 	:type messsage: AsyncMessage
 	:param message: Contains the data about the websocket message settings
 	"""
-	LOGGER.debug("Sending the user a websocket message!")
 	channel_name = message.user.channel
 	msg = message.message_key
 	data = message.data
@@ -110,7 +109,8 @@ def process_message_queue(notify_expected=False):
 				elif is_message_expired(message):
 					LOGGER.debug("Message with id {} has expired.".format(message.id))
 
-					device = message.user.device
+					user = message.user
+					device = user.device
 
 					# Only send the user a notification if they have a registered & active device
 					is_active_device = device is not None and device.active
@@ -121,7 +121,7 @@ def process_message_queue(notify_expected=False):
 
 					if is_active_device and is_notify_message:
 						try:
-							send_notification(device, message)
+							send_notification(user, message)
 						except Exception:
 							if 'TEST_ENV' not in os.environ:
 								raise
