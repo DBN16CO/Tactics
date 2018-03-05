@@ -107,6 +107,10 @@ public static class GameData {
 	public static void SetMatchData(Dictionary<string, object> matchDict) {
 		// Return if no matches
 		if(matchDict["Games"].ToString() == "[]") {
+			if(_matchesNotInitialized){
+				_matches = new Dictionary<int, MatchData>();
+				_matchesNotInitialized = false;
+			}
 			return;
 		}
 

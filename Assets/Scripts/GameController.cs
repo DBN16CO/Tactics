@@ -97,6 +97,12 @@ public class GameController : ParentController {
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Unity Functions -----------------------------------------------------------------------------------------------------
+	// Register server handlers
+	void Awake(){
+		_functionMapping[RequestType.ET] = HandleEtResponse;
+		_functionMapping[RequestType.TA] = HandleTaResponse;
+	}
+
 	// Runs on match generation
 	void Start() {
 		// Initialize match variables
@@ -183,7 +189,7 @@ public class GameController : ParentController {
 
 			if(key == GameData.CurrentMatch.ID){
 				GameData.CurrentMatch = GameData.GetMatch(key);
-				SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single);
+				_enemyUnits[Parse.Int(unit["ID"])].ConfirmMove();
 			}
 		}
 
@@ -207,6 +213,8 @@ public class GameController : ParentController {
 				EndTurnGO.SetActive(true);
 			}
 		}
+
+		ProcessResponses();
 	}
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -229,17 +237,8 @@ public class GameController : ParentController {
 
 	/* Makes the server call to end the turn for this player */
 	private void EndTurn() {
-		Dictionary<string, object> response = Server.EndTurn();
-		if(Parse.Bool(response["Success"])){
-			_displayEndTurn = false;
-			GameData.CurrentMatch.EndTurn();
-			EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
-			EndTurnGO.SetActive(false);
-			ChangeTurn();
-		}
-		else{
-			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
-		}
+		LoadingCircle.Show();
+		Server.EndTurn(this);
 	}
 
 	/* Cancels ending the user's turn, closing the end turn confirm dialog box */
@@ -485,7 +484,7 @@ public class GameController : ParentController {
 	}
 
 	/**
-	 * Move unit to new token and paint new actions
+	 * Animate what would happen if moved to target location (no actual action taken yet)
 	 * <param name="token">The token on which to move the unit</param>
 	 */
 	private void SetIntendedMove(Token token) {
@@ -654,15 +653,8 @@ public class GameController : ParentController {
 	/**
 	 * Confirm move unit to new token and unselect after
 	 */
-	private static void ConfirmMove() {
-		Dictionary<string, object> response = Server.TakeNonTargetAction(SelectedToken.CurrentUnit,
-			"Wait", IntendedMove.X, IntendedMove.Y);
-		if(Parse.Bool(response["Success"])){
-			MoveUnit();
-		}
-		else{
-			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
-		}
+	private void ConfirmMove() {
+		Server.TakeNonTargetAction(this, SelectedToken.CurrentUnit, "Wait", IntendedMove.X, IntendedMove.Y);
 	}
 
 	/**
@@ -713,30 +705,7 @@ public class GameController : ParentController {
 		string action = (IntendedTarget.CanAttack)? "Attack" : "Heal";
 
 		// Take the targeted action
-		Dictionary<string, object> response = Server.TakeTargetAction(SelectedToken.CurrentUnit, action,
-			targetUnit.ID, IntendedMove.X, IntendedMove.Y);
-
-		if(Parse.Bool(response["Success"])) {
-			Dictionary<string, object> unitDict   = (Dictionary<string, object>)response["Unit"];
-			Dictionary<string, object> targetDict = (Dictionary<string, object>)response["Target"];
-
-			// Update unit info
-			SelectedToken.CurrentUnit.UpdateInfo(Parse.Int(unitDict["NewHP"]));
-			targetUnit.UpdateInfo(Parse.Int(targetDict["NewHP"]));
-			if(SelectedToken.CurrentUnit.HP <= 0) {
-				SelectedToken.CurrentUnit.Destroy();
-				SelectedToken.CurrentUnit = null;
-				UnselectUnit();
-			}
-			if(targetUnit.HP <= 0) {
-				GameController.Tokens[targetUnit.X][targetUnit.Y].CurrentUnit = null;
-				targetUnit.Destroy();
-			}
-			MoveUnit();
-		}
-		else{
-			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
-		}
+		Server.TakeTargetAction(this, SelectedToken.CurrentUnit, action, targetUnit.ID, IntendedMove.X, IntendedMove.Y);
 	}
 
 	/**
@@ -1040,6 +1009,64 @@ public class GameController : ParentController {
 		}
 
 		return false;
+	}
+
+
+	private void HandleTaResponse(Dictionary<string, object> response){
+		if(!Parse.Bool(response["Success"])){
+			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
+			return;
+		}
+
+		// The action taken targeted another unit
+		if(response.ContainsKey("Unit") && response.ContainsKey("Target")){
+			Dictionary<string, object> unitDict   = (Dictionary<string, object>)response["Unit"];
+			Dictionary<string, object> targetDict = (Dictionary<string, object>)response["Target"];
+
+			int tgtId = Parse.Int(targetDict["ID"]);
+			bool targetIsAlly = _alliedUnits.ContainsKey(tgtId);
+
+			// Before assuming the target was an enemy, ensure that enemy exists
+			if(!targetIsAlly && !_enemyUnits.ContainsKey(tgtId)){
+				GameController.DisplayGameErrorMessage("Internal Error: Invalid Target ID returned[" + tgtId + "]");
+				return;
+			}
+
+			Unit tgtUnit = (targetIsAlly)? _alliedUnits[tgtId]: _enemyUnits[tgtId];
+
+			//Update unit info
+			SelectedToken.CurrentUnit.UpdateInfo(Parse.Int(unitDict["NewHP"]));
+			if(SelectedToken.CurrentUnit.HP <= 0) {
+				SelectedToken.CurrentUnit.Destroy();
+				SelectedToken.CurrentUnit = null;
+				UnselectUnit();
+			}
+
+			tgtUnit.UpdateInfo(Parse.Int(targetDict["NewHP"]));
+			if(tgtUnit.HP <= 0) {
+				GameController.Tokens[tgtUnit.X][tgtUnit.Y].CurrentUnit = null;
+				tgtUnit.Destroy();
+			}
+		}
+
+		MoveUnit();
+	}
+
+	// Handles when the user wants to end their turn
+	private void HandleEtResponse(Dictionary<string, object> response){
+		LoadingCircle.Hide();
+
+		// If the request failed, display an error and exit
+		if(!Parse.Bool(response["Success"])){
+			GameController.DisplayGameErrorMessage(Parse.String(response["Error"]));
+			return;
+		}
+
+		_displayEndTurn = false;
+		GameData.CurrentMatch.EndTurn();
+		EndTurnGO.transform.Find("Confirm").gameObject.SetActive(false);
+		EndTurnGO.SetActive(false);
+		ChangeTurn();
 	}
 
 }
