@@ -736,17 +736,14 @@ public class GameController : ParentController {
 		movementAnimcationDone = true;
 	}
 
-	private IEnumerator AnimateAction(Unit unt, Unit tgt, Dictionary<string, object> response){
+	private IEnumerator AnimateAction(Unit unt, Unit tgt, string text){
 		// Determine the type of action
-		bool actionIsRed = !_alliedUnits.ContainsKey(tgt.ID);
+		bool actionIsRed = unt.MyTeam != tgt.MyTeam;
 
 		// Setup for action animation
 		float lungeTime;
 
 		Vector3 startingPosition = unt.transform.position;
-		Vector3 currentPosition;
-		Token t;
-		Vector3 target;
 		float elapsedTime = 0f;
 
 		// Lunge unit towards target
@@ -758,8 +755,7 @@ public class GameController : ParentController {
 		}
 
 		// Display action result
-		ActionResult ar = gameObject.AddComponent(typeof(ActionResult)) as ActionResult;
-		ar.Create(tgt.transform, actionIsRed, "test");
+		ActionResult.Create(tgt.transform, actionIsRed, text);
 
 		// Lunge unit back towards starting location
 		lungeTime = GC_ACTION_SECONDS * 0.75f;
@@ -1171,7 +1167,12 @@ public class GameController : ParentController {
 
 			// Animate acting upon the target
 			_actionStillAnimating = true;
-			StartCoroutine(AnimateAction(SelectedToken.CurrentUnit, tgtUnit, response));
+			int dmg = Parse.Int(targetDict["HP"]) - Parse.Int(targetDict["NewHP"]);
+			if(targetIsAlly){
+				dmg *= -1;
+			}
+			string text = (Parse.Bool(unitDict["Miss"]))? "Miss!": dmg.ToString();
+			StartCoroutine(AnimateAction(SelectedToken.CurrentUnit, tgtUnit, text));
 			while(_actionStillAnimating){
 				yield return new WaitForEndOfFrame();
 			}
@@ -1187,7 +1188,9 @@ public class GameController : ParentController {
 			bool countered = Parse.Bool(targetDict["Counter"]);
 			if(countered){
 				_actionStillAnimating = true;
-				StartCoroutine(AnimateAction(tgtUnit, SelectedToken.CurrentUnit, response));
+				dmg = Parse.Int(unitDict["HP"]) - Parse.Int(unitDict["NewHP"]);
+				text = (Parse.Bool(targetDict["Miss"]))? "Miss!": dmg.ToString();
+				StartCoroutine(AnimateAction(tgtUnit, SelectedToken.CurrentUnit, text));
 				while(_actionStillAnimating){
 					yield return new WaitForEndOfFrame();
 				}
