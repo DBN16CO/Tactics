@@ -15,6 +15,7 @@ public class Unit {
 	private int 	_id;
 	private string 	_unitName;
 	private int 	_hp;
+	private int     _maxHp;
 	private int 	_x;
 	private int 	_y;
 	private bool 	_acted;
@@ -24,6 +25,9 @@ public class Unit {
 
 	private GameObject _unitObject;
 	private Transform  _transform;
+	private GameObject _maxHpBar;
+	private GameObject _currHpBar;
+	private const float U_DEF_HP_SCALE = 0.8f;
 
 #region Setters and Getters
 	public int ID {
@@ -62,6 +66,7 @@ public class Unit {
 		_id 		= id;
 		_unitName 	= unitName;
 		_hp 		= GameData.GetUnit(_unitName).GetStat("HP").Value;
+		_maxHp 		= GameData.GetUnit(_unitName).GetStat("HP").Value;
 		_x 			= x;
 		_y 			= y;
 		_acted 		= false;
@@ -77,6 +82,7 @@ public class Unit {
 		_id 		= Parse.Int(unit["ID"]);
 		_unitName 	= Parse.String(unit["Name"]);
 		_hp 		= Parse.Int(unit["HP"]);
+		_maxHp 		= GameData.GetUnit(_unitName).GetStat("HP").Value;
 		_x 			= Parse.Int(unit["X"]);
 		_y 			= Parse.Int(unit["Y"]);
 		_acted  	= Parse.Bool(unit["Acted"]);
@@ -97,6 +103,12 @@ public class Unit {
 		_unitObject.gameObject.name = _unitName + "_" + _id;
 
 		_transform = _unitObject.transform;
+		_maxHpBar  = _transform.GetChild(0).gameObject;
+		_currHpBar = _transform.GetChild(1).gameObject;
+		if(!_myTeam){
+			_currHpBar.GetComponent<SpriteRenderer>().color = Color.red;
+		}
+		ResizeHpBar();
 	}
 
 	// Called from the clicked token - deselect if already selected
@@ -126,11 +138,13 @@ public class Unit {
 		_hp = (newHP == -1)? _hp : newHP;
 		_x 	= (newX == -1)?  _x  : newX;
 		_y 	= (newY == -1)?  _y  : newY;
+
+		ResizeHpBar();
 	}
 
-	public void ConfirmMove() {
-		_x = GameController.IntendedMove.X;
-		_y = GameController.IntendedMove.Y;
+	public void ConfirmMove(Token t) {
+		_x = t.X;
+		_y = t.Y;
 		_acted = true;
 		_selected = false;
 
@@ -166,6 +180,21 @@ public class Unit {
 	// Sets whether the unit has acted this turn yet
 	public void SetActed(bool acted) {
 		_acted = acted;
+	}
+
+	private void ResizeHpBar(){
+		if(_hp == _maxHp){
+			_maxHpBar.SetActive(false);
+			_currHpBar.SetActive(false);
+		}
+		else{
+			_maxHpBar.SetActive(true);
+			_currHpBar.SetActive(true);
+		}
+
+		Vector3 scale = _currHpBar.transform.localScale;
+		scale.x = (float)_hp / (float)_maxHp;
+		_currHpBar.transform.localScale = scale;
 	}
 
 }
