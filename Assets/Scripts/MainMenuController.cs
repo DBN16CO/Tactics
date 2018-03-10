@@ -25,7 +25,7 @@ public class MainMenuController : ParentController {
 	// Initiate variables and load active games
 	void Start () {
 		Firebase.Messaging.FirebaseMessaging.TokenReceived += OnTokenReceived;
-	//	Firebase.Messaging.FirebaseMessaging.MessageReceived += OnMessageReceived;
+		Firebase.Messaging.FirebaseMessaging.MessageReceived += OnMessageReceived;
 
 		MOVE_BUTTON_DISTANCE = Screen.height;
 		_startRankedGame = GameObject.Find("RankedGameTab").transform.Find("Battle").gameObject.GetComponent<Button>();
