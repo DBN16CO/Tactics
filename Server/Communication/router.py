@@ -170,6 +170,12 @@ def processRequest(message):
 			dbUser = Users.objects.filter(username=user).first()
 			dbUser.token = None
 			dbUser.channel = None
+
+			device = dbUser.device
+			if device is not None:
+				device.delete()
+
+			dbUser.device = None
 			dbUser.save()
 			response = {"Success": True}
 		except Exception, e:
