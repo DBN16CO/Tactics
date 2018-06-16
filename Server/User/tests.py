@@ -188,6 +188,7 @@ class TestLoginLogout(CommonTestHelper):
 		user = Users.objects.get(username=self.credentials["username"])
 		self.assertTrue(user.token == None)
 		self.assertTrue(user.channel == None)
+		self.assertTrue(user.device == None)
 
 		self.helper_execute_failure(self.pa, "User is not authenticated, please login.")
 
@@ -264,6 +265,17 @@ class TestLoginLogout(CommonTestHelper):
 		result = json.loads(self.testHelper.receive())
 
 		self.assertEquals(FCMDevice.objects.count(), 1)
+
+		# Verify logout removes the saved device
+		self.helper_execute_success(self.logout)
+
+		user.refresh_from_db()
+
+		self.assertTrue(user.token == None)
+		self.assertTrue(user.channel == None)
+		self.assertTrue(user.device == None)
+
+		self.assertEquals(FCMDevice.objects.count(), 0)
 
 	def test_lo_09_send_user_info_invalid_data(self):
 		result = self.testHelper.login({"username": self.credentials["username"],
