@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: redis
-          image: kubernetes/redis:v1
+          image: armhf/redis:3.2
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 6379
