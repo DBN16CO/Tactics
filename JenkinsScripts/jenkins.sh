@@ -32,7 +32,7 @@ if ! [ -x "$(command -v kubectl)" ]; then
   	sudo apt-get install -qy kubectl
 fi
 
-sudo apt-get install -y libpq-dev build-essential openssl-dev
+sudo apt-get update -q && sudo apt-get install -y libpq-dev build-essential openssl-dev
 
 virtualenv ./env
 source ./env/bin/activate
