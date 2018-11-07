@@ -102,3 +102,17 @@ echo "---------------------------------------"
 rm -f ./Server/Server/localsettings.py
 rm -f ./Server/Server/localsettings.pyc
 echo ""
+
+echo "---------------------------------------"
+echo "        BUILDING DOCKER IMAGE          "
+echo "---------------------------------------"
+
+sudo docker build -t tactics:latest .
+sudo docker tag tactics:latest localhost:5000/tactics
+
+echo "---------------------------------------"
+echo "        PUSHING DOCKER IMAGE           "
+echo "---------------------------------------"
+
+sudo docker push localhost:5000/tactics
+sudo docker rmi tactics:latest
