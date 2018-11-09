@@ -124,12 +124,14 @@ echo "---------------------------------------"
 echo "        MIGRATING POSTGRES DB          "
 echo "---------------------------------------"
 
+pushd ./Server
 python manage.py migrate
+popd
 
 echo "---------------------------------------"
 echo "      DEPLOYING CENTRAL CONTROL        "
 echo "---------------------------------------"
 
-sed -i "s/{{ BUILD_NUMBER }}/${BUILD_NUMBER}/g" deploy.yml
-kubectl apply -f deploy.yml
+sed -i "s/{{ BUILD_NUMBER }}/${BUILD_NUMBER}/g" ./JenkinsScripts/deploy.yml
+kubectl apply -f ./JenkinsScripts/deploy.yml
 kubectl -n tactics rollout status deploy/tactics
