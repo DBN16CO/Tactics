@@ -30,7 +30,7 @@ CELERYD_HIJACK_ROOT_LOGGER = True
 SECRET_KEY = '#wqr!(awm4844k^p9@3xhiqt(8t5nt%1u6^g(t_85_ix#iu*s^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
