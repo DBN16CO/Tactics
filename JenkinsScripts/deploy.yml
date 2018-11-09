@@ -54,7 +54,7 @@ metadata:
     app: tactics
 spec:
   selector:
-    app: tacitcs
+    app: tactics
   ports:
   - name: web
     port: 8000
