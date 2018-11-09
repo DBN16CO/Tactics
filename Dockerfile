@@ -21,4 +21,4 @@ COPY ./Server/manage.py ./manage.py
 
 EXPOSE 8000
 ENV PYTHONPATH "${PYTHONPATH}:/opt/dbn/tactics"
-CMD ["python", "manage.py", "runserver"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
