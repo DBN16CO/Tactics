@@ -5,7 +5,7 @@ WORKDIR /opt/dbn/tactics
 
 RUN apk update && \
     apk add --virtual build-deps gcc python-dev musl-dev && \
-    apk add postgresql-dev
+    apk add postgresql-dev libffi-dev
 
 COPY ./Server/requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
