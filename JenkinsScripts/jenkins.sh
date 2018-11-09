@@ -119,3 +119,17 @@ echo "---------------------------------------"
 
 sudo docker push localhost:5000/tactics
 sudo docker rmi tactics:latest
+
+echo "---------------------------------------"
+echo "        MIGRATING POSTGRES DB          "
+echo "---------------------------------------"
+
+python manage.py migrate
+
+echo "---------------------------------------"
+echo "      DEPLOYING CENTRAL CONTROL        "
+echo "---------------------------------------"
+
+sed -i "s/{{ BUILD_NUMBER }}/${BUILD_NUMBER}/g" deploy.yml
+kubectl apply -f deploy.yml
+kubectl -n tactics rollout status deploy/tactics

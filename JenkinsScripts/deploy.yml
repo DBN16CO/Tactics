@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tactics
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tactics
+  namespace: tactics
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tactics
+  template:
+    metadata:
+      labels:
+        app: tactics
+        buildNumber: "{{ BUILD_NUMBER }}"
+    spec:
+      containers:
+      - name: tactics
+        image: localhost:5000/tactics
+        stdin: true
+        tty: true
+        env:
+        - name: POSTGRES_URL
+          valueFrom:
+            secretKeyRef:
+              name: floating-bayou-pg
+              key: url
+        ports:
+        - containerPort: 8000
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "250Mi"
+          requests:
+            cpu: "150m"
+            memory: "150Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tactics-svc
+  namespace: tactics
+  labels:
+    app: tactics
+spec:
+  selector:
+    app: tacitcs
+  ports:
+  - name: web
+    port: 8000
+    protocol: TCP
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tactics-ingress
+  namespace: tactics
+spec:
+  rules:
+  - host: tactics.drewk.org
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: tactics-svc
+          servicePort: 8000
