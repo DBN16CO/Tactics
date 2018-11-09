@@ -39,6 +39,8 @@ source ./env/bin/activate
 
 pip install -r ./Server/requirements.txt
 
+: <<'END'
+
 kubectl apply -f ./JenkinsScripts/postgres.yml
 kubectl rollout status deploy/postgres
 
@@ -102,6 +104,7 @@ echo "---------------------------------------"
 rm -f ./Server/Server/localsettings.py
 rm -f ./Server/Server/localsettings.pyc
 echo ""
+END
 
 echo "---------------------------------------"
 echo "        BUILDING DOCKER IMAGE          "
