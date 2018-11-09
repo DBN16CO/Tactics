@@ -30,6 +30,11 @@ spec:
             secretKeyRef:
               name: floating-bayou-pg
               key: url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: floating-bayou-redis
+              key: url
         ports:
         - containerPort: 8000
         resources:
