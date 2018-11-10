@@ -59,6 +59,7 @@ echo "---------------------------------------"
 
 pushd ./Server
 python manage.py migrate
+python manage.py db_init 1.0
 popd
 
 echo "---------------------------------------"
