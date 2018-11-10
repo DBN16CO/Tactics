@@ -8,9 +8,9 @@ matrix:
       sudo: required
       env: TO_TEST=FRONTEND
       osx_image: xcode61
-      rvm: 2.1.2
 
 install:
+- if [ "$TO_TEST" = "BACKEND" ]; then mv ./TravisScripts/travis_db_settings.py ./Server/Server/localsettings.py; fi
 - if [ "$TO_TEST" = "BACKEND" ]; then docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"; fi
 - if [ "$TO_TEST" = "BACKEND" ]; then docker pull $DOCKER_USERNAME/tactics-server-tests:latest; fi
 - if [ "$TO_TEST" = "FRONTEND" ]; then ./TravisScripts/install.sh; fi
