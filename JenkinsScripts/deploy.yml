@@ -3,6 +3,24 @@ kind: Namespace
 metadata:
   name: tactics
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: floating-bayou-pg
+  namespace: tactics
+type: Opaque
+data:
+  url: "{{ POSTGRES_URL }}"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: floating-bayou-redis
+  namespace: tactics
+type: Opaque
+data:
+  url: "{{ REDIS_URL }}"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
