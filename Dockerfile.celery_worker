@@ -19,5 +19,8 @@ COPY ./Server/Static ./Static
 COPY ./Server/User ./User
 COPY ./Server/manage.py ./manage.py
 
+RUN useradd worker
+USER worker
+
 ENV PYTHONPATH "${PYTHONPATH}:/opt/dbn/tactics"
 CMD ["celery", "worker"]
