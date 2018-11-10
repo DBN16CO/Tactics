@@ -24,22 +24,22 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tactics
+  name: tactics-server
   namespace: tactics
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: tactics
+      app: tactics-server
   template:
     metadata:
       labels:
-        app: tactics
+        app: tactics-server
         buildNumber: "{{ BUILD_NUMBER }}"
     spec:
       containers:
-      - name: tactics
-        image: localhost:5000/tactics
+      - name: tactics-server
+        image: localhost:5000/tactics-server
         stdin: true
         tty: true
         env:
@@ -63,16 +63,96 @@ spec:
             cpu: "150m"
             memory: "150Mi"
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tactics-scheduler
+  namespace: tactics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tactics-scheduler
+  template:
+    metadata:
+      labels:
+        app: tactics-scheduler
+        buildNumber: "{{ BUILD_NUMBER }}"
+    spec:
+      containers:
+      - name: tactics-scheduler
+        image: localhost:5000/tactics-scheduler
+        stdin: true
+        tty: true
+        env:
+        - name: POSTGRES_URL
+          valueFrom:
+            secretKeyRef:
+              name: floating-bayou-pg
+              key: url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: floating-bayou-redis
+              key: url
+        resources:
+          limits:
+            cpu: "150m"
+            memory: "150Mi"
+          requests:
+            cpu: "100m"
+            memory: "100Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tactics-worker
+  namespace: tactics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tactics-worker
+  template:
+    metadata:
+      labels:
+        app: tactics-worker
+        buildNumber: "{{ BUILD_NUMBER }}"
+    spec:
+      containers:
+      - name: tactics-worker
+        image: localhost:5000/tactics-worker
+        stdin: true
+        tty: true
+        env:
+        - name: POSTGRES_URL
+          valueFrom:
+            secretKeyRef:
+              name: floating-bayou-pg
+              key: url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: floating-bayou-redis
+              key: url
+        resources:
+          limits:
+            cpu: "150m"
+            memory: "150Mi"
+          requests:
+            cpu: "100m"
+            memory: "100Mi"
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: tactics-svc
   namespace: tactics
   labels:
-    app: tactics
+    app: tactics-server
 spec:
   selector:
-    app: tactics
+    app: tactics-server
   ports:
   - name: web
     port: 8000

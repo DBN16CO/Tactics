@@ -40,18 +40,30 @@ source ./env/bin/activate
 pip install -r ./Server/requirements.txt
 
 echo "---------------------------------------"
-echo "        BUILDING DOCKER IMAGE          "
+echo "       BUILDING DOCKER IMAGES          "
 echo "---------------------------------------"
 
-sudo docker build -t tactics:latest .
-sudo docker tag tactics:latest localhost:5000/tactics
+sudo docker build -t tactics-server:latest . -f Dockerfile.server
+sudo docker tag tactics-server:latest localhost:5000/tactics-server
+
+sudo docker build -t tactics-scheduler:latest . -f Dockerfile.celery_scheduler
+sudo docker tag tactics-scheduler:latest localhost:5000/tactics-scheduler
+
+sudo docker build -t tactics-worker:latest . -f Dockerfile.celery_worker
+sudo docker tag tactics-worker:latest localhost:5000/tactics-worker
 
 echo "---------------------------------------"
 echo "        PUSHING DOCKER IMAGE           "
 echo "---------------------------------------"
 
-sudo docker push localhost:5000/tactics
-sudo docker rmi tactics:latest
+sudo docker push localhost:5000/tactics-server
+sudo docker rmi tactics-server:latest
+
+sudo docker push localhost:5000/tactics-scheduler
+sudo docker rmi tactics-scheduler:latest
+
+sudo docker push localhost:5000/tactics-worker
+sudo docker rmi tactics-worker:latest
 
 echo "---------------------------------------"
 echo "        MIGRATING POSTGRES DB          "
