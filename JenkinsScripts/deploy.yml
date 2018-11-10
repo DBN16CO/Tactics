@@ -27,7 +27,7 @@ metadata:
   name: tactics-server
   namespace: tactics
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: tactics-server
