@@ -65,8 +65,10 @@ echo "---------------------------------------"
 echo "      DEPLOYING CENTRAL CONTROL        "
 echo "---------------------------------------"
 
+ENCODED_PG_URL=`echo -n "${POSTGRES_URL}" | base64 -w 0`
+ENCODED_REDIS_URL=`echo -n "${REDIS_URL}" | base64 -w 0`
 sed -i "s/{{ BUILD_NUMBER }}/${BUILD_NUMBER}/g" ./JenkinsScripts/deploy.yml
-sed -i "s/{{ POSTGRES_URL }}/${POSTGRES_URL}/g" ./JenkinsScripts/deploy.yml
-sed -i "s/{{ REDIS_URL }}/${REDIS_URL}/g" ./JenkinsScripts/deploy.yml
+sed -i "s/{{ POSTGRES_URL }}/${ENCODED_PG_URL}/g" ./JenkinsScripts/deploy.yml
+sed -i "s/{{ REDIS_URL }}/${ENCODED_REDIS_URL}/g" ./JenkinsScripts/deploy.yml
 kubectl apply -f ./JenkinsScripts/deploy.yml
 kubectl -n tactics rollout status deploy/tactics
