@@ -20,4 +20,4 @@ COPY ./Server/User ./Server/User
 COPY ./Server/manage.py ./Server/manage.py
 
 ENV PYTHONPATH "${PYTHONPATH}:/opt/dbn/tactics"
-CMD ["celery", "-A Server", "worker", "-l info", "-S django"]
+CMD ["celery", "-A ./Server", "worker", "-l info", "-S django"]
