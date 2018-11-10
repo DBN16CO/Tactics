@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'Game',
     'Static',
     'User',
+    'Server',
     'django_nose',
     'django_celery_beat',
     'Admin',
