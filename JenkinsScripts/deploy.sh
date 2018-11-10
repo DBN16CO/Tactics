@@ -84,4 +84,6 @@ sed -i "s/{{ BUILD_NUMBER }}/${BUILD_NUMBER}/g" ./JenkinsScripts/deploy.yml
 sed -i "s/{{ POSTGRES_URL }}/${ENCODED_PG_URL}/g" ./JenkinsScripts/deploy.yml
 sed -i "s/{{ REDIS_URL }}/${ENCODED_REDIS_URL}/g" ./JenkinsScripts/deploy.yml
 kubectl apply -f ./JenkinsScripts/deploy.yml
-kubectl -n tactics rollout status deploy/tactics
+kubectl -n tactics rollout status deploy/tactics-server
+kubectl -n tactics rollout status deploy/tactics-scheduler
+kubectl -n tactics rollout status deploy/tactics-worker
