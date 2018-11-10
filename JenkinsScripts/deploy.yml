@@ -24,7 +24,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: fcm_server_key
+  name: fcm-server-key
   namespace: tactics
 type: Opaque
 data:
@@ -65,7 +65,7 @@ spec:
         - name: FCM_SERVER_KEY
           valueFrom:
             secretKeyRef:
-              name: fcm_server_key
+              name: fcm-server-key
               key: key
         ports:
         - containerPort: 8000
