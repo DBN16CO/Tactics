@@ -10,14 +10,14 @@ RUN apk update && \
 COPY ./Server/requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
-COPY ./Server/Admin ./Admin
-COPY ./Server/Communication ./Communication
-COPY ./Server/Game ./Game
-COPY ./Server/Maps ./Maps
-COPY ./Server/Server ./Server
-COPY ./Server/Static ./Static
-COPY ./Server/User ./User
-COPY ./Server/manage.py ./manage.py
+COPY ./Server/Admin ./Server/Admin
+COPY ./Server/Communication ./Server/Communication
+COPY ./Server/Game ./Server/Game
+COPY ./Server/Maps ./Server/Maps
+COPY ./Server/Server ./Server/Server
+COPY ./Server/Static ./Server/Static
+COPY ./Server/User ./Server/User
+COPY ./Server/manage.py ./Server/manage.py
 
 ENV PYTHONPATH "${PYTHONPATH}:/opt/dbn/tactics"
 CMD ["celery", "-A Server", "worker", "-l info", "-S django"]
