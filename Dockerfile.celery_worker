@@ -23,4 +23,4 @@ RUN adduser -D worker
 USER worker
 
 ENV PYTHONPATH "${PYTHONPATH}:/opt/dbn/tactics"
-CMD ["celery", "worker"]
+CMD ["celery", "worker", "-A Server", "--workdir /opt/dbn/tactics"]
