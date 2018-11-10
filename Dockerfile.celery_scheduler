@@ -20,5 +20,4 @@ COPY ./Server/User ./User
 COPY ./Server/manage.py ./manage.py
 
 ENV PYTHONPATH "${PYTHONPATH}:/opt/dbn/tactics"
-RUN "celery beat -A Server --workdir /opt/dbn/tactics -f ./beat.log"
-CMD ["tail", "-f ./beat.log"]
+CMD ["celery", "beat", "-A", "Server", "--workdir", "/opt/dbn/tactics"]
