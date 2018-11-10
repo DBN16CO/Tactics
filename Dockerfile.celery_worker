@@ -23,5 +23,5 @@ RUN adduser -D worker
 USER worker
 
 ENV PYTHONPATH "${PYTHONPATH}:/opt/dbn/tactics"
-RUN "cd /opt/dbn/tactics; celery worker -A Server --workdir /opt/dbn/tactics -f ./worker.log"
+RUN "cd /opt/dbn/tactics && celery worker -A Server --workdir /opt/dbn/tactics -f ./worker.log"
 CMD ["tail", "-f ./worker.log"]
