@@ -19,8 +19,5 @@ COPY ./Server/Static ./Static
 COPY ./Server/User ./User
 COPY ./Server/manage.py ./manage.py
 
-RUN adduser -D worker
-USER worker
-
 ENV PYTHONPATH "${PYTHONPATH}:/opt/dbn/tactics"
 CMD ["celery", "worker", "-A", "Server", "-S", "django"]
