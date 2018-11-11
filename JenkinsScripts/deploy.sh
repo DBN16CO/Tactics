@@ -78,9 +78,9 @@ echo "---------------------------------------"
 echo "           DEPLOYING TACTICS           "
 echo "---------------------------------------"
 
-ENCODED_PG_URL=`echo -n "${POSTGRES_URL}" | base64 -w 0`
-ENCODED_REDIS_URL=`echo -n "${REDIS_URL}" | base64 -w 0`
-ENCODED_FCM_SERVER_KEY=`echo -n "${FCM_SERVER_KEY}" | base64 -w 0`
+ENCODED_PG_URL=$(echo -n "${POSTGRES_URL}" | base64 -w 0)
+ENCODED_REDIS_URL=$(echo -n "${REDIS_URL}" | base64 -w 0)
+ENCODED_FCM_SERVER_KEY=$(echo -n "${FCM_SERVER_KEY}" | base64 -w 0)
 sed -i "s/{{ BUILD_NUMBER }}/${BUILD_NUMBER}/g" ./JenkinsScripts/deploy.yml
 sed -i "s/{{ POSTGRES_URL }}/${ENCODED_PG_URL}/g" ./JenkinsScripts/deploy.yml
 sed -i "s/{{ REDIS_URL }}/${ENCODED_REDIS_URL}/g" ./JenkinsScripts/deploy.yml

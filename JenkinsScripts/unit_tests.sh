@@ -45,7 +45,7 @@ kubectl rollout status deploy/postgres
 echo "Waiting for postgres to start"
 sleep 15
 
-PG_IP=`kubectl get svc --namespace jenkins postgres -o jsonpath="{.spec.clusterIP}"`
+PG_IP=$(kubectl get svc --namespace jenkins postgres -o jsonpath="{.spec.clusterIP}")
 
 kubectl apply -f ./JenkinsScripts/redis.yml
 kubectl rollout status deploy/redis
@@ -53,7 +53,7 @@ kubectl rollout status deploy/redis
 echo "Waiting for redis to start"
 sleep 15
 
-REDIS_IP=`kubectl get svc --namespace jenkins redis -o jsonpath="{.spec.clusterIP}"`
+REDIS_IP=$(kubectl get svc --namespace jenkins redis -o jsonpath="{.spec.clusterIP}")
 
 echo "Deployed Postgres with ip $PG_IP"
 echo "Deployed Redis with ip $REDIS_IP"
