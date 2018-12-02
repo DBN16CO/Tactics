@@ -16,12 +16,14 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # CELERY STUFF
-BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
+CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERYD_HIJACK_ROOT_LOGGER = True
+BROKER_POOL_LIMIT = 0
+REDIS_MAX_CONNECTIONS = 6
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -30,7 +32,7 @@ CELERYD_HIJACK_ROOT_LOGGER = True
 SECRET_KEY = '#wqr!(awm4844k^p9@3xhiqt(8t5nt%1u6^g(t_85_ix#iu*s^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -56,6 +58,7 @@ INSTALLED_APPS = [
     'Game',
     'Static',
     'User',
+    'Server',
     'django_nose',
     'django_celery_beat',
     'Admin',
@@ -82,7 +85,7 @@ CHANNEL_LAYERS = {
         #'BACKEND': 'asgiref.inmemory.ChannelLayer',
         "BACKEND": "asgi_redis.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("localhost", 6379)],
+            "hosts": [os.getenv('REDIS_URL', '') if os.getenv('REDIS_URL', None) else ("localhost", 6379)],
         },
         'ROUTING': 'Server.router.channel_routing',
     },
@@ -122,17 +125,23 @@ WSGI_APPLICATION = 'Server.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'tactics',
-        'USER': 'postgres',
-        'PASSWORD': 'abc12345',
-        'HOST': 'localhost',
-        'PORT': '',
+DATABASES = {}
+try:
+    import dj_database_url
+    DATABASES['default'] =  dj_database_url.parse(os.environ['POSTGRES_URL'])
+    if 'ENGINE' not in DATABASES['default']:
+        raise Exception("Unable to find Database connection info from environment")
+except Exception:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
 
+FCM_DJANGO_SETTINGS = {
+        "FCM_SERVER_KEY": os.getenv("FCM_SERVER_KEY", "")
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators

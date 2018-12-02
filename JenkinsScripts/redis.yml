@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: jenkins
+  labels:
+    app: redis
+data:
+  maxmemory: "2mb"
+  maxmemory-policy: "allkeys-lru"
+  master: "true"
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: jenkins
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: armhf/redis:3.2
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 6379
+          envFrom:
+            - configMapRef:
+                name: redis-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: jenkins
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  ports:
+   - port: 6379
+  selector:
+   app: redis

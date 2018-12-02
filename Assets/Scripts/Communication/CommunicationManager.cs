@@ -25,7 +25,7 @@ public class CommunicationManager
 	private static Dictionary<string, ParentController> requestToPc;
 	private static Dictionary<string, Dictionary<string, object>> responseDict;
 
-	private static string url = "ws://tactics-dev.ddns.net:8443";
+	private static string url = "wss://tactics.drewk.org";
 	//private static string url = "ws://localhost:8000";
 	//private static string url = ""ws://tactics-production.herokuapp.com/""
 
