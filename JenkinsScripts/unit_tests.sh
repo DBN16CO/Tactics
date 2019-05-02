@@ -7,18 +7,18 @@ echo "     SETTING UP TEST ENVIRONMENT       "
 echo "---------------------------------------"
 
 if ! [ -x "$(command -v python)" ]; then
-	sudo apt-get update
-	sudo apt-get install -y python-dev
+	apt-get update
+	apt-get install -y python-dev
 fi
 
 if ! [ -x "$(command -v pip)" ]; then
-	sudo apt-get update
+	apt-get update
 	curl -O https://bootstrap.pypa.io/get-pip.py
-    sudo python get-pip.py
+    python get-pip.py
 fi
 
 if ! [ -x "$(command -v virtualenv)" ]; then
-	sudo pip install virtualenv
+	pip install virtualenv
 fi
 
 if ! [ -x "$(command -v docker)" ]; then
@@ -26,13 +26,13 @@ if ! [ -x "$(command -v docker)" ]; then
 fi
 
 if ! [ -x "$(command -v kubectl)" ]; then
-	curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-  	echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-  	sudo apt-get update -q
-  	sudo apt-get install -qy kubectl
+	curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+  	echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+  	apt-get update -q
+  	apt-get install -qy kubectl
 fi
 
-sudo apt-get install -y libpq-dev build-essential libssl-dev libffi6 libffi-dev
+apt-get install -y libpq-dev build-essential libssl-dev libffi6 libffi-dev python-dev
 
 virtualenv ./env
 source ./env/bin/activate
@@ -40,7 +40,7 @@ source ./env/bin/activate
 pip install -r ./Server/requirements.txt
 
 kubectl apply -f ./JenkinsScripts/postgres.yml
-kubectl rollout status deploy/postgres
+kubectl --namespace jenkins rollout status deploy/postgres
 
 echo "Waiting for postgres to start"
 sleep 15
@@ -48,7 +48,7 @@ sleep 15
 PG_IP=$(kubectl get svc --namespace jenkins postgres -o jsonpath="{.spec.clusterIP}")
 
 kubectl apply -f ./JenkinsScripts/redis.yml
-kubectl rollout status deploy/redis
+kubectl --namespace jenkins rollout status deploy/redis
 
 echo "Waiting for redis to start"
 sleep 15
